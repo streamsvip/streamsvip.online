@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StreamsVip</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="inicio">
+
+    <div class="card">
+        <img src="img/logo.jpg" class="logo">
+
+        <h1>StreamsVip</h1>
+
+        <p class="sub">
+            Acceso seguro a plataformas premium de entretenimiento
+        </p>
+
+        <div class="beneficios">
+            <p>🎬 Acceso inmediato a plataformas premium</p>
+            <p>🔒 Cuentas seguras y verificadas</p>
+            <p>⚡ Activación rápida después del pago</p>
+        </div>
+
+        <input type="text" id="nombre" placeholder="Ingresa tu nombre" 
+        oninput="this.value=this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ ]/g,'')">
+
+        <button class="btnTerminos" onclick="abrirTerminos()">
+            Leer términos y condiciones
+        </button>
+
+        <label class="check">
+            <input type="checkbox" id="terminos" disabled>
+            <span>Acepto los términos y condiciones</span>
+        </label>
+
+        <button class="btnEntrar" onclick="entrar()">
+            Entrar a la tienda
+        </button>
+    </div>
+
+
+    <!-- CONTADORES BIENVENIDA PROFESIONAL -->
+
+    <div class="estadisticas-top">
+
+        <div class="estadistica-item">
+            <span class="icon">🔥</span>
+            <span class="texto">
+                <span id="clientesHoy">2</span> COMPRAS RECIENTES
+            </span>
+        </div>
+
+        <div class="estadistica-item">
+            <span class="icon">👁</span>
+            <span class="texto">
+                <span id="onlineAhora">0</span> ONLINE
+            </span>
+        </div>
+
+    </div>
+
+</div>
+
+
+<div id="modalTerminos" class="modal">
+
+    <div class="modal-content">
+
+        <h2>Términos y condiciones</h2>
+
+        <p>
+            Los accesos ofrecidos corresponden a cuentas compartidas de servicios de streaming.
+        </p>
+
+        <p>
+            No somos afiliados ni representantes oficiales de las plataformas.
+        </p>
+
+        <p>
+            El acceso es únicamente para uso personal y no comercial.
+        </p>
+
+        <p>
+            Si existe algún inconveniente, nuestro equipo brindará asistencia.
+        </p>
+
+        <p>
+            Reembolsos disponibles dentro de las primeras <b>24 horas</b>.
+        </p>
+
+        <p>
+            Los accesos pueden cambiar o actualizarse según políticas de la plataforma.
+        </p>
+
+        <p>
+            Al comprar, el cliente acepta estas condiciones.
+        </p>
+
+        <button class="btnAceptar" onclick="aceptarTerminos()">
+            He leído y acepto
+        </button>
+
+    </div>
+
+</div>
+
+<!-- Firebase -->
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script src="script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Admin</title>
+</head>
+
+<body>
+
+<h1>Pedidos</h1>
+
+<ul id="lista"></ul>
+
+<script>
+
+async function cargar(){
+
+const res=await fetch("/pedidos")
+
+const datos=await res.json()
+
+const lista=document.getElementById("lista")
+
+lista.innerHTML=""
+
+datos.forEach(p=>{
+
+const li=document.createElement("li")
+
+li.innerText=
+`${p.producto} - ${p.nombre} - ${p.transaccion}`
+
+lista.appendChild(li)
+
+})
+
+}
+
+setInterval(cargar,3000)
+
+cargar()
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Reseñas</title>
+<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+</head>
+
+<body>
+
+<!-- BOTON MENU (lo ocultamos porque el menú ya está siempre visible) -->
+<div class="menuIcon" onclick="toggleMenu()">☰</div>
+
+<!-- MENU -->
+<nav id="menuLateral" class="menuLateral">
+
+<div class="menuLogo">
+<img src="img/logo.jpg">
+</div>
+
+<a href="tienda.html"><span class="menu-emoji">🛍️</span> Tienda</a>
+<a href="como-comprar.html"><span class="menu-emoji">💳</span> Cómo comprar</a>
+<a href="reseñas.html" class="activo"><span class="menu-emoji">⭐</span> Reseñas</a>
+
+<a class="soporte"
+href="https://wa.me/51917107386?text=Hola%20necesito%20ayuda%20con%20mi%20compra%20en%20StreamsVip"
+target="_blank">
+
+<img src="img/wspp.png">
+
+<span class="tooltip">Soporte</span>
+
+</a>
+
+<!-- BOTÓN SALIR -->
+<a href="#" onclick="salir()" class="salir"><span class="menu-emoji">🔙</span> Salir</a>
+    <!-- Contenedor de Chat -->
+      <div class="chatcbox">
+    <iframe 
+        src="https://www3.cbox.ws/box/?boxid=3553105&boxtag=bZwmgx" 
+        allowtransparency="yes" 
+        allow="autoplay" 
+        frameborder="0" 
+        marginheight="0" 
+        marginwidth="0" 
+        scrolling="auto">
+    </iframe>
+</div>
+
+</div>
+</div>
+</nav>
+
+<h1>Reseñas de clientes</h1>
+
+<!-- Sección para dejar reseña (solo si compró algo) -->
+<div id="formResena" style="display: none; max-width: 500px; margin: 30px auto; background: #1c1c1c; padding: 25px; border-radius: 12px;">
+    <h2>Deja tu reseña</h2>
+    <p>Califica tu experiencia con <strong id="productoResena"></strong></p>
+
+    <!-- Estrellas interactivas -->
+    <div class="estrellas" style="font-size: 40px; margin: 20px 0;">
+        <span class="estrella" data-valor="1">☆</span>
+        <span class="estrella" data-valor="2">☆</span>
+        <span class="estrella" data-valor="3">☆</span>
+        <span class="estrella" data-valor="4">☆</span>
+        <span class="estrella" data-valor="5">☆</span>
+    </div>
+
+    <textarea id="comentarioResena" placeholder="Tu comentario (opcional)" rows="4" style="width: 100%; padding: 12px; border-radius: 8px; border: none; background: #222; color: white;"></textarea>
+
+    <button onclick="enviarResena()" style="background: #25D366; color: white; padding: 12px 30px; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer;">Enviar reseña</button>
+</div>
+
+<!-- Reseñas existentes -->
+<div id="reseñasContainer" style="max-width: 700px; margin: 40px auto; text-align: left;">
+    <!-- Aquí se cargan las reseñas dinámicamente -->
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="script.js"></script>
+
+<!-- TOAST DE GRACIAS -->
+<div id="toastGracias">¡Gracias por su visita! Vuelva pronto.</div>
+<script>
+
+/* BLOQUEAR CLICK DERECHO */
+document.addEventListener("contextmenu", function(e){
+e.preventDefault();
+});
+
+/* BLOQUEAR INSPECCIONAR */
+document.onkeydown = function(e){
+
+if(e.keyCode == 123){
+return false;
+}
+
+if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)){
+return false;
+}
+
+if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)){
+return false;
+}
+
+if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)){
+return false;
+}
+
+if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)){
+return false;
+}
+
+};
+
+/* BLOQUEAR SELECCION DE TEXTO */
+document.addEventListener("selectstart", function(e){
+e.preventDefault();
+});
+
+/* BLOQUEAR ARRASTRAR */
+document.addEventListener("dragstart", function(e){
+e.preventDefault();
+});
+
+</script>
+</body>
+</html>

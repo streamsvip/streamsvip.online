@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Cómo comprar</title>
+<link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<!-- MENU -->
+<div class="menuWrapper">
+  <div class="menuIcon" onclick="toggleMenu()">☰</div>
+  <nav id="menuLateral" class="menuLateral">
+      <div class="menuLogo">
+          <img src="img/logo.jpg" alt="Logo">
+      </div>
+
+      <a href="tienda.html"><span class="menu-emoji">🛍️</span> Tienda</a>
+      <a href="como-comprar.html" class="activo"><span class="menu-emoji">💳</span> Cómo comprar</a>
+      <a href="reseñas.html"><span class="menu-emoji">⭐</span> Reseñas</a>
+
+      <a class="soporte"
+         href="https://wa.me/51917107386?text=Hola%20necesito%20ayuda%20con%20mi%20compra%20en%20StreamsVip"
+         target="_blank">
+          <img src="img/wspp.png" alt="WhatsApp">
+          <span class="tooltip">Soporte</span>
+      </a>
+
+      <a href="#" onclick="salir()" class="salir"><span class="menu-emoji">🔙</span> Salir</a>
+
+      <!-- Chat -->
+      <div class="chatcbox">
+          <iframe 
+              src="https://www3.cbox.ws/box/?boxid=3553105&boxtag=bZwmgx" 
+              allowtransparency="yes" 
+              allow="autoplay" 
+              frameborder="0" 
+              marginheight="0" 
+              marginwidth="0" 
+              scrolling="auto">
+          </iframe>
+      </div>
+  </nav>
+</div>
+
+<!-- PAGINA -->
+<div class="pagina-como-comprar">
+
+  <!-- PASOS -->
+  <div class="pasos-container">
+
+    <!-- Paso 1 -->
+    <div class="paso">
+      <div class="paso-img">
+        <div class="carrusel-plataformas">
+          <div class="carrusel-track">
+            <img src="img/Netflix.jpg" alt="Netflix">
+            <img src="img/Hbomax.jpg" alt="HBO Max">
+            <img src="img/Paramount.jpg" alt="Paramount">
+            <img src="img/Spotify.jpg" alt="Spotify">
+            <img src="img/Disney.jpg" alt="Disney">
+            <img src="img/Primevideo.jpg" alt="Prime Video">
+            <!-- Repetir para scroll infinito -->
+            <img src="img/Netflix.jpg" alt="Netflix">
+            <img src="img/Hbomax.jpg" alt="HBO Max">
+            <img src="img/Paramount.jpg" alt="Paramount">
+            <img src="img/Spotify.jpg" alt="Spotify">
+            <img src="img/Disney.jpg" alt="Disney">
+            <img src="img/Primevideo.jpg" alt="Prime Video">
+          </div>
+        </div>
+      </div>
+      <div class="paso-texto">
+        <span class="numero">1️⃣</span>
+        <p>
+         ✅<strong>Selección de la plataforma de streaming perfecta para ti:</strong><br>
+
+<strong>Compatibilidad total con tus dispositivos</strong>: ya sea que veas en Smart TV, celular, 
+tablet, laptop, Chromecast, Fire TV, consolas o hasta en el proyector de casa… 
+funciona perfecto en todos. 
+Sin complicaciones técnicas, sin buffering eterno, sin dramas.<br>
+      </div>
+    </div>
+
+    <!-- Paso 2 -->
+    <div class="paso">
+      <div class="paso-img">
+        <img src="img/paso2.jpg" alt="Paso 2: Escaneo o pago">
+      </div>
+      <div class="paso-texto">
+        <span class="numero">2️⃣</span>
+        <p>
+          ✅<strong>Escaneo del código QR o pago digital:</strong><br>
+         Integridad y confidencialidad total: tus datos financieros están protegidos con 
+         la misma seguridad bancaria que usa Yape (encriptación BCP, sin que nosotros guardemos 
+         nada sensible). Nunca pedimos claves ni datos extras.
+Sin riesgos ni complicaciones: evita tarjetas de crédito, formularios eternos o esperas.
+ Solo escanea, confirma con tu clave Yape y listo. Ideal para cualquier hora, estés en casa, 
+ trabajo o en la calle.
+        </p>
+      </div>
+    </div>
+
+    <!-- Paso 3 -->
+    <div class="paso">
+      <div class="paso-img">
+        <img src="img/paso3.jpg" alt="Paso 3: Registro del comprobante">
+      </div>
+      <div class="paso-texto">
+        <span class="numero">3️⃣</span>
+        <p>
+          ✅<strong>Registro del comprobante de pago:</strong><br>
+          Una vez que hayas realizado el pago con Yape o QR, solo necesitas enviarnos los datos básicos del comprobante. Es un paso súper sencillo y rápido que nos permite confirmar la transacción de forma automática y segura, para que tu cuenta premium quede activa en minutos.
+¿Qué te pedimos exactamente?:
+Nombre de la persona que yapeó
+
+Captura de la transacción
+
+Número de operación o código de transacción (el que aparece en tu app de Yape o banca)
+      </div>
+    </div>
+
+    <!-- Paso 4 -->
+    <div class="paso">
+      <div class="paso-img">
+        <img src="img/paso4.jpg" alt="Paso 4: Recepción del acceso">
+      </div>
+      <div class="paso-texto">
+        <span class="numero">4️⃣</span>
+        <p>
+          <strong>Recepción y activación del acceso:</strong><br>
+          Tras la verificación del comprobante, recibirás las credenciales o enlaces de acceso.
+        </p>
+
+<ul class="lista-soporte">
+  <li class="soporte-wspp">
+    
+    <span class="texto">
+    <span class="icono">🟢</span>
+      <strong>Botón de soporte WhatsApp:</strong> Atención directa con asesor especializado, verfica comprobantes y acepta. 
+      <span class="horario">Lun-Vie 10:00-23:00, Sáb-Dom 11:00-17:00</span>
+    </span>
+  </li>
+  <li class="soporte-rojo">
+    
+    <span class="texto">
+    <span class="icono">🔴</span>
+      <strong>Botón de soporte tienda:</strong> Soporte vía AgenteIA, con escalamiento a administrador humano.
+      <span class="horario">Asistencia permanente 24/7 con intervención de administrador cuando se requiere.</span>
+    </span>
+  </li>
+</ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function toggleMenu() {
+  const menu = document.getElementById('menuLateral');
+  menu.classList.toggle('active');
+}
+
+function salir() {
+  window.location.href = 'index.html';
+}
+</script>
+
+<div id="toastGracias">¡Gracias por su visita! Vuelva pronto.</div>
+
+<script src="script.js"></script>
+<script>
+
+/* BLOQUEAR CLICK DERECHO */
+document.addEventListener("contextmenu", function(e){
+e.preventDefault();
+});
+
+/* BLOQUEAR INSPECCIONAR */
+document.onkeydown = function(e){
+
+if(e.keyCode == 123){
+return false;
+}
+
+if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)){
+return false;
+}
+
+if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)){
+return false;
+}
+
+if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)){
+return false;
+}
+
+if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)){
+return false;
+}
+
+};
+
+/* BLOQUEAR SELECCION DE TEXTO */
+document.addEventListener("selectstart", function(e){
+e.preventDefault();
+});
+
+/* BLOQUEAR ARRASTRAR */
+document.addEventListener("dragstart", function(e){
+e.preventDefault();
+});
+
+</script>
+
+</body>
+</html>

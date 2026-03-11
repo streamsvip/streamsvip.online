@@ -1,0 +1,1682 @@
+body {
+    font-family: Arial;
+    margin: 0;
+    padding: 0;
+    background: #111;
+    color: white;
+    text-align: center;
+}
+
+/* INICIO */
+.inicio {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(180deg, #0f0f0f, #1a1a1a);
+}
+
+.card {
+    background: #1c1c1c;
+    padding: 40px;
+    border-radius: 15px;
+    width: 350px;
+    box-shadow: 0 0 40px rgba(0,0,0,0.7);
+}
+
+.logo {
+    width: 120px;
+    margin-bottom: 20px;
+}
+
+.sub {
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+.beneficios {
+    font-size: 14px;
+    color: #bbb;
+    margin-bottom: 20px;
+}
+
+input {
+    display: block;
+    margin: 10px auto;
+    padding: 10px;
+    width: 250px;
+    border-radius: 5px;
+    border: none;
+}
+
+button {
+    background: red;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: scale(1.05);
+    background: #ff2a2a;
+}
+
+.btnTerminos {
+    background: #333;
+}
+
+.btnEntrar {
+    width: 100%;
+    margin-top: 15px;
+}
+
+.check {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    margin-top: 10px;
+    max-width: 100px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+}
+
+/* MODAL */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #1c1c1c;
+    padding: 30px;
+    border-radius: 10px;
+    max-width: 500px;
+}
+
+.btnAceptar {
+    background: #b6b4b4;
+    margin-top: 20px;
+}
+/* PRODUCTOS - actualizado para más profesionalismo */
+.productos {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin: 40px 20px;
+    padding: 0 10px;
+}
+
+.producto {
+    background: #1c1c1c;
+    border-radius: 12px;
+    overflow: hidden;
+    width: 220px;                /* ancho fijo para uniformidad */
+    min-height: 380px;           /* altura mínima para que todos queden iguales */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
+}
+
+.producto:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 25px rgba(255, 0, 0, 0.3);
+}
+
+.producto img {
+    width: 100%;
+    height: 180px;               /* altura fija → todas las imágenes iguales */
+    object-fit: contain;         /* o 'cover' si prefieres que llenen todo */
+    background: #000;
+    border-bottom: 2px solid #333;
+}
+
+.producto h2 {
+    font-size: 1rem;
+    margin: 12px 10px 6px;
+    color: #fff;
+}
+
+.producto .precio {
+    font-size: 1.5rem;           /* llamativo pero equilibrado (no tan grande como en la primera imagen) */
+    font-weight: bold;
+    color: #ff0000;              /* dorado/amarelo */
+    margin: 8px 0 12px;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.6);
+}
+
+.producto .viendo,
+.producto .compras {
+    font-size: 0.95rem;
+    color: #ccc;
+    margin: 6px 12px;
+    line-height: 1.4;
+}
+
+.producto button {
+    background: #e50914;
+    color: white;
+    border: none;
+    padding: 12px 0;
+    font-size: 1.05rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 15px 20px 20px;
+    border-radius: 8px;
+    transition: background 0.3s, transform 0.2s;
+}
+
+.producto button:hover {
+    background: #b20710;
+    transform: scale(1.05);
+}
+
+/* Mantener cursor de flecha normal en toda la tarjeta (no dar sensación de clickable) */
+.producto,
+.producto h2,
+.producto .precio,
+.producto .viendo,
+.producto .compras,
+.producto p,
+.producto span {
+    cursor: default !important;
+}
+
+/* SOLO el botón Comprar sí muestra mano (pointer) para indicar que es clickable */
+.producto button {
+    cursor: pointer !important;
+}
+
+/* Opcional: si el botón tiene iconos o spans dentro, también pointer */
+.producto button * {
+    cursor: pointer !important;
+}
+
+/* QR CONTENEDOR */
+/* Contenedor QR */
+.qrContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #2a2a2a; /* Gris oscuro */
+    border-radius: 16px;
+    box-shadow: inset 0 0 8px rgba(255,255,255,0.05);
+    width: 100%;        /* Ocupa todo el ancho del contenedor principal */
+    max-width: 280px;   /* Mantiene proporción */
+    margin: 0 auto;     /* Centrado horizontal */
+    padding: 0;         /* Sin padding para que la imagen ocupe todo */
+    overflow: hidden;   /* Evita bordes vacíos alrededor de la imagen */
+}
+
+/* Imagen QR ocupa todo el contenedor */
+.qr {
+    display: block;
+    width: 100%;        /* Ocupa todo el ancho del contenedor */
+    border-radius: 0;   /* Bordes alineados al contenedor */
+    box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+    object-fit: cover;  /* La imagen llena todo el contenedor */
+}
+
+/* Número y botones */
+.yapeBox {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.yapeNumero {
+    font-size: 20px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.btnCopiar {
+    background: #ff2a2a;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btnCopiar:hover {
+    background: #e60000;
+}
+
+/* Texto de atención */
+.qrAtencion {
+    font-size: 14px;
+    color: #ccc;
+    margin: 10px 0;
+    text-align: center;
+}
+
+/* Contenedor principal */
+.pantallaQR {
+    display: none;
+    margin: 40px auto;
+    background: linear-gradient(145deg, #2c2c2c, #1b1b1b);
+    padding: 30px 25px;
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.7), 0 0 10px rgba(100,0,255,0.2);
+    max-width: 380px;
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pantallaQR:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.8), 0 0 15px rgba(100,0,255,0.3);
+}
+
+/* Nombre arriba del QR */
+.qrNombre {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 18px;
+    cursor: default;
+    letter-spacing: 0.5px;
+}
+
+/* Contenedor QR */
+.qrContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    background: #2a2a2a;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: inset 0 0 8px rgba(255,255,255,0.05);
+}
+
+/* Imagen QR */
+.qr {
+    width: 240px;
+    border-radius: 14px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+}
+
+/* Número y botón debajo del QR */
+.yapeBox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.yapeNumero {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    cursor: default;
+}
+
+/* Botón copiar número */
+#btnCopiar {
+    background: #e50914;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+#btnCopiar:hover {
+    background: #ff1a25;
+    transform: scale(1.05);
+}
+
+/* Texto de atención */
+.qrAtencion {
+    color: #ccc;
+    font-size: 14px;
+    margin-top: 15px;
+}
+
+/* Botones principales debajo */
+.qrBtns {
+    margin-top: 22px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+/* Botón abrir Yape */
+.btnYape {
+    background: #322758; /* Morado Yape */
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btnYape:hover {
+    background:  #9117A0;
+    transform: scale(1.05);
+}
+
+/* Botón registrar pago */
+.qrBtns button:last-child {
+    background: #e50914;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.qrBtns button:last-child:hover {
+    background: #ff1a25;
+    transform: scale(1.05);
+}
+.formulario {
+    display: none;                   
+    max-width: 420px;                
+    margin: 50px auto;               
+    background: #1f1f1f;             
+    padding: 35px 30px;
+    border-radius: 14px;             
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    font-family: 'Arial', sans-serif;
+    text-align: left;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.formulario:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 35px rgba(0,0,0,0.7);
+}
+
+.formulario h2 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: #f5f5f5;
+    text-align: center;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e50914; /* línea fina roja sutil */
+    padding-bottom: 8px;
+}
+
+/* FORM */
+.formulario form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* INPUTS */
+.formulario input[type="text"],
+.formulario input[type="file"] {
+    padding: 12px 15px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background: #2a2a2a;
+    color: #f5f5f5;
+    outline: none;
+    transition: 0.3s;
+}
+
+.formulario input[type="text"]:focus,
+.formulario input[type="file"]:focus {
+    border-color: #e03232;           /* color sutil al enfocar */
+    box-shadow: 0 0 8px rgba(255,59,59,0.3);
+}
+
+/* BOTÓN DE ENVÍO */
+.formulario button[type="submit"] {
+    background: #e03232;             /* rojo elegante, no chillón */
+    color: #fff;
+    border: none;
+    padding: 12px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.formulario button[type="submit"]:hover {
+    background: #e50914 ;           
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255,59,59,0.4);
+}
+
+/* PLACEHOLDER */
+.formulario input::placeholder {
+    color: #ccc;
+    font-weight: 400;
+}
+
+/* FILE INPUT */
+.formulario input[type="file"] {
+    cursor: pointer;
+}
+
+/* OPCIONAL: iconos pequeños al lado de inputs */
+
+/* WHATSAPP - PULSO MÁS NOTORIO */
+.soporte {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 65px;
+    height: 65px;
+    background: transparent !important;
+    box-shadow: none !important;
+    cursor: pointer;
+    outline: none !important;
+    border: none !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: pulse 1.8s infinite ease-in-out;
+}
+
+.soporte:focus,
+.soporte:active,
+.soporte:hover {
+    outline: none !important;
+    border: none !important;
+}
+
+.soporte:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 30px rgba(37, 211, 102, 0.8);
+    animation: none;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 25px rgba(37, 211, 102, 0.0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.0);
+    }
+}
+
+.soporte img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+.soporte:hover img {
+    transform: scale(1.1);
+}
+
+/* TOOLTIP ARRIBA CENTRADO */
+.tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, bottom 0.3s ease;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #111;
+}
+
+.soporte:hover .tooltip {
+    opacity: 1;
+    bottom: 110%;
+}
+
+/* NOTIFICACION COMPRA MEJORADA */
+.notificacionCompra {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px); /* empezará un poco abajo */
+    background: linear-gradient(135deg, #ff0000, #ff4d4d);
+    color: white;
+    padding: 14px 22px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+    display: none;
+    font-size: 14px;
+    z-index: 20000; /* super alto para que quede encima de todo */
+    opacity: 0;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+/* cuando se muestre */
+.notificacionCompra.show {
+    display: block;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0); /* sube suavemente */
+}
+
+/* CONTADORES */
+.estadisticas {
+    position: absolute;
+    bottom: 30px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: #bbb;
+    font-size: 15px;
+    line-height: 26px;
+}
+
+.estadisticas span {
+    color: white;
+    font-weight: bold;
+}
+
+.viendo {
+    font-size: 13px;
+    color: #bbb;
+    margin: 8px 0;
+}
+
+.ventas {
+    font-size: 13px;
+    color: #bbb;
+    margin: 5px 0;
+}
+
+/* MENU - actualizado con fuente más atractiva */
+.menuIcon {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    font-size: 26px;
+    cursor: pointer;
+    z-index: 1000;
+    color: white;
+}
+
+.menuLateral {
+    position: fixed;
+    top: 0;
+    left: -230px;
+    width: 230px;
+    height: 100%;
+    background: #0f0f0f;
+    transition: 0.3s;
+    z-index: 999;
+    box-shadow: 5px 0 15px rgba(0,0,0,0.6);
+}
+
+.menuLogo {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #222;
+}
+
+.menuLogo img {
+    width: 100px;              /* un poco más grande si quieres */
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid #222;    /* borde más grueso para contraste */
+    box-shadow: 0 6px 15px rgba(0,0,0,0.7);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.menuLogo img:hover {
+    transform: scale(1.1);
+    border-color: #ff2a2a;
+}
+
+.menuLateral a {
+    display: flex;
+    align-items: center;
+    color: white;
+    text-decoration: none;
+    padding: 15px 20px;
+    border-bottom: 1px solid #1f1f1f;
+    font-size: 15px;
+    font-family: 'Segoe UI', 'Roboto', sans-serif; /* fuente más moderna y atractiva */
+    font-weight: 500; /* un toque más bold sin exagerar */
+    gap: 14px;
+}
+
+.menuLateral a:hover {
+    background: #1a1a1a;
+}
+
+.menuLateral a.activo {
+    background: red;
+}
+
+/* Menú siempre visible */
+.inicio {
+    padding-left: 0;
+}
+
+/* TOAST NOTIFICACIÓN */
+#toastGracias {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #25D366;
+    color: white;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.5s, transform 0.5s;
+    pointer-events: none;
+}
+
+#toastGracias.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-20px);
+}
+
+/* ESTRELLAS INTERACTIVAS */
+.estrellas {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.estrellas .estrella {
+    color: #444;
+    transition: color 0.2s;
+}
+
+.estrellas .estrella.activa,
+.estrellas .estrella:hover,
+.estrellas .estrella:hover ~ .estrella {
+    color: #ffd700;
+}
+
+/* RESEÑAS CARGADAS */
+.reseña-item {
+    background: #1c1c1c;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.reseña-item .estrellas-mostrar {
+    font-size: 20px;
+    color: #ffd700;
+    margin-bottom: 8px;
+}
+
+/* ──────────────────────────────────────────────── */
+/*           NUEVO: ESTILOS PARA EL SLIDER           */
+/* ──────────────────────────────────────────────── */
+
+.bannerFull {
+    position: relative;
+    width: calc(100% - 230px);
+    margin-left: 230px;
+    height: 45vh;
+    min-height: 300px;
+    max-height: 320px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 0;
+    overflow: hidden;
+    background: #000;
+}
+.productos{
+margin-left:210px;
+width:calc(100% - 230px);
+}
+
+.slides-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+.slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+    display: none;
+}
+
+.slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.slide.active {
+    opacity: 1;
+    display: block;
+}
+
+/* Flechas - CORRECCIÓN PRINCIPAL */
+.prev, .next {
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    color: white;
+    font-weight: bold;
+    font-size: 28px;
+    line-height: 50px;          /* centra el símbolo verticalmente */
+    text-align: center;
+    transition: 0.4s;
+    background: rgba(0,0,0,0.5);
+    border-radius: 50%;         /* flechas circulares (más modernas y visibles) */
+    user-select: none;
+    text-decoration: none;
+    z-index: 10;
+}
+
+/* Flecha izquierda: desplazada para que no se esconda detrás del menú de 230px */
+.prev {
+    left: 35px;                /* 230px del menú + 20px de margen para que se vea bien */
+}
+
+/* Flecha derecha: margen cómodo del borde derecho */
+.next {
+    right: 20px;
+}
+
+.prev:hover, .next:hover {
+    background: rgba(255, 0, 0, 0.8);
+    transform: translateY(-50%) scale(1.1);
+}
+
+/* Puntos (dots) */
+.dots {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+.dot {
+    cursor: pointer;
+    height: 12px;
+    width: 12px;
+    margin: 0 6px;
+    background-color: #bbb;
+    border-radius: 50%;
+    display: inline-block;
+    transition: background-color 0.6s ease;
+}
+
+.dot.active {
+    background-color: rgb(255, 255, 255);
+}
+.menu-emoji {
+    filter: grayscale(100%) brightness(2); /* desatura y aclara a blanco/gris */
+    -webkit-filter: grayscale(100%) brightness(2);
+}
+/* ===== MODAL COMPRA ===== */
+
+.modalCompra{
+
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.85);
+backdrop-filter:blur(6px);
+justify-content:center;
+align-items:center;
+z-index:9999;
+
+}
+
+.modalContenido{
+
+background:#1c1c1c;
+padding:30px;
+border-radius:14px;
+width:520px;
+max-width:90%;
+color:white;
+position:relative;
+box-shadow:0 0 25px rgba(0,0,0,0.7);
+
+}
+
+.cerrarModal{
+
+position:absolute;
+right:15px;
+top:10px;
+font-size:22px;
+cursor:pointer;
+
+}
+
+/* ========================= */
+/* MODAL PRODUCTO PROFESIONAL */
+/* ========================= */
+
+.modalProducto{
+display:flex;
+gap:30px;
+align-items:flex-start;
+}
+
+.modalProducto img{
+width:220px;
+border-radius:10px;
+}
+
+.modalInfo{
+flex:1;
+text-align:left;
+}
+
+.modalInfo h2{
+margin-bottom:10px;
+font-size:26px;
+}
+
+/* DESCRIPCIÓN */
+
+.descripcionProducto{
+margin-top:10px;
+padding:14px;
+background:#161616;
+border-radius:8px;
+border:1px solid #2a2a2a;
+cursor:default;
+}
+
+.descripcionProducto h3{
+font-size:15px;
+margin-bottom:6px;
+color:white;
+cursor:default;
+}
+
+.descripcionProducto p{
+font-size:13px;
+color:#ccc;
+line-height:1.5;
+cursor:default;
+}
+
+/* REGLAS */
+
+.reglasUso{
+margin-top:12px;
+padding:14px;
+background:#141414;
+border-radius:8px;
+border:1px solid #2a2a2a;
+cursor:default;
+}
+
+.reglasUso h3{
+font-size:15px;
+margin-bottom:6px;
+color:#ff4040;
+cursor:default;
+}
+
+.reglasUso ul{
+padding-left:18px;
+margin:0;
+}
+
+.reglasUso li{
+font-size:13px;
+color:#ccc;
+margin-bottom:4px;
+cursor:default;
+}
+
+/* BENEFICIOS */
+
+.garantiaBox{
+margin-top:12px;
+font-size:13px;
+color:#bbb;
+cursor:default;
+}
+
+.garantiaBox p{
+margin:4px 0;
+cursor:default;
+}
+
+/* CANTIDAD */
+
+.cantidadBox{
+display:flex;
+align-items:center;
+gap:10px;
+margin-top:12px;
+}
+
+.cantidadBox button{
+width:32px;
+height:32px;
+border:none;
+background:#222;
+color:white;
+font-size:18px;
+border-radius:6px;
+cursor:pointer;
+}
+
+.cantidadBox button:hover{
+background:#333;
+}
+
+#cantidadProducto{
+font-size:16px;
+min-width:20px;
+text-align:center;
+}
+
+/* TOTAL */
+
+.modalInfo h3{
+margin-top:12px;
+font-size:18px;
+}
+
+/* BOTÓN COMPRAR */
+
+.btnComprarAhora{
+background:#e50914;
+border:none;
+padding:12px 24px;
+color:white;
+font-size:16px;
+border-radius:8px;
+cursor:pointer;
+margin-top:12px;
+transition:0.25s;
+}
+
+.btnComprarAhora:hover{
+background:#ff1a25;
+transform:scale(1.05);
+}
+
+/* RESPONSIVE */
+
+@media(max-width:700px){
+
+.modalProducto{
+flex-direction:column;
+align-items:center;
+text-align:center;
+}
+
+.modalProducto img{
+width:180px;
+}
+
+.modalInfo{
+text-align:center;
+}
+
+.descripcionProducto,
+.reglasUso{
+text-align:left;
+}
+
+}
+
+.cantidadBox{
+
+display:flex;
+align-items:center;
+gap:15px;
+margin:20px 0;
+
+}
+
+.cantidadBox button{
+
+width:35px;
+height:35px;
+border:none;
+border-radius:6px;
+font-size:18px;
+cursor:pointer;
+background:#333;
+color:white;
+
+}
+
+#cantidadProducto{
+
+font-size:18px;
+min-width:20px;
+text-align:center;
+
+}
+
+.btnComprarAhora{
+
+background:#e50914;
+border:none;
+padding:12px 20px;
+color:white;
+font-size:16px;
+border-radius:8px;
+cursor:pointer;
+margin-top:10px;
+
+}
+
+.btnComprarAhora:hover{
+
+background:#ff1a25;
+border-color: #ff2a2a !important;
+}
+.inicio .logo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    display: block;
+    margin: 0 auto 20px;
+    transition: transform 0.3s ease, border-color 0.3s ease !important;
+}
+
+.inicio .logo:hover {
+    transform: scale(1.05) !important;
+    border-color: #ff2a2a !important;
+}
+/* ESTADÍSTICAS SUPERIORES PROFESIONAL */
+.estadisticas-top {
+    position: fixed;            /* siempre visible */
+    top: 20px;                  /* separacion desde arriba */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 25px;
+    background: rgba(28,28,28,0.85); /* semi-transparente y elegante */
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 15px;
+    color: white;
+    font-weight: 500;
+    z-index: 9999;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    text-align: center;
+    backdrop-filter: blur(4px); /* efecto moderno */
+}
+
+.estadisticas-top .estadistica-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.estadisticas-top .icon {
+    font-size: 18px;
+}
+
+.estadisticas-top .texto {
+    font-weight: bold;
+    color: #fff;
+}
+
+/* ============================= */
+/* MENU NORMAL PARA PC */
+/* ============================= */
+.menuLateral {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 230px;
+    height: 100vh;
+    background: #0b0b0b;
+    overflow-y: auto;
+    z-index: 9998;
+    transition: none; /* sin transición en PC */
+}
+
+.menuIcon {
+    display: none; /* icono oculto en PC */
+}
+
+/* ============================= */
+/* MENU HAMBURGUESA PARA CELULAR */
+/* ============================= */
+@media (max-width: 700px) {
+
+    /* icono hamburguesa visible solo en móvil */
+    .menuIcon {
+        display: block;
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        font-size: 28px;
+        background: #111;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        z-index: 10001;
+        cursor: pointer;
+    }
+
+    /* menú oculto por defecto en móvil */
+    .menuLateral {
+        left: -230px;
+        transition: left 0.3s ease;
+        height: 100vh;
+        overflow-y: auto;
+        box-shadow: 5px 0 15px rgba(0,0,0,0.6);
+    }
+
+    /* menú abierto cuando se agrega la clase 'activo' */
+    .menuLateral.activo {
+        left: 0;
+    }
+
+    /* ajustar el contenido principal al cerrar menú */
+    .productos,
+    .bannerFull {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+}
+/* Contenedor principal del chat */
+.chatcbox {
+    flex: 1;
+    min-width: 200px;
+    max-width: 400px;
+    margin: 10px auto 0 auto; /* menos margen superior para subir el chat */
+    height: 550px;             /* un poco menos para que no genere scroll */
+    transition: height 0.3s ease;
+}
+
+/* Iframe ocupa todo el contenedor */
+.chatcbox iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Tablets */
+@media screen and (max-width: 1024px) {
+    .chatcbox {
+        height: 500px;
+        margin: 10px auto 0 auto; /* mismo ajuste */
+    }
+}
+
+/* Móviles */
+@media screen and (max-width: 767px) {
+    .chatcbox {
+        width: 95%;
+        height: 450px;
+        margin: 5px auto 0 auto;
+    }
+}
+/* ====== ESTILOS SOLO PARA "CÓMO COMPRAR" ====== */
+.pagina-como-comprar {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #111;
+    color: #fff;
+}
+
+/* PASOS */
+.pagina-como-comprar .pasos-container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.pagina-como-comprar .paso {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Imagenes de paso */
+.pagina-como-comprar .paso-img {
+    flex: 1 1 300px;
+    max-width: 350px;
+}
+
+.pagina-como-comprar .paso-img img {
+    width: 100%;
+    height: 200px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.pagina-como-comprar .paso-texto {
+    flex: 2 1 400px;
+}
+
+.pagina-como-comprar .paso-texto .numero {
+    font-size: 2rem;
+    margin-right: 10px;
+}
+
+.pagina-como-comprar .paso-texto p {
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.pagina-como-comprar .paso-texto ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+/* ====== CARRUSEL PLATAFORMAS (Paso 1) ====== */
+.pagina-como-comprar .carrusel-plataformas {
+    overflow: hidden;
+    width: 100%;
+    border-radius: 12px;
+    padding: 10px 0;
+    background: #111;
+}
+
+.pagina-como-comprar .carrusel-track {
+    display: flex;
+    width: calc(150px * 12);
+    animation: scrollPlataformas 20s linear infinite;
+}
+
+.pagina-como-comprar .carrusel-track img {
+    width: 100px;
+    height: 100px;
+    margin: 0 15px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: transform 0.3s;
+}
+
+.pagina-como-comprar .carrusel-track img:hover {
+    transform: scale(1.1);
+}
+
+@keyframes scrollPlataformas {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* ====== CHAT ====== */
+.pagina-como-comprar .chatcbox {
+    flex: 1;
+    min-width: 200px;
+    max-width: 400px;
+    margin: 20px auto;
+    height: 590px;
+    transition: height 0.3s ease;
+}
+
+.pagina-como-comprar .chatcbox iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.pagina-como-comprar {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #111;
+    color: #fff;
+}
+
+/* PASOS */
+.pagina-como-comprar .pasos-container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+/* Cada paso */
+.pagina-como-comprar .paso {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Imagen del paso */
+.pagina-como-comprar .paso-img {
+    flex: 1 1 300px;
+    max-width: 350px;
+}
+
+.pagina-como-comprar .paso-img img {
+    width: 100%;
+    height: 200px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* Texto del paso */
+.pagina-como-comprar .paso-texto {
+    flex: 2 1 400px;
+}
+
+.pagina-como-comprar .paso-texto .numero {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-right: 10px;
+    display: inline-block;
+}
+
+.pagina-como-comprar .paso-texto p {
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.pagina-como-comprar .paso-texto ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+/* ====== CARRUSEL PLATAFORMAS ====== */
+.pagina-como-comprar .carrusel-plataformas {
+    overflow: hidden;
+    width: 100%;
+    border-radius: 12px;
+    padding: 10px 0;
+    background: #111;
+}
+
+.pagina-como-comprar .carrusel-track {
+    display: flex;
+    gap: 15px;
+    width: max-content;
+    animation: scrollPlataformas 20s linear infinite;
+}
+
+.pagina-como-comprar .carrusel-track img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: transform 0.3s;
+}
+
+.pagina-como-comprar .carrusel-track img:hover {
+    transform: scale(1.1);
+}
+
+@keyframes scrollPlataformas {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* ====== CHAT ====== */
+.pagina-como-comprar .chatcbox {
+    flex: 1;
+    min-width: 200px;
+    max-width: 400px;
+    margin: 20px auto;
+    height: 550px;
+    transition: height 0.3s ease;
+}
+
+.pagina-como-comprar .chatcbox iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* ====== RESPONSIVE ====== */
+@media screen and (max-width: 1024px) {
+    .pagina-como-comprar .paso {
+        flex-direction: column;
+        align-items: center;
+    }
+    .pagina-como-comprar .paso-texto,
+    .pagina-como-comprar .paso-img {
+        max-width: 100%;
+    }
+    .pagina-como-comprar .chatcbox {
+        height: 500px;
+        margin-top: 10px;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    .pagina-como-comprar .paso {
+        flex-direction: column;
+        gap: 15px;
+    }
+    .pagina-como-comprar .chatcbox {
+        width: 95%;
+        height: 450px;
+        margin-top: 5px;
+    }
+}
+.lista-soporte {
+    list-style: none;
+    margin: 15px 0;
+    padding-left: 0;
+    font-family: Arial, sans-serif;
+}
+
+.lista-soporte li {
+    display: flex;
+    align-items: center;   /* Alinea icono y texto al mismo nivel */
+    gap: 8px;              /* Separación entre icono y texto */
+    background-color: rgba(255,255,255,0.05);
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+}
+
+.lista-soporte li .icono {
+    font-size: 1.3rem;
+    line-height: 1;        /* Ajusta altura para centrar con el texto */
+    margin-top: 0;         /* Elimina el pequeño desajuste vertical */
+}
+
+.lista-soporte li .texto {
+    display: inline-block;
+}
+
+.lista-soporte li strong {
+    color: #ffd700;
+}
+
+.lista-soporte li .horario {
+    font-size: 0.85rem;
+    color: #ddd;
+    display: block;
+    margin-top: 2px;
+}
+.cantidadBox {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* espacio entre recuadro y texto */
+}
+
+.etiqueta-cantidad {
+  font-weight: bold;
+}
+/* Ajuste responsive solo en cómo comprar */
+@media (max-width: 700px) {
+  .pagina-como-comprar .paso {
+    flex-direction: column; /* columna: texto arriba, imagen abajo */
+    align-items: center;
+    gap: 8px; /* reduce espacio entre texto e imagen */
+  }
+
+  .pagina-como-comprar .paso .paso-texto {
+    order: 0;
+    text-align: center;
+  }
+
+  .pagina-como-comprar .paso .paso-img {
+    order: 1;
+    width: 100%;
+  }
+
+  /* Carrusel infinito: quitar scroll manual */
+  .pagina-como-comprar .carrusel-plataformas {
+    overflow: hidden; /* quita scroll visible */
+    width: 100%;
+  }
+
+  .pagina-como-comprar .carrusel-track {
+    display: flex;
+    gap: 8px; /* espacio entre imágenes */
+    animation: scroll-infinito 20s linear infinite; /* tu animación infinita */
+  }
+
+  .pagina-como-comprar .carrusel-track img {
+    height: 70px;  /* ajusta altura más compacta */
+    width: auto;
+    object-fit: contain;
+  }
+
+  /* Animación infinita horizontal (si no la tenías ya) */
+  @keyframes scroll-infinito {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); } /* ajusta según cantidad de imágenes */
+  }
+}
+/* Contenedor general */
+.pasos-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center; /* Centra todo */
+  font-family: 'Arial', sans-serif;
+  color: #fff; /* Texto blanco */
+  line-height: 1.6;
+}
+
+/* Cada paso */
+.paso {
+  margin-bottom: 40px; /* Separación entre pasos */
+}
+
+/* Texto del paso */
+.paso-texto {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centra los elementos internos */
+  gap: 10px; /* Espacio entre número y párrafo */
+}
+
+/* Número del paso */
+.numero {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+/* Párrafo del paso */
+.paso-texto p {
+  max-width: 700px;
+  text-align: center; /* Centra el texto */
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Destacar títulos en negrita */
+.paso-texto strong {
+  font-size: 1.1rem;
+}
+
+/* Imagen del paso */
+.paso-img img {
+  max-width: 100%;
+  height: auto;
+  margin-top: 20px;
+  border-radius: 8px; /* Opcional, solo para suavizar bordes */
+}
+
+/* Lista de comprobantes */
+.lista-comprobante {
+  text-align: left; /* Lista alineada a la izquierda dentro del centro */
+  display: inline-block; /* Para que no ocupe todo el ancho */
+  margin-top: 10px;
+}
+
+.lista-comprobante li {
+  margin-bottom: 5px;
+}
