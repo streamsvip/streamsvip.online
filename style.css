@@ -2594,3 +2594,196 @@ button:disabled {
     cursor: not-allowed !important;     /* cursor no clickeable */
     pointer-events: none !important;    /* asegura que no se pueda clickear */
 }
+/* =========================
+MODAL OFERTA VIGENTE
+========================= */
+.modalOfertaVigente{
+    display:none;
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.80);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    z-index:99999;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+}
+
+.modalOfertaBox{
+    width:100%;
+    max-width:420px;
+    background:linear-gradient(180deg,#242432,#16161f);
+    color:#fff;
+    border-radius:22px;
+    padding:30px 25px 28px;
+    text-align:center;
+    box-shadow:0 25px 60px rgba(0,0,0,0.6);
+    position:relative;
+    border:1px solid rgba(255,213,74,0.18);
+    animation:zoomOferta .25s ease;
+}
+
+.modalOfertaBox::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:5px;
+    background:linear-gradient(90deg,#ffd54a,#ffb300,#ffd54a);
+    border-radius:22px 22px 0 0;
+}
+
+.modalOfertaBox h2{
+    margin:6px 0 12px;
+    font-size:30px;
+    color:#ffe082;
+    font-weight:800;
+    line-height:1.2;
+}
+
+.modalOfertaBox p{
+    margin:0;
+    font-size:15px;
+    color:#d6d6de;
+    line-height:1.7;
+}
+
+.cerrarOferta{
+    position:absolute;
+    top:14px;
+    right:14px;
+    width:36px;
+    height:36px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    font-size:18px;
+    cursor:pointer;
+    color:#fff;
+    background:rgba(255,255,255,0.08);
+    transition:.25s;
+}
+
+.cerrarOferta:hover{
+    background:#ffd54a;
+    color:#111;
+}
+
+.btnsOferta{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    margin-top:24px;
+    flex-wrap:wrap;
+}
+
+.btnVerOferta{
+    border:none;
+    padding:13px 20px;
+    border-radius:12px;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    background:linear-gradient(180deg,#e0b93f,#c99c16);
+    color:#1a1a1a;
+    transition:.25s;
+    min-width:145px;
+}
+
+.btnVerOferta:hover{
+    background:linear-gradient(180deg,#ffe082,#ffd54a);
+    color:#1a1a1a;
+    transform:translateY(-2px);
+}
+
+.btnVerOferta:active,
+.btnVerOferta:focus,
+.btnVerOferta:focus-visible{
+    background:linear-gradient(180deg,#ffe082,#ffd54a);
+    color:#1a1a1a;
+    outline:none;
+    box-shadow:none;
+}
+
+.btnCerrarOferta{
+    border:none;
+    padding:13px 20px;
+    border-radius:12px;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    background:#2b2b36;
+    color:#fff;
+    transition:.25s;
+    min-width:145px;
+}
+
+.btnCerrarOferta:hover{
+    background:#3a3a45;
+    transform:translateY(-2px);
+}
+
+.btnCerrarOferta:active,
+.btnCerrarOferta:focus,
+.btnCerrarOferta:focus-visible{
+    outline:none;
+    box-shadow:none;
+}
+
+@keyframes zoomOferta{
+    from{
+        opacity:0;
+        transform:scale(.9);
+    }
+    to{
+        opacity:1;
+        transform:scale(1);
+    }
+}
+
+@media(max-width:480px){
+    .modalOfertaBox{
+        padding:28px 18px 22px;
+    }
+
+    .modalOfertaBox h2{
+        font-size:24px;
+    }
+
+    .modalOfertaBox p{
+        font-size:14px;
+    }
+
+    .btnsOferta{
+        flex-direction:column;
+    }
+
+    .btnVerOferta,
+    .btnCerrarOferta{
+        width:100%;
+        min-width:100%;
+    }
+}
+/* BADGE PROMOCION ACTIVA */
+.modalOfertaBadge{
+    display:inline-block;
+    margin-bottom:16px;
+    padding:10px 18px;
+    border-radius:30px;
+    font-size:13px;
+    font-weight:800;
+    letter-spacing:1px;
+    color:#1a1a1a;
+
+    background:linear-gradient(180deg,#ffe082,#ffd54a);
+    border:2px solid #ffca28;
+
+    box-shadow:
+        0 6px 18px rgba(255,213,74,0.35),
+        inset 0 1px 0 rgba(255,255,255,0.4);
+}
