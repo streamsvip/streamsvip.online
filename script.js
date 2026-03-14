@@ -804,8 +804,11 @@ function cerrarModalOfertaVigente() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  mostrarModalOfertaVigente();
+  if (ofertaSigueActiva() && !localStorage.getItem("visitoOfertas")) {
+    mostrarModalOfertaVigente();
+  }
 });
+
 
 /* CLICK EN BOTONES DEL MODAL */
 document.addEventListener("click", function (e) {
@@ -848,3 +851,30 @@ document.addEventListener("keydown", function (e) {
     cerrarModalOfertaVigente();
   }
 });
+/* =========================
+URGENCIA OFERTA (<30 MIN)
+========================= */
+
+function verificarUrgenciaOferta(){
+
+  const tiempoGuardado = localStorage.getItem("ofertaTiempo");
+  if(!tiempoGuardado) return;
+
+  const tiempoFinal = Number(tiempoGuardado);
+  const ahora = Date.now();
+
+  const tiempoRestante = tiempoFinal - ahora;
+
+  const badge = document.querySelector(".modalOfertaBadge");
+
+  if(!badge) return;
+
+  if(tiempoRestante <= 1800000 && tiempoRestante > 0){
+      badge.innerText = "⚠ ÚLTIMOS MINUTOS DE PROMOCIÓN";
+      badge.style.background = "linear-gradient(180deg,#ff8a65,#ff5722)";
+      badge.style.borderColor = "#ff5722";
+  }
+
+}
+
+document.addEventListener("DOMContentLoaded",verificarUrgenciaOferta);
