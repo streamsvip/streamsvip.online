@@ -85,17 +85,17 @@
     <div class="chatcbox"><iframe src="https://www3.cbox.ws/box/?boxid=3553105&boxtag=bZwmgx" frameborder="0"></iframe></div>
   </nav>
 
-  <h1 class="tituloOfertas">🔥 Oferta Makanky 🔥</h1>
+  <h1 class="tituloOfertas">🔥 Oferta Makanaky 🔥</h1>
   <div class="contadorOfertaBox">⏳ Oferta termina en <div id="contadorOferta"></div></div>
 
   <div class="ofertaContainer">
-    <div class="ofertaCard">
+    <div class="ofertaCard" onclick="abrirModalDesdeCard(event)">
       <img src="img/oferta1.jpg" alt="Oferta">
       <h2>HBO Max + Prime Video</h2>
       <p class="descripcionOferta">Accede a dos plataformas premium al mejor precio. Disfruta películas, series y contenido exclusivo.</p>
       <p class="precioOferta">S/6.50</p>
       <p class="stockOferta">Stock: <span id="stockOferta"></span></p>
-      <button class="btnOferta" onclick="abrirModalCompra()">Comprar ahora</button>
+      <button class="btnOferta" onclick="event.stopPropagation(); abrirModalCompra()">Comprar ahora</button>
     </div>
   </div>
 
@@ -103,20 +103,43 @@
     const stockOfertaSpan = document.getElementById("stockOferta");
     const btnOferta = document.querySelector(".btnOferta");
 
+    function ofertaTerminada() {
+      btnOferta.disabled = true;
+      btnOferta.style.background = "#888";
+      btnOferta.style.cursor = "not-allowed";
+      btnOferta.innerText = "Oferta terminada";
+    }
+
+    function ofertaActivaConStock() {
+      btnOferta.disabled = false;
+      btnOferta.style.background = "#ffd700";
+      btnOferta.style.cursor = "pointer";
+      btnOferta.innerText = "Comprar ahora";
+    }
+
+    function contadorExpirado() {
+      const tiempoGuardado = localStorage.getItem("ofertaTiempo");
+      if (!tiempoGuardado) return false;
+      return Date.now() >= Number(tiempoGuardado);
+    }
+
     function actualizarStock() {
       db.ref("stock/hboprime").once("value").then(snapshot => {
         let stock = snapshot.val() || 0;
         stockOfertaSpan.innerText = stock;
-        if(stock <=0){
+
+        if (contadorExpirado()) {
+          ofertaTerminada();
+          return;
+        }
+
+        if(stock <= 0){
           btnOferta.disabled = true;
-          btnOferta.style.background="#888";
-          btnOferta.style.cursor="not-allowed";
-          btnOferta.innerText="Agotado";
+          btnOferta.style.background = "#888";
+          btnOferta.style.cursor = "not-allowed";
+          btnOferta.innerText = "Agotado";
         } else {
-          btnOferta.disabled=false;
-          btnOferta.style.background="#ffd700";
-          btnOferta.style.cursor="pointer";
-          btnOferta.innerText="Comprar ahora";
+          ofertaActivaConStock();
         }
       }).catch(err=>console.error(err));
     }
@@ -143,7 +166,7 @@
       <h2>Pagar con Yape</h2>
       <p class="precioModal">Total a pagar:</p>
       <h1>S/6.50</h1>
-      <img src="img/Qr.jpeg" class="qrPago" alt="QR de pago">
+      <img src="img/qr.jpeg" class="qrPago" alt="QR de pago">
       <button class="btnYape" onclick="copiarYape(this)">917107386</button>
       <button class="btnYape" onclick="abrirYape()">Abrir Yape</button>
       <button class="btnComprar" onclick="abrirFormulario()">Registrar compra</button>
@@ -166,57 +189,151 @@
   </div>
 
   <script>
-    // CONTADOR
-    let tiempoFinal = localStorage.getItem("ofertaTiempo");
-    if(!tiempoFinal){ tiempoFinal=Date.now()+10*60*60*1000; localStorage.setItem("ofertaTiempo",tiempoFinal);}
-    function actualizarContador(){
-      let ahora=Date.now();
-      let diferencia=tiempoFinal-ahora;
-      if(diferencia<=0){ document.getElementById("contadorOferta").innerText="Oferta finalizada"; return;}
-      let horas=Math.floor(diferencia/(1000*60*60));
-      let minutos=Math.floor((diferencia%(1000*60*60))/(1000*60));
-      let segundos=Math.floor((diferencia%(1000*60))/1000);
-      document.getElementById("contadorOferta").innerText=horas+"h "+minutos+"m "+segundos+"s";
+    // MENU
+    function toggleMenu() {
+      document.getElementById("menuLateral").classList.toggle("activo");
     }
+
+    function salir() {
+      window.location.href = "index.html";
+    }
+
+    // CONTADOR - 10 HORAS REALES SIN REINICIARSE AL CAMBIAR DE PAGINA
+    let tiempoFinalGuardado = localStorage.getItem("ofertaTiempo");
+
+    if (!tiempoFinalGuardado || Number(tiempoFinalGuardado) <= Date.now()) {
+      tiempoFinalGuardado = Date.now() + (10 * 60 * 60 * 1000);
+      localStorage.setItem("ofertaTiempo", tiempoFinalGuardado);
+    }
+
+    let tiempoFinal = Number(localStorage.getItem("ofertaTiempo"));
+
+    function actualizarContador(){
+      let ahora = Date.now();
+      let diferencia = tiempoFinal - ahora;
+
+      if(diferencia <= 0){
+        document.getElementById("contadorOferta").innerText = "Oferta finalizada";
+        ofertaTerminada();
+        return;
+      }
+
+      let horas = Math.floor(diferencia / (1000 * 60 * 60));
+      let minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
+      let segundos = Math.floor((diferencia % (1000 * 60)) / 1000);
+
+      document.getElementById("contadorOferta").innerText = horas + "h " + minutos + "m " + segundos + "s";
+    }
+
+    actualizarContador();
     setInterval(actualizarContador,1000);
 
     // MODALES
-    function abrirModalCompra(){ document.getElementById("modalCompra").style.display="flex"; }
-    function mostrarQR(){ document.getElementById("modalCompra").style.display="none"; document.getElementById("modalQR").style.display="flex"; }
-    function cerrarModal(){ document.getElementById("modalCompra").style.display="none"; document.getElementById("modalQR").style.display="none"; document.getElementById("modalFormulario").style.display="none"; }
-    function abrirYape(){ window.open("https://yape.com.pe/send?phone=917107386","_blank"); }
-    function copiarYape(btn){ navigator.clipboard.writeText(btn.innerText); let original=btn.innerText; btn.innerText="¡Copiado!"; setTimeout(()=>{btn.innerText=original;},3000); }
-    function abrirFormulario(){ document.getElementById("modalQR").style.display="none"; document.getElementById("modalFormulario").style.display="flex"; }
-    function cerrarModalFormulario(){ document.getElementById("modalFormulario").style.display="none"; }
+    function abrirModalCompra(){
+      if (contadorExpirado()) {
+        ofertaTerminada();
+        return;
+      }
+      if (btnOferta.disabled) return;
+      document.getElementById("modalCompra").style.display = "flex";
+    }
+
+    function abrirModalDesdeCard(e){
+      if (e.target.closest(".btnOferta")) return;
+      abrirModalCompra();
+    }
+
+    function mostrarQR(){
+      document.getElementById("modalCompra").style.display = "none";
+      document.getElementById("modalQR").style.display = "flex";
+    }
+
+    function cerrarModal(){
+      document.getElementById("modalCompra").style.display = "none";
+      document.getElementById("modalQR").style.display = "none";
+      document.getElementById("modalFormulario").style.display = "none";
+    }
+
+    function abrirYape(){
+
+      const telefono="917107386";
+
+      /* detectar celular */
+      const esMovil=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+      if(esMovil){
+
+        window.location.href="yape://pay?phone="+telefono;
+
+      }else{
+
+        alert("Para abrir Yape debes usar un celular");
+
+      }
+
+    }
+
+    function copiarYape(btn){
+      navigator.clipboard.writeText(btn.innerText);
+      let original = btn.innerText;
+      btn.innerText = "¡Copiado!";
+      setTimeout(()=>{btn.innerText = original;},3000);
+    }
+
+    function abrirFormulario(){
+      document.getElementById("modalQR").style.display = "none";
+      document.getElementById("modalFormulario").style.display = "flex";
+    }
+
+    function cerrarModalFormulario(){
+      document.getElementById("modalFormulario").style.display = "none";
+    }
+
+    // CERRAR CON ESCAPE
+    document.addEventListener("keydown", function(e){
+      if(e.key === "Escape"){
+        cerrarModal();
+      }
+    });
 
     // FORMULARIO
     document.getElementById("formCompra").addEventListener("submit", function(e){
       e.preventDefault();
-      const nombre=document.getElementById("nombreCliente").value;
-      const transaccion=document.getElementById("numeroTransaccion").value;
-      const fechaActual=new Date();
-      const fechaHora=fechaActual.toLocaleString('es-PE',{hour12:true});
-      const diasVencer=Math.floor(Math.random()*6)+15;
-      const fechaVence=new Date(fechaActual.getTime()+diasVencer*24*60*60*1000);
-      const fechaVenceStr=fechaVence.toLocaleDateString('es-PE');
-      const mensaje=`Compra Oferta Makanaky\nCliente: ${nombre}\nYapeo: S/6.50\nNúmero de transacción: ${transaccion}\nFecha/Hora: ${fechaHora}\nVence: ${fechaVenceStr}`;
 
-      // ------------------ DESCONTAR STOCK ------------------
-      const stockRef=db.ref("stock/hboprime");
+      if (contadorExpirado()) {
+        ofertaTerminada();
+        cerrarModal();
+        return;
+      }
+
+      const nombre = document.getElementById("nombreCliente").value;
+      const transaccion = document.getElementById("numeroTransaccion").value;
+      const fechaActual = new Date();
+      const fechaHora = fechaActual.toLocaleString('es-PE',{hour12:true});
+      const diasVencer = Math.floor(Math.random()*6)+15;
+      const fechaVence = new Date(fechaActual.getTime()+diasVencer*24*60*60*1000);
+      const fechaVenceStr = fechaVence.toLocaleDateString('es-PE');
+      const mensaje = `Compra Oferta Makanaky\nCliente: ${nombre}\nYapeo: S/6.50\nNúmero de transacción: ${transaccion}\nFecha/Hora: ${fechaHora}\nVence: ${fechaVenceStr}`;
+
+      const stockRef = db.ref("stock/hboprime");
       stockRef.transaction(currentStock=>{
-        if(currentStock>0) return currentStock-1;
+        if(currentStock > 0) return currentStock - 1;
         else return 0;
       },(error,committed,snapshot)=>{
-        if(error){ console.error("Error actualizando stock:",error);}
-        else if(!committed){ console.log("No se pudo descontar stock"); }
-        else{ actualizarStock(); }
+        if(error){
+          console.error("Error actualizando stock:",error);
+        } else if(!committed){
+          console.log("No se pudo descontar stock");
+        } else {
+          actualizarStock();
+        }
       });
-      // -----------------------------------------------------
 
       window.open(`https://api.whatsapp.com/send?phone=51916252754&text=${encodeURIComponent(mensaje)}`,"_blank");
       cerrarModalFormulario();
       alert("Datos enviados a WhatsApp para validación.");
     });
+    
   </script>
 
 </body>
