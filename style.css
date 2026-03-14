@@ -928,9 +928,9 @@ font-size:20px;
 
 /* botón */
 
-.producto button{
-font-size:15px;
-padding:12px;
+.producto button {
+    display: block;       /* necesario para margin auto */
+    margin: 0 auto 20px;  /* centra horizontal y agrega margen inferior */
 }
 
 }
@@ -1075,7 +1075,111 @@ font-size:22px;
 cursor:pointer;
 
 }
+/* =========================
+ADAPTACIÓN CELULAR SIN SCROLL
+========================= */
+@media (max-width: 768px) {
+    #modalCompra,
+    #modalQR {
+        background: rgba(0,0,0,0.5); /* fondo difuminado */
+        padding: 5px; /* poco padding para aprovechar espacio */
+    }
 
+    .modal-content {
+        max-height: 95vh; /* casi toda la pantalla */
+        width: 95%;       /* ancho más ajustado */
+        padding: 20px 15px; /* padding reducido */
+        border: 2px solid rgba(255,255,255,0.2); /* borde sutil */
+        font-size: 0.9rem; /* texto un poco más pequeño */
+        line-height: 1.4;  /* reducir separación de líneas */
+    }
+
+    .modal-content h1, 
+    .modal-content h2 {
+        font-size: 1.2rem; /* títulos más pequeños */
+        margin-bottom: 10px;
+    }
+
+    .modal-content p,
+    .modal-content li,
+    .modal-content button {
+        font-size: 0.85rem; /* texto y botones más compactos */
+        margin-bottom: 8px;
+    }
+
+    .modal-content button {
+        padding: 8px 12px; /* botones más pequeños */
+    }
+
+    .qrPago {
+        max-width: 150px; /* QR más pequeño */
+        margin: 10px auto;
+    }
+}
+/* =========================
+MODAL COMPRA AJUSTADO PARA CELULAR
+========================= */
+@media (max-width: 700px) {
+
+    /* Centrar botón comprar y cantidad */
+    .modalContenido .cantidadBox,
+    .modalContenido .btnComprarAhora {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Asegurar que el contenedor del botón no ocupe todo el ancho */
+    .modalContenido .btnComprarAhora {
+        display: block;
+        text-align: center;
+    }
+
+    .modalProducto {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .modalProducto img {
+        width: 150px;       /* imagen más pequeña */
+        height: auto;
+    }
+
+    .modalInfo {
+        text-align: center;
+    }
+
+    .descripcionProducto,
+    .reglasUso {
+        font-size: 12px;    /* texto más pequeño */
+        padding: 10px;
+    }
+
+    .garantiaBox {
+        font-size: 12px;
+    }
+
+    .cantidadBox button {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+    }
+
+    #cantidadProducto {
+        font-size: 14px;
+    }
+
+    .btnComprarAhora {
+        font-size: 14px;
+        padding: 10px 16px;
+    }
+
+    .qrPago {
+        max-width: 120px; /* QR más pequeño */
+        margin: 8px auto;
+    }
+}
 /* ========================= */
 /* MODAL PRODUCTO PROFESIONAL */
 /* ========================= */
