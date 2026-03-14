@@ -9,6 +9,7 @@ Propietario: StreamsVip
 -->
 <title>StreamsVip</title>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="style.css">
 </head>
 
@@ -24,7 +25,7 @@ Propietario: StreamsVip
 
 <a href="tienda.html" class="activo"><span class="menu-emoji">🛍️</span> Tienda</a>
 <a href="como-comprar.html"><span class="menu-emoji">💳</span> Cómo comprar</a>
-<a href="reseñas.html"><span class="menu-emoji">⭐</span> Reseñas</a>
+<a href="ofertas.html"><span class="menu-emoji">🔥</span> Ofertas</a>
 
 <a href="#" onclick="salir()" class="salir"><span class="menu-emoji">🔙</span> Salir</a>
 
@@ -76,76 +77,101 @@ Propietario: StreamsVip
 </div>
 
 <!-- PRODUCTOS -->
+<!-- PRODUCTOS -->
 <div class="productos">
 
-<div class="producto">
+<div class="producto" id="productoNetflix">
 <img src="img/Netflix.jpg">
 <h2>Netflix Perfil 4K HD🍿</h2>
 <p class="precio">S/15</p>
-<p class="viendo">👁 <span id="viendoNetflix">0</span> personas viendo ahora</p>
-<p class="compras">🔥 <span id="ventasNetflix">0</span> compras hoy</p>
+<p class="stock">Stock: <span id="stockNetflix"></span></p>
+<p class="duracionServicio">Duración: 1 mes</p>
 
-<button onclick="agregarCarrito('Netflix Perfil 4K HD',15,'Perfil Netflix privado válido por 30 días. Acceso completo a series, películas y estrenos desde cualquier dispositivo compatible.','img/Netflix.jpg')">🛒Agregar al carrito
-</button>
-</div>
 
-<div class="producto">
-<img src="img/Disney.jpg">
-<h2>Disney+ Espn 7 Hulu Perfil⭐</h2>
-<p class="precio">S/10</p>
-<p class="viendo">👁 <span id="viendoDisney">0</span> personas viendo ahora</p>
-<p class="compras">🔥 <span id="ventasDisney">0</span> compras hoy</p>
+<button class="btnComprar"
+onclick="agregarCarrito('Netflix Perfil 4K HD',15,'Perfil Netflix privado válido por 30 días, para un dispositivo.','img/Netflix.jpg')">
 
-<button onclick="agregarCarrito('Disney+ Espn 7 Hulu Premium Perfil✨',10,'Perfil Disney+ con acceso completo a Espn 7 y Hulu por 30 días.','img/Disney.jpg')">
 🛒Agregar al carrito
 </button>
 </div>
 
-<div class="producto">
+
+<div class="producto" id="productoDisney">
+<img src="img/Disney.jpg">
+<h2>Disney+ Espn 7 Hulu Perfil⭐</h2>
+<p class="precio">S/10</p>
+<p class="stock">Stock: <span id="stockDisney"></span></p>
+<p class="duracionServicio">Duración: 1 mes</p>
+
+
+<button class="btnComprar"
+onclick="agregarCarrito('Disney+ Espn 7 Hulu Premium Perfil✨',10,'Perfil Disney+ con acceso completo a Espn 7 y Hulu por 30 días.','img/Disney.jpg')">
+🛒Agregar al carrito
+</button>
+</div>
+
+
+<div class="producto" id="productoPrime">
 <img src="img/Primevideo.jpg">
 <h2>Prime Video Perfil🔥</h2>
 <p class="precio">S/8</p>
-<p class="viendo">👁 <span id="viendoPrime">0</span> personas viendo ahora</p>
-<p class="compras">🔥 <span id="ventasPrime">0</span> compras hoy</p>
+<p class="stock">Stock: <span id="stockPrime"></span></p>
+<p class="duracionServicio">Duración: 1 mes</p>
 
-<button onclick="agregarCarrito('Prime Video Perfil',8,'Perfil Prime Video con acceso completo al catálogo durante 30 días.','img/Primevideo.jpg')">🛒Agregar al carrito
+
+<button class="btnComprar"
+onclick="agregarCarrito('Prime Video Perfil',8,'Perfil Prime Video con acceso completo al catálogo durante 30 días.','img/Primevideo.jpg')">
+🛒Agregar al carrito
 </button>
 </div>
 
-<div class="producto">
+
+<div class="producto" id="productoHBO">
 <img src="img/Hbomax.jpg">
 <h2>HBO Max Standar Perfil✨</h2>
 <p class="precio">S/6</p>
-<p class="viendo">👁 <span id="viendoHBO">0</span> personas viendo ahora</p>
-<p class="compras">🔥 <span id="ventasHBO">0</span> compras hoy</p>
+<p class="stock">Stock: <span id="stockHBO"></span></p>
+<p class="duracionServicio">Duración: 1 mes</p>
 
-<button onclick="agregarCarrito('HBO Max Perfil Standard',6,'Perfil HBO Max con acceso completo al catálogo durante 30 días.','img/Hbomax.jpg')">🛒Agregar al carrito
+
+<button class="btnComprar"
+onclick="agregarCarrito('HBO Max Perfil Standard',6,'Perfil HBO Max con acceso completo al catálogo durante 30 días.','img/Hbomax.jpg')">
+🛒Agregar al carrito
 </button>
 </div>
 
-<div class="producto">
+
+<div class="producto" id="productoParamount">
 <img src="img/Paramount.jpg">
 <h2>Paramount+ Perfil💠</h2>
 <p class="precio">S/6</p>
-<p class="viendo">👁 <span id="viendoParamount">0</span> personas viendo ahora</p>
-<p class="compras">🔥 <span id="ventasParamount">0</span> compras hoy</p>
+<p class="stock">Stock: <span id="stockParamount"></span></p>
+<p class="duracionServicio">Duración: 1 mes</p>
 
-<button onclick="agregarCarrito('Paramount+ Perfil',6,'Perfil Paramount+ con acceso completo durante 30 días.','img/Paramount.jpg')">🛒Agregar al carrito
+
+<button class="btnComprar"
+onclick="agregarCarrito('Paramount+ Perfil',6,'Perfil Paramount+ con acceso completo durante 30 días.','img/Paramount.jpg')">
+🛒Agregar al carrito
 </button>
 </div>
 
-<div class="producto">
+
+<div class="producto" id="productoSpotify">
 <img src="img/Spotify.jpg">
 <h2>Spotify Premium Individual🎧</h2>
 <p class="precio">S/13</p>
-<p class="viendo">👁 <span id="viendoSpotify">0</span> personas viendo ahora</p>
-<p class="compras">🔥 <span id="ventasSpotify">0</span> compras hoy</p>
+<p class="stock">Stock: <span id="stockSpotify"></span></p>
+<p class="duracionServicio">Duración: 1 mes</p>
 
-<button onclick="agregarCarrito('Spotify Premium Individual',13,'Cuenta Spotify Premium individual válida por 30 días.','img/Spotify.jpg')">🛒Agregar al carrito
+
+<button class="btnComprar"
+onclick="agregarCarrito('Spotify Premium Individual',13,'Cuenta Spotify Premium individual válida por 30 días.','img/Spotify.jpg')">
+🛒Agregar al carrito
 </button>
 </div>
 
 </div>
+
 
 <!-- MODAL -->
 <div id="modalCompra" class="modalCompra">
@@ -197,7 +223,7 @@ Comprar ahora
 
 <!-- QR MEJORADO -->
 <div id="pantallaQR" class="pantallaQR">
-  <h2>Escanea o paga con Yape</h2>
+  <h2>Paga con Yape</h2>
 
   <div class="qrContainer">
     <!-- Nombre arriba del QR -->
@@ -281,8 +307,7 @@ const modal=document.getElementById("modalCompra")
 if(modal){
 modal.style.display="none"}}
 
-})
-
+});
 </script>
 <div style="opacity:0;position:absolute;">
 StreamsVip Oficial 2026
