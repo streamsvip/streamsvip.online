@@ -678,12 +678,8 @@ plusSlides(1);
 MENU
 ========================= */
 
-function toggleMenu(){
-
-const menu=document.getElementById("menuLateral");
-
-if(menu)menu.classList.toggle("activo");
-
+function toggleMenu() {
+  document.getElementById("menuLateral").classList.toggle("active");
 }
 
 /* =========================
@@ -692,9 +688,16 @@ SALIR
 
 function salir(){
 
-localStorage.removeItem("clienteNombre");
+const toast=document.getElementById("toastGracias");
 
+if(toast){
+toast.classList.add("show");
+}
+
+setTimeout(()=>{
+localStorage.removeItem("clienteNombre");
 window.location.href="index.html";
+},1800);
 
 }
 /* =========================
