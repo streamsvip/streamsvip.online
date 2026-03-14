@@ -1040,39 +1040,37 @@ backdrop-filter:blur(6px);
 justify-content:center;
 align-items:center;
 z-index:9999;
+padding:10px;
 
 }
 
 .modalContenido{
 
+position:relative;
 width:90%;
-max-width:900px;   /* más ancho en PC */
-
+max-width:900px;
 margin:auto;
-
 display:flex;
 align-items:flex-start;
 justify-content:center;
-
 background:#1a1a1a;
-
 border-radius:16px;
-
 padding:30px;
-
 gap:30px;
-
 box-shadow:0 10px 40px rgba(0,0,0,0.6);
+max-height:90vh;
+overflow-y:auto;
 
 }
 
 .cerrarModal{
 
 position:absolute;
-right:15px;
 top:10px;
+right:12px;
 font-size:22px;
 cursor:pointer;
+z-index:5;
 
 }
 /* =========================
@@ -1121,6 +1119,14 @@ MODAL COMPRA AJUSTADO PARA CELULAR
 ========================= */
 @media (max-width: 700px) {
 
+    .modalContenido{
+
+    width:94%;
+    max-height:88vh;
+    padding:18px 14px;
+
+    }
+
     /* Centrar botón comprar y cantidad */
     .modalContenido .cantidadBox,
     .modalContenido .btnComprarAhora {
@@ -1142,7 +1148,7 @@ MODAL COMPRA AJUSTADO PARA CELULAR
     }
 
     .modalProducto img {
-        width: 150px;       /* imagen más pequeña */
+        width: 130px;
         height: auto;
     }
 
@@ -1150,10 +1156,21 @@ MODAL COMPRA AJUSTADO PARA CELULAR
         text-align: center;
     }
 
+    .modalInfo h2{
+        font-size:20px;
+    }
+
     .descripcionProducto,
     .reglasUso {
-        font-size: 12px;    /* texto más pequeño */
+        font-size: 12px;
         padding: 10px;
+        text-align:left;
+    }
+
+    .descripcionProducto p,
+    .reglasUso li{
+        font-size:12px;
+        line-height:1.4;
     }
 
     .garantiaBox {
@@ -1171,6 +1188,10 @@ MODAL COMPRA AJUSTADO PARA CELULAR
     }
 
     .btnComprarAhora {
+        width:100%;
+        max-width:220px;
+        margin:auto;
+        display:block;
         font-size: 14px;
         padding: 10px 16px;
     }
@@ -1477,6 +1498,19 @@ border-color: #ff2a2a !important;
 /* MENU HAMBURGUESA PARA CELULAR */
 /* ============================= */
 @media (max-width: 700px) {
+    .menuIcon { display: block; }
+    .menuLateral {
+        left: -230px;
+        transition: left 0.3s ease;
+    }
+    .menuLateral.activo { left: 0; }
+
+    .productos,
+    .bannerFull {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
 
     /* icono hamburguesa visible solo en móvil */
     .menuIcon {
@@ -2185,8 +2219,9 @@ MODAL RESPONSIVE
 
 .modalContenido{
 
-width:92%;
-padding:20px;
+width:94%;
+max-height:88vh;
+padding:18px 14px;
 
 }
 
@@ -2195,12 +2230,13 @@ padding:20px;
 flex-direction:column;
 align-items:center;
 text-align:center;
+gap:10px;
 
 }
 
 .modalProducto img{
 
-width:160px;
+width:130px;
 
 }
 
@@ -2210,10 +2246,26 @@ text-align:center;
 
 }
 
+.modalInfo h2{
+
+font-size:20px;
+
+}
+
 .descripcionProducto,
 .reglasUso{
 
 text-align:left;
+font-size:12px;
+padding:10px;
+
+}
+
+.descripcionProducto p,
+.reglasUso li{
+
+font-size:12px;
+line-height:1.4;
 
 }
 
@@ -2222,6 +2274,23 @@ text-align:left;
 .cantidadBox{
 
 justify-content:center;
+
+}
+
+.garantiaBox{
+
+font-size:12px;
+
+}
+
+.btnComprarAhora{
+
+width:100%;
+max-width:220px;
+margin:auto;
+display:block;
+font-size:14px;
+padding:10px 16px;
 
 }
 
