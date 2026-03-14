@@ -772,3 +772,79 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 });
+/* =========================
+NOTIFICACION MODAL OFERTA VIGENTE
+========================= */
+
+function ofertaSigueActiva() {
+  const tiempoGuardado = localStorage.getItem("ofertaTiempo");
+  if (!tiempoGuardado) return false;
+
+  const tiempoFinal = Number(tiempoGuardado);
+  if (isNaN(tiempoFinal)) return false;
+
+  return Date.now() < tiempoFinal;
+}
+
+function mostrarModalOfertaVigente() {
+  const modal = document.getElementById("modalOfertaVigente");
+  if (!modal) return;
+
+  if (ofertaSigueActiva()) {
+    modal.style.display = "flex";
+  } else {
+    modal.style.display = "none";
+  }
+}
+
+function cerrarModalOfertaVigente() {
+  const modal = document.getElementById("modalOfertaVigente");
+  if (!modal) return;
+  modal.style.display = "none";
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  mostrarModalOfertaVigente();
+});
+
+/* CLICK EN BOTONES DEL MODAL */
+document.addEventListener("click", function (e) {
+  const modal = document.getElementById("modalOfertaVigente");
+  if (!modal) return;
+
+  /* BOTON VER OFERTA */
+  if (e.target.closest("#btnVerOferta")) {
+    e.preventDefault();
+    window.location.href = "ofertas.html";
+    return;
+  }
+
+  /* BOTON CERRAR */
+  if (e.target.closest("#btnCerrarOferta")) {
+    e.preventDefault();
+    cerrarModalOfertaVigente();
+    return;
+  }
+
+  /* BOTON X */
+  if (e.target.closest("#cerrarOfertaX")) {
+    e.preventDefault();
+    cerrarModalOfertaVigente();
+    return;
+  }
+
+  /* CERRAR AL TOCAR EL FONDO OSCURO */
+  if (e.target === modal) {
+    cerrarModalOfertaVigente();
+  }
+});
+
+/* CERRAR CON ESCAPE */
+document.addEventListener("keydown", function (e) {
+  const modal = document.getElementById("modalOfertaVigente");
+  if (!modal) return;
+
+  if (e.key === "Escape" && modal.style.display === "flex") {
+    cerrarModalOfertaVigente();
+  }
+});
