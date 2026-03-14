@@ -155,7 +155,7 @@
       <h2>Confirmar compra</h2>
       <p class="precioModal">Precio: <strong>S/6.50</strong></p>
       <p class="detalleOferta">La oferta incluye HBO Max Standard y Prime Video, con una vigencia de 15 a 20 días hábiles.</p>
-            <h2>Yo me pregunto... en que momento la cag...?? Daaaa!</h2>
+      <h2>Yo me pregunto, en que momento la cag... Daaaa!</h2>
       <button class="btnComprar" onclick="mostrarQR()">Confirmar</button>
     </div>
   </div>
@@ -189,6 +189,8 @@
     </div>
   </div>
 
+  <div id="toastGracias">¡Gracias por su visita! Vuelva pronto.</div>
+
   <script>
     // MENU
     function toggleMenu() {
@@ -196,7 +198,16 @@
     }
 
     function salir() {
-      window.location.href = "index.html";
+      const toast = document.getElementById("toastGracias");
+
+      if(toast){
+        toast.classList.add("show");
+      }
+
+      setTimeout(() => {
+        localStorage.removeItem("clienteNombre");
+        window.location.href = "index.html";
+      }, 1800);
     }
 
     // CONTADOR - 10 HORAS REALES SIN REINICIARSE AL CAMBIAR DE PAGINA
