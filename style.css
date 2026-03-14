@@ -6,6 +6,14 @@ body {
     color: white;
     text-align: center;
 }
+*{
+box-sizing:border-box;
+}
+
+html,body{
+overflow-x:hidden;
+}
+
 
 /* INICIO */
 .inicio {
@@ -16,12 +24,15 @@ body {
     background: linear-gradient(180deg, #0f0f0f, #1a1a1a);
 }
 
-.card {
-    background: #1c1c1c;
-    padding: 40px;
-    border-radius: 15px;
-    width: 350px;
-    box-shadow: 0 0 40px rgba(0,0,0,0.7);
+.card{
+width:100%;
+max-width:420px;
+background:#1c1c1c;
+padding:40px 35px;
+border-radius:18px;
+text-align:center;
+box-shadow:0 15px 40px rgba(0,0,0,0.6);
+margin:auto;
 }
 
 .logo {
@@ -99,16 +110,41 @@ button:hover {
     align-items: center;
 }
 
-.modal-content {
-    background: #1c1c1c;
-    padding: 30px;
-    border-radius: 10px;
-    max-width: 500px;
+.modal-content{
+
+background:#1c1c1c;
+padding:40px 38px 30px 38px;
+border-radius:18px;
+max-width:520px;
+width:90%;
+color:#fff;
+line-height:1.7;
+text-align:left;
+
+box-shadow:0 25px 60px rgba(0,0,0,0.6);
+
+display:flex;
+flex-direction:column;
+
+max-height:85vh;
+overflow-y:auto; /* scroll vertical */
+
 }
 
-.btnAceptar {
-    background: #b6b4b4;
-    margin-top: 20px;
+.btnAceptar{
+
+margin-top:25px;
+align-self:center;
+
+background:#ff1a1a;
+color:#fff;
+border:none;
+padding:12px 28px;
+border-radius:8px;
+font-size:14px;
+font-weight:600;
+cursor:pointer;
+
 }
 /* PRODUCTOS - actualizado para más profesionalismo */
 .productos {
@@ -207,7 +243,34 @@ button:hover {
 .producto button * {
     cursor: pointer !important;
 }
+.masVendido{
+position:relative;
+border:2px solid #ff2a2a;
+box-shadow:0 0 25px rgba(255,0,0,0.6);
+}
 
+.masVendido::before{
+content:"🔥 MÁS VENDIDO";
+position:absolute;
+top:10px;
+left:10px;
+background:#ff0000;
+color:white;
+font-size:11px;
+padding:4px 8px;
+border-radius:6px;
+font-weight:bold;
+}
+
+@keyframes fuegoPulse{
+0%{box-shadow:0 0 10px rgba(255,0,0,0.5);}
+50%{box-shadow:0 0 30px rgba(255,0,0,0.9);}
+100%{box-shadow:0 0 10px rgba(255,0,0,0.5);}
+}
+
+.masVendido{
+animation:fuegoPulse 2s infinite;
+}
 /* QR CONTENEDOR */
 /* Contenedor QR */
 .qrContainer {
@@ -298,19 +361,6 @@ button:hover {
     cursor: default;
     letter-spacing: 0.5px;
 }
-
-/* Contenedor QR */
-.qrContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 18px;
-    background: #2a2a2a;
-    padding: 20px;
-    border-radius: 16px;
-    box-shadow: inset 0 0 8px rgba(255,255,255,0.05);
-}
-
 /* Imagen QR */
 .qr {
     width: 240px;
@@ -486,32 +536,32 @@ button:hover {
 /* OPCIONAL: iconos pequeños al lado de inputs */
 
 /* WHATSAPP - PULSO MÁS NOTORIO */
-.soporte {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 65px;
-    height: 65px;
-    background: transparent !important;
-    box-shadow: none !important;
-    cursor: pointer;
-    outline: none !important;
-    border: none !important;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    animation: pulse 1.8s infinite ease-in-out;
+.soporte{
+    position:fixed;
+    bottom:5px;
+    right:5px;
+    width:95px;     /* antes 65px */
+    height:95px;    /* antes 65px */
+    background:transparent !important;
+    box-shadow:none !important;
+    cursor:pointer;
+    outline:none !important;
+    border:none !important;
+    transition:transform 0.3s ease, box-shadow 0.3s ease;
+    animation:pulse 1.8s infinite ease-in-out;
 }
 
-.soporte:focus,
-.soporte:active,
-.soporte:hover {
-    outline: none !important;
-    border: none !important;
+/* imagen dentro del botón */
+.soporte img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
 }
 
-.soporte:hover {
-    transform: scale(1.15);
-    box-shadow: 0 0 30px rgba(37, 211, 102, 0.8);
-    animation: none;
+.soporte:hover{
+    transform:scale(1.15);
+    box-shadow:0 0 30px rgba(37,211,102,0.8);
+    animation:none;
 }
 
 @keyframes pulse {
@@ -537,6 +587,7 @@ button:hover {
 .soporte:hover img {
     transform: scale(1.1);
 }
+
 
 /* TOOLTIP ARRIBA CENTRADO */
 .tooltip {
@@ -738,41 +789,150 @@ button:hover {
 .estrellas .estrella:hover ~ .estrella {
     color: #ffd700;
 }
-
-/* RESEÑAS CARGADAS */
-.reseña-item {
-    background: #1c1c1c;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-}
-
-.reseña-item .estrellas-mostrar {
-    font-size: 20px;
-    color: #ffd700;
-    margin-bottom: 8px;
-}
-
 /* ──────────────────────────────────────────────── */
 /*           NUEVO: ESTILOS PARA EL SLIDER           */
 /* ──────────────────────────────────────────────── */
 
-.bannerFull {
-    position: relative;
-    width: calc(100% - 230px);
-    margin-left: 230px;
-    height: 45vh;
-    min-height: 300px;
-    max-height: 320px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    padding: 0;
-    overflow: hidden;
-    background: #000;
-}
-.productos{
-margin-left:210px;
+/* =============================
+LAYOUT TIENDA RESPONSIVE
+============================= */
+
+/* PC */
+
+.bannerFull{
+
+position:relative;
+
 width:calc(100% - 230px);
+
+margin-left:230px;
+
+height:45vh;
+
+min-height:280px;
+max-height:320px;
+
+margin-top:20px;
+margin-bottom:20px;
+
+overflow:hidden;
+
+box-sizing:border-box;
+
+}
+img{
+max-width:100%;
+height:auto;
+}
+
+.productos{
+margin-left:230px;
+width:calc(100% - 230px);
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:20px;
+padding:20px;
+}
+
+/* =============================
+TABLET
+============================= */
+
+@media (max-width:1024px){
+
+.menuIcon{
+display:block;
+}
+
+.menuLateral{
+left:-230px;
+transition:left .3s ease;
+}
+
+.menuLateral.activo{
+left:0;
+}
+
+/* contenido ocupa toda pantalla */
+
+.bannerFull{
+margin-left:0;
+width:100%;
+}
+
+.productos{
+margin-left:0;
+width:100%;
+}
+
+/* productos 2 columnas */
+
+.producto{
+width:45%;
+max-width:280px;
+}
+
+}
+
+/* =============================
+CELULAR
+============================= */
+
+@media (max-width:700px){
+
+/* banner full */
+
+.bannerFull{
+margin-left:0;
+width:100%;
+height:200px;
+}
+
+/* productos columna */
+
+.productos{
+
+flex-direction:column;
+align-items:center;
+gap:25px;
+
+}
+
+/* cards más grandes */
+
+.producto{
+
+width:92%;
+max-width:340px;
+
+}
+
+/* imagen */
+
+.producto img{
+
+height:170px;
+
+}
+
+/* texto */
+
+.producto h2{
+font-size:16px;
+}
+
+.producto .precio{
+font-size:20px;
+}
+
+/* botón */
+
+.producto button{
+font-size:15px;
+padding:12px;
+}
+
 }
 
 .slides-container {
@@ -788,12 +948,14 @@ width:calc(100% - 230px);
     display: none;
 }
 
-.slide img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
+.slide img{
+width:100%;
+height:100%;
+object-fit:cover;
+display:block;
+max-width:100%;
 }
+
 
 .slide.active {
     opacity: 1;
@@ -883,14 +1045,24 @@ z-index:9999;
 
 .modalContenido{
 
-background:#1c1c1c;
+width:90%;
+max-width:900px;   /* más ancho en PC */
+
+margin:auto;
+
+display:flex;
+align-items:flex-start;
+justify-content:center;
+
+background:#1a1a1a;
+
+border-radius:16px;
+
 padding:30px;
-border-radius:14px;
-width:520px;
-max-width:90%;
-color:white;
-position:relative;
-box-shadow:0 0 25px rgba(0,0,0,0.7);
+
+gap:30px;
+
+box-shadow:0 10px 40px rgba(0,0,0,0.6);
 
 }
 
@@ -1274,299 +1446,422 @@ border-color: #ff2a2a !important;
     }
 }
 /* ====== ESTILOS SOLO PARA "CÓMO COMPRAR" ====== */
-.pagina-como-comprar {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    background: #111;
-    color: #fff;
+/* =========================
+PAGINA COMO COMPRAR
+========================= */
+
+.pagina-como-comprar{
+font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+background:#0e0e0e;
+color:#e8e8e8;
 }
 
-/* PASOS */
-.pagina-como-comprar .pasos-container {
-    max-width: 1200px;
-    margin: 30px auto;
-    padding: 0 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 40px;
+/* TITULO PAGINA */
+
+.tituloComoComprar{
+text-align:center;
+font-size:36px;
+margin-top:60px;
+margin-bottom:10px;
+font-weight:600;
 }
 
-.pagina-como-comprar .paso {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    align-items: flex-start;
-    background: #1a1a1a;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+.subtituloComoComprar{
+text-align:center;
+opacity:.65;
+margin-bottom:60px;
+font-size:16px;
 }
 
-/* Imagenes de paso */
-.pagina-como-comprar .paso-img {
-    flex: 1 1 300px;
-    max-width: 350px;
+/* CONTENEDOR PASOS */
+
+.pagina-como-comprar .pasos-container{
+
+max-width:1100px;
+margin:auto;
+padding:0 25px;
+
+display:flex;
+flex-direction:column;
+
+gap:60px;
+
+position:relative;
+
 }
 
-.pagina-como-comprar .paso-img img {
-    width: 100%;
-    height: 200px;
-    border-radius: 12px;
-    object-fit: cover;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+/* LINEA TIMELINE */
+
+.pagina-como-comprar .pasos-container::before{
+
+content:"";
+
+position:absolute;
+
+left:32px;
+
+top:0;
+bottom:0;
+
+width:2px;
+
+background:linear-gradient(
+to bottom,
+transparent,
+rgba(255,255,255,0.15),
+transparent
+);
+
 }
 
-.pagina-como-comprar .paso-texto {
-    flex: 2 1 400px;
+/* TARJETAS PASOS */
+
+.pagina-como-comprar .paso{
+
+display:flex;
+
+gap:35px;
+
+align-items:flex-start;
+
+background:linear-gradient(180deg,#1a1a1a,#141414);
+
+padding:28px;
+
+border-radius:16px;
+
+border:1px solid rgba(255,255,255,0.05);
+
+box-shadow:0 10px 30px rgba(0,0,0,0.45);
+
+position:relative;
+
+transition:all .35s ease;
+
 }
 
-.pagina-como-comprar .paso-texto .numero {
-    font-size: 2rem;
-    margin-right: 10px;
+/* animacion hover */
+
+.pagina-como-comprar .paso:hover{
+
+transform:translateY(-6px);
+
+box-shadow:0 16px 45px rgba(0,0,0,0.6);
+
 }
 
-.pagina-como-comprar .paso-texto p {
-    font-size: 1rem;
-    line-height: 1.6;
+/* circulo timeline */
+
+.pagina-como-comprar .paso::before{
+
+content:"";
+
+position:absolute;
+
+left:-6px;
+
+top:34px;
+
+width:14px;
+height:14px;
+
+border-radius:50%;
+
+background:#fff;
+
+box-shadow:0 0 0 4px #0e0e0e;
+
 }
 
-.pagina-como-comprar .paso-texto ul {
-    margin: 10px 0;
-    padding-left: 20px;
+/* IMAGEN PASO */
+
+.pagina-como-comprar .paso-img{
+
+flex:1;
+max-width:280px;
+
 }
 
-/* ====== CARRUSEL PLATAFORMAS (Paso 1) ====== */
-.pagina-como-comprar .carrusel-plataformas {
-    overflow: hidden;
-    width: 100%;
-    border-radius: 12px;
-    padding: 10px 0;
-    background: #111;
+.pagina-como-comprar .paso-img img{
+
+width:100%;
+
+height:200px;
+
+object-fit:cover;
+
+border-radius:14px;
+
+box-shadow:0 8px 20px rgba(0,0,0,0.45);
+
 }
 
-.pagina-como-comprar .carrusel-track {
-    display: flex;
-    width: calc(150px * 12);
-    animation: scrollPlataformas 20s linear infinite;
+/* TEXTO PASO */
+
+.pagina-como-comprar .paso-texto{
+
+flex:2;
+
+font-size:15px;
+
+line-height:1.7;
+
+color:#dcdcdc;
+
 }
 
-.pagina-como-comprar .carrusel-track img {
-    width: 100px;
-    height: 100px;
-    margin: 0 15px;
-    object-fit: cover;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    transition: transform 0.3s;
+/* numero paso */
+
+.pagina-como-comprar .numero{
+
+font-size:30px;
+
+display:block;
+
+margin-bottom:10px;
+
 }
 
-.pagina-como-comprar .carrusel-track img:hover {
-    transform: scale(1.1);
+/* titulos */
+
+.pagina-como-comprar .paso-texto strong{
+
+font-size:18px;
+
+color:#fff;
+
+display:block;
+
+margin-bottom:6px;
+
 }
 
-@keyframes scrollPlataformas {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
+/* listas */
+
+.pagina-como-comprar .paso-texto ul{
+
+margin-top:12px;
+
+padding-left:18px;
+
+}
+
+.pagina-como-comprar .paso-texto li{
+
+margin-bottom:8px;
+
+}
+
+/* ====== CARRUSEL ====== */
+
+.pagina-como-comprar .carrusel-plataformas{
+
+overflow:hidden;
+
+border-radius:14px;
+
+background:#111;
+
+padding:12px 0;
+
+margin-top:10px;
+
+}
+
+.pagina-como-comprar .carrusel-track{
+
+display:flex;
+
+gap:16px;
+
+width:max-content;
+
+animation:scrollPlataformas 22s linear infinite;
+
+}
+
+.pagina-como-comprar .carrusel-track img{
+
+width:95px;
+height:95px;
+
+object-fit:cover;
+
+border-radius:12px;
+
+box-shadow:0 5px 15px rgba(0,0,0,0.45);
+
+transition:all .3s ease;
+
+}
+
+.pagina-como-comprar .carrusel-track img:hover{
+
+transform:scale(1.12);
+
+}
+
+/* animacion carrusel */
+
+@keyframes scrollPlataformas{
+
+0%{transform:translateX(0)}
+
+100%{transform:translateX(-50%)}
+
 }
 
 /* ====== CHAT ====== */
-.pagina-como-comprar .chatcbox {
-    flex: 1;
-    min-width: 200px;
-    max-width: 400px;
-    margin: 20px auto;
-    height: 590px;
-    transition: height 0.3s ease;
+
+.pagina-como-comprar .chatcbox{
+
+max-width:400px;
+
+height:540px;
+
+margin:35px auto;
+
 }
 
-.pagina-como-comprar .chatcbox iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+.pagina-como-comprar .chatcbox iframe{
+
+width:100%;
+height:100%;
+
+border:none;
+
+border-radius:14px;
+
+box-shadow:0 10px 30px rgba(0,0,0,0.5);
+
 }
 
-.pagina-como-comprar {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    background: #111;
-    color: #fff;
+/* ====== ANIMACION SCROLL ====== */
+
+.paso{
+
+opacity:0;
+
+transform:translateY(40px);
+
+animation:aparecer .8s ease forwards;
+
 }
 
-/* PASOS */
-.pagina-como-comprar .pasos-container {
-    max-width: 1200px;
-    margin: 30px auto;
-    padding: 0 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 40px;
+.paso:nth-child(1){animation-delay:.1s}
+.paso:nth-child(2){animation-delay:.2s}
+.paso:nth-child(3){animation-delay:.3s}
+.paso:nth-child(4){animation-delay:.4s}
+.paso:nth-child(5){animation-delay:.5s}
+
+@keyframes aparecer{
+
+to{
+
+opacity:1;
+
+transform:translateY(0);
+
 }
 
-/* Cada paso */
-.pagina-como-comprar .paso {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    align-items: flex-start;
-    background: #1a1a1a;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-/* Imagen del paso */
-.pagina-como-comprar .paso-img {
-    flex: 1 1 300px;
-    max-width: 350px;
-}
-
-.pagina-como-comprar .paso-img img {
-    width: 100%;
-    height: 200px;
-    border-radius: 12px;
-    object-fit: cover;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-
-/* Texto del paso */
-.pagina-como-comprar .paso-texto {
-    flex: 2 1 400px;
-}
-
-.pagina-como-comprar .paso-texto .numero {
-    font-size: 2rem;
-    font-weight: bold;
-    margin-right: 10px;
-    display: inline-block;
-}
-
-.pagina-como-comprar .paso-texto p {
-    font-size: 1rem;
-    line-height: 1.6;
-}
-
-.pagina-como-comprar .paso-texto ul {
-    margin: 10px 0;
-    padding-left: 20px;
-}
-
-/* ====== CARRUSEL PLATAFORMAS ====== */
-.pagina-como-comprar .carrusel-plataformas {
-    overflow: hidden;
-    width: 100%;
-    border-radius: 12px;
-    padding: 10px 0;
-    background: #111;
-}
-
-.pagina-como-comprar .carrusel-track {
-    display: flex;
-    gap: 15px;
-    width: max-content;
-    animation: scrollPlataformas 20s linear infinite;
-}
-
-.pagina-como-comprar .carrusel-track img {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    transition: transform 0.3s;
-}
-
-.pagina-como-comprar .carrusel-track img:hover {
-    transform: scale(1.1);
-}
-
-@keyframes scrollPlataformas {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-}
-
-/* ====== CHAT ====== */
-.pagina-como-comprar .chatcbox {
-    flex: 1;
-    min-width: 200px;
-    max-width: 400px;
-    margin: 20px auto;
-    height: 550px;
-    transition: height 0.3s ease;
-}
-
-.pagina-como-comprar .chatcbox iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
 /* ====== RESPONSIVE ====== */
-@media screen and (max-width: 1024px) {
-    .pagina-como-comprar .paso {
-        flex-direction: column;
-        align-items: center;
-    }
-    .pagina-como-comprar .paso-texto,
-    .pagina-como-comprar .paso-img {
-        max-width: 100%;
-    }
-    .pagina-como-comprar .chatcbox {
-        height: 500px;
-        margin-top: 10px;
-    }
+
+@media(max-width:950px){
+
+.pagina-como-comprar .pasos-container::before{
+display:none;
 }
 
-@media screen and (max-width: 767px) {
-    .pagina-como-comprar .paso {
-        flex-direction: column;
-        gap: 15px;
-    }
-    .pagina-como-comprar .chatcbox {
-        width: 95%;
-        height: 450px;
-        margin-top: 5px;
-    }
-}
-.lista-soporte {
-    list-style: none;
-    margin: 15px 0;
-    padding-left: 0;
-    font-family: Arial, sans-serif;
+.pagina-como-comprar .paso{
+
+flex-direction:column;
+
+text-align:center;
+
 }
 
-.lista-soporte li {
-    display: flex;
-    align-items: center;   /* Alinea icono y texto al mismo nivel */
-    gap: 8px;              /* Separación entre icono y texto */
-    background-color: rgba(255,255,255,0.05);
-    padding: 8px 12px;
-    border-radius: 8px;
-    margin-bottom: 6px;
+.pagina-como-comprar .paso::before{
+display:none;
 }
 
-.lista-soporte li .icono {
-    font-size: 1.3rem;
-    line-height: 1;        /* Ajusta altura para centrar con el texto */
-    margin-top: 0;         /* Elimina el pequeño desajuste vertical */
+.pagina-como-comprar .paso-img{
+
+max-width:100%;
+
 }
 
-.lista-soporte li .texto {
-    display: inline-block;
 }
 
-.lista-soporte li strong {
-    color: #ffd700;
+@media(max-width:600px){
+
+.pagina-como-comprar .pasos-container{
+
+gap:45px;
+
 }
 
-.lista-soporte li .horario {
-    font-size: 0.85rem;
-    color: #ddd;
-    display: block;
-    margin-top: 2px;
+.pagina-como-comprar .paso{
+
+padding:22px;
+
+}
+
+.pagina-como-comprar .paso-texto{
+
+font-size:14px;
+
+}}
+
+.lista-soporte{
+    list-style:none;
+    margin:25px auto;
+    padding:0;
+    max-width:420px;
+    font-family:Arial, sans-serif;
+}
+
+.lista-soporte li{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 16px;
+    margin-bottom:10px;
+
+    background:rgba(255,255,255,0.06);
+    border-radius:12px;
+
+    backdrop-filter:blur(6px);
+    transition:all .25s ease;
+}
+
+.lista-soporte li:hover{
+    background:rgba(255,255,255,0.12);
+    transform:translateY(-2px);
+}
+
+.lista-soporte li .icono{
+    font-size:1.4rem;
+    min-width:28px;
+    text-align:center;
+}
+
+.lista-soporte li .texto{
+    line-height:1.35;
+    color:#ffffff;
+}
+
+.lista-soporte li strong{
+    color:#ffd700;
+    font-weight:600;
+}
+
+.lista-soporte li .horario{
+    font-size:0.85rem;
+    color:#cfcfcf;
+    display:block;
+    margin-top:2px;
 }
 .cantidadBox {
   display: flex;
@@ -1679,4 +1974,450 @@ border-color: #ff2a2a !important;
 
 .lista-comprobante li {
   margin-bottom: 5px;
+}
+/* =========================
+STOCK PROFESIONAL
+========================= */
+
+.stock{
+
+display:inline-block;
+
+margin-top:6px;
+
+font-size:12.5px;
+font-weight:600;
+
+color:#e4e4e42d;
+
+background:rgba(255,255,255,0.04);
+
+border:1px solid rgba(255,255,255,0.08);
+
+padding:5px 10px;
+
+border-radius:8px;
+
+letter-spacing:0.3px;
+
+backdrop-filter:blur(4px);
+
+}
+
+/* =========================
+DURACION SERVICIO
+========================= */
+
+.duracionServicio{
+
+display:inline-block;
+
+margin-top:6px;
+
+font-size:12px;
+
+color:#eed798;
+
+background:rgba(255,255,255,0.03);
+
+border:1px solid rgba(255,255,255,0.06);
+
+padding:4px 10px;
+
+border-radius:8px;
+
+letter-spacing:0.2px;
+
+}
+/* AVISO DE ULTIMAS CUENTAS */
+
+.avisoStock{
+
+display:none;
+
+margin-top:10px;
+
+padding:6px 12px;
+
+font-size:12px;
+
+font-weight:500;
+
+color:#ffd86b;
+
+background:rgba(255,216,107,0.08);
+
+border:1px solid rgba(255,216,107,0.25);
+
+border-radius:10px;
+
+backdrop-filter:blur(6px);
+
+animation:stockFade 0.4s ease;
+
+}
+
+
+/* animacion suave */
+
+@keyframes stockFade{
+
+from{
+opacity:0;
+transform:translateY(-4px);
+}
+
+to{
+opacity:1;
+transform:translateY(0);
+}
+
+}
+/* =============================
+MODAL RESPONSIVE
+============================= */
+
+@media (max-width:700px){
+
+.modalContenido{
+
+width:92%;
+padding:20px;
+
+}
+
+.modalProducto{
+
+flex-direction:column;
+align-items:center;
+text-align:center;
+
+}
+
+.modalProducto img{
+
+width:160px;
+
+}
+
+.modalInfo{
+
+text-align:center;
+
+}
+
+.descripcionProducto,
+.reglasUso{
+
+text-align:left;
+
+}
+
+/* botones cantidad */
+
+.cantidadBox{
+
+justify-content:center;
+
+}
+
+}
+.modal{
+
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.75);
+backdrop-filter:blur(4px);
+
+justify-content:center;
+align-items:center;
+z-index:999;
+
+
+}
+
+.modal-content h2{
+
+text-align:center;
+margin-bottom:22px;
+font-size:22px;
+font-weight:600;
+
+}
+
+.modal-content p{
+
+margin-bottom:14px;
+font-size:14px;
+color:#d2d2d2;
+
+}
+
+/* contenedor del botón */
+
+.btnAceptar{
+
+margin-top:25px;
+align-self:center;
+
+background:#ff1a1a;
+color:#fff;
+border:none;
+padding:12px 28px;
+border-radius:8px;
+font-size:14px;
+font-weight:600;
+cursor:pointer;
+
+transition:all .2s ease;
+
+}
+
+.btnAceptar:hover{
+
+background:#ff2d2d;
+transform:translateY(-1px);
+
+}
+
+/* animación suave */
+
+@keyframes modalFade{
+
+from{
+opacity:0;
+transform:scale(.95);
+}
+
+to{
+opacity:1;
+transform:scale(1);
+}
+
+}
+/* =========================
+RESPONSIVE GENERAL
+========================= */
+
+@media (max-width:900px){
+
+/* contenedores principales */
+
+.container,
+.tienda,
+.productos{
+flex-direction:column;
+align-items:center;
+}
+
+/* tarjetas de productos */
+
+.product-card,
+.card,
+.producto{
+width:90%;
+max-width:420px;
+}
+
+/* modal productos */
+
+.product-modal,
+.modal-product{
+flex-direction:column;
+text-align:center;
+padding:25px;
+}
+
+/* imagen del modal */
+
+.product-modal img,
+.modal-product img{
+width:180px;
+margin:auto;
+}
+
+/* textos dentro del modal */
+
+.product-modal .info,
+.modal-product .info{
+width:100%;
+}
+
+/* botones */
+
+button,
+.btn,
+.btnComprar{
+width:100%;
+max-width:280px;
+margin:auto;
+}
+
+/* contador */
+
+.contador{
+justify-content:center;
+}
+
+}
+
+/* =========================
+CELULARES
+========================= */
+
+@media (max-width:600px){
+
+body{
+overflow-x:hidden;
+}
+
+/* títulos */
+
+h1{
+font-size:26px;
+}
+
+h2{
+font-size:20px;
+}
+
+/* cards */
+
+.product-card,
+.card,
+.producto{
+width:95%;
+padding:18px;
+}
+
+/* imagen productos */
+
+.product-card img{
+width:140px;
+margin:auto;
+}
+
+/* modal */
+
+.modal-content{
+width:92%;
+padding:28px 22px;
+max-height:85vh;
+overflow-y:auto;
+}
+
+/* texto */
+
+.modal-content p{
+font-size:13px;
+line-height:1.6;
+}
+
+/* botones */
+
+.btnAceptar,
+.btnComprar{
+width:100%;
+max-width:260px;
+}
+
+/* input inicio */
+
+input{
+width:100%;
+}
+
+/* contador */
+
+.cantidad{
+gap:10px;
+}
+
+/* carrito */
+
+.total{
+font-size:16px;
+}
+
+}
+html,body{
+overflow-x:hidden;
+}
+.ofertasContainer{
+
+display:flex;
+justify-content:center;
+margin-top:40px;
+
+}
+
+.productoOferta{
+
+background:#1c1c1c;
+padding:25px;
+border-radius:14px;
+width:260px;
+text-align:center;
+box-shadow:0 15px 40px rgba(0,0,0,0.6);
+
+}
+
+.productoOferta img{
+
+width:120px;
+margin-bottom:10px;
+
+}
+
+.precioOferta{
+
+color:#00ff90;
+font-size:24px;
+font-weight:bold;
+
+}
+
+.stockOferta{
+
+margin-top:5px;
+color:#ccc;
+
+}
+
+.contadorOferta{
+
+margin-top:12px;
+background:#111;
+padding:8px;
+border-radius:8px;
+font-size:14px;
+
+}
+
+.productoOferta button{
+
+margin-top:15px;
+background:#ff1a1a;
+color:white;
+border:none;
+padding:10px 25px;
+border-radius:8px;
+cursor:pointer;
+
+}
+
+.productoOferta button:hover{
+
+background:#ff3b3b;
+
+}
+button:disabled {
+    background-color: #555 !important;  /* gris oscuro */
+    color: #ccc !important;             /* texto más claro */
+    cursor: not-allowed !important;     /* cursor no clickeable */
+    pointer-events: none !important;    /* asegura que no se pueda clickear */
 }
