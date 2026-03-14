@@ -33,8 +33,6 @@ Propietario: StreamsVip
 <script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=074c5be8-e613-4e2e-b987-7910106c9302"> </script>
 <!-- End of streamsviponline Zendesk Widget script -->
 
-</div>
-
 
   <!-- Contenedor de Chat -->
    <div class="chatcbox">
@@ -308,6 +306,49 @@ if(modal){
 modal.style.display="none"}}
 
 });
+/* BLOQUEAR CLICK DERECHO */
+document.addEventListener("contextmenu", function(e){
+e.preventDefault();
+});
+
+/* BLOQUEAR INSPECCIONAR */
+document.onkeydown = function(e){
+
+if(e.keyCode == 123){
+return false;
+}
+
+if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)){
+return false;
+}
+
+if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)){
+return false;
+}
+
+if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)){
+return false;
+}
+
+if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)){
+return false;
+}
+
+};
+
+/* BLOQUEAR SELECCION DE TEXTO */
+document.addEventListener("selectstart", function(e){
+e.preventDefault();
+});
+
+/* BLOQUEAR ARRASTRAR */
+document.addEventListener("dragstart", function(e){
+e.preventDefault();
+});
+/* MENU */
+function toggleMenu(){
+  document.getElementById("menuLateral").classList.toggle("activo");
+}
 </script>
 <div style="opacity:0;position:absolute;">
 StreamsVip Oficial 2026
