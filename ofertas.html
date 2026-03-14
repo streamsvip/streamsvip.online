@@ -214,9 +214,11 @@
     let tiempoFinalGuardado = localStorage.getItem("ofertaTiempo");
 
     if (!tiempoFinalGuardado || Number(tiempoFinalGuardado) <= Date.now()) {
-      tiempoFinalGuardado = Date.now() + (10 * 60 * 60 * 1000);
-      localStorage.setItem("ofertaTiempo", tiempoFinalGuardado);
-    }
+  tiempoFinalGuardado = Date.now() + (10 * 60 * 60 * 1000);
+  localStorage.setItem("ofertaTiempo", tiempoFinalGuardado);
+  localStorage.removeItem("visitoOfertas");
+}
+
 
     let tiempoFinal = Number(localStorage.getItem("ofertaTiempo"));
 
@@ -345,7 +347,8 @@
       cerrarModalFormulario();
       alert("Datos enviados a WhatsApp para validación.");
     });
-    
+    localStorage.setItem("visitoOfertas","si");
+
   </script>
 
 </body>
