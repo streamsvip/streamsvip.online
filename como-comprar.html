@@ -2,218 +2,209 @@
 <html lang="es">
 <head>
 
-<title>Cómo Comprar</title>
+  <title>Cómo Comprar</title>
 
-<link rel="icon" type="image/x-icon" href="img/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
-<link rel="manifest" href="img/site.webmanifest">
+  <link rel="icon" type="image/x-icon" href="img/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="manifest" href="img/site.webmanifest">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css">
 
 </head>
 
 <body>
 
-<!-- MENU -->
-<div class="menuWrapper">
   <div class="menuIcon" onclick="toggleMenu()">☰</div>
+
   <nav id="menuLateral" class="menuLateral">
-      <div class="menuLogo">
-          <img src="img/logo.jpg" alt="Logo">
-      </div>
+    <div class="menuLogo">
+      <img src="img/logo.jpg" alt="StreamsVip">
+    </div>
 
-      <a href="tienda.html"><span class="menu-emoji">🛍️</span> Tienda</a>
-      <a href="como-comprar.html" class="activo"><span class="menu-emoji">💳</span> Cómo comprar</a>
-      <a href="ofertas.html"><span class="menu-emoji">🔥</span> Ofertas</a>
+    <div class="panelUsuario">
+      <div id="panelUsuarioNombre" class="panelUsuarioNombre">Cargando...</div>
+      <div id="panelUsuarioHandle" class="panelUsuarioHandle">@usuario</div>
 
-      <a class="soporte"
-         href="https://wa.me/51917107386?text=Hola%20necesito%20ayuda%20con%20mi%20compra%20en%20StreamsVip"
-         target="_blank">
-          <img src="img/wspp.png" alt="WhatsApp">
-          <span class="tooltip">Soporte</span>
-      </a>
-
-      <a href="#" onclick="salir()" class="salir"><span class="menu-emoji">🔙</span> Salir</a>
-
-      <!-- Chat -->
-      <div class="chatcbox">
-          <iframe 
-              src="https://www3.cbox.ws/box/?boxid=3553105&boxtag=bZwmgx" 
-              allowtransparency="yes" 
-              allow="autoplay" 
-              frameborder="0" 
-              marginheight="0" 
-              marginwidth="0" 
-              scrolling="auto">
-          </iframe>
-      </div>
-  </nav>
-</div>
-
-<!-- PAGINA -->
-<div class="pagina-como-comprar">
-
-  <!-- PASOS -->
-  <div class="pasos-container">
-
-    <!-- Paso 1 -->
-    <div class="paso">
-      <div class="paso-img">
-        <div class="carrusel-plataformas">
-          <div class="carrusel-track">
-            <img src="img/Netflix.jpg" alt="Netflix">
-            <img src="img/Hbomax.jpg" alt="HBO Max">
-            <img src="img/Paramount.jpg" alt="Paramount">
-            <img src="img/Spotify.jpg" alt="Spotify">
-            <img src="img/Disney.jpg" alt="Disney">
-            <img src="img/Primevideo.jpg" alt="Prime Video">
-            <!-- Repetir para scroll infinito -->
-            <img src="img/Netflix.jpg" alt="Netflix">
-            <img src="img/Hbomax.jpg" alt="HBO Max">
-            <img src="img/Paramount.jpg" alt="Paramount">
-            <img src="img/Spotify.jpg" alt="Spotify">
-            <img src="img/Disney.jpg" alt="Disney">
-            <img src="img/Primevideo.jpg" alt="Prime Video">
-          </div>
+      <div class="panelSaldoBox">
+        <div class="panelSaldoLabel">Saldo</div>
+        <div id="panelUsuarioSaldo" class="panelSaldoValor">
+          S/ 0.00 <span class="panelSaldoMoneda">PEN</span>
         </div>
       </div>
-      <div class="paso-texto">
-        <span class="numero">1️⃣</span>
-        <p>
-         <strong>✅Selección de la plataforma de streaming perfecta para ti:</strong><br>
-
-<strong>Compatibilidad total con tus dispositivos:</strong> ya sea que veas en Smart TV, celular, 
-tablet, laptop, Chromecast, Fire TV, consolas o hasta en el proyector de casa… 
-funciona perfecto en todos. 
-Sin complicaciones técnicas, sin buffering eterno, sin dramas.<br>
-      </div>
     </div>
 
-    <!-- Paso 2 -->
-    <div class="paso">
-      <div class="paso-img">
-        <img src="img/paso2.jpg" alt="Paso 2: Escaneo o pago">
-      </div>
-      <div class="paso-texto">
-        <span class="numero">2️⃣</span>
-        <p>
-          <strong>✅Escaneo del código QR o pago digital:</strong><br>
-         Integridad y confidencialidad total: tus datos financieros están protegidos con 
-         la misma seguridad bancaria que usa Yape (encriptación BCP, sin que nosotros guardemos 
-         nada sensible). Nunca pedimos claves ni datos extras.
-Sin riesgos ni complicaciones: evita tarjetas de crédito, formularios eternos o esperas.
- Solo escanea, confirma con tu clave Yape y listo. Ideal para cualquier hora, estés en casa, 
- trabajo o en la calle.
-        </p>
-      </div>
+    <a href="tienda.html"><span class="menu-emoji">🛍️</span> Tienda</a>
+    <a href="como-comprar.html" class="activo"><span class="menu-emoji">💳</span> Cómo comprar</a>
+    <a href="ofertas.html"><span class="menu-emoji">🔥</span> Ofertas</a>
+    <a href="recargas.html"><span class="menu-emoji">💸</span> Recargas</a>
+    <a href="#" onclick="salir(); return false;" class="salir"><span class="menu-emoji">🔙</span> Salir</a>
+
+    <script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=074c5be8-e613-4e2e-b987-7910106c9302"></script>
+
+    <div class="chatcbox">
+      <iframe 
+        src="https://www3.cbox.ws/box/?boxid=3553105&boxtag=bZwmgx" 
+        allowtransparency="yes" 
+        allow="autoplay" 
+        frameborder="0" 
+        marginheight="0" 
+        marginwidth="0" 
+        scrolling="auto">
+      </iframe>
     </div>
+  </nav>
 
-    <!-- Paso 3 -->
-    <div class="paso">
-      <div class="paso-img">
-        <img src="img/paso3.jpg" alt="Paso 3: Registro del comprobante">
+  <div class="pagina-como-comprar">
+
+    <div class="pasos-container">
+
+      <div class="paso">
+        <div class="paso-img">
+          <div class="carrusel-plataformas">
+            <div class="carrusel-track">
+              <img src="img/Netflix.jpg" alt="Netflix">
+              <img src="img/Hbomax.jpg" alt="HBO Max">
+              <img src="img/Paramount.jpg" alt="Paramount">
+              <img src="img/Spotify.jpg" alt="Spotify">
+              <img src="img/Disney.jpg" alt="Disney">
+              <img src="img/Primevideo.jpg" alt="Prime Video">
+              <img src="img/Netflix.jpg" alt="Netflix">
+              <img src="img/Hbomax.jpg" alt="HBO Max">
+              <img src="img/Paramount.jpg" alt="Paramount">
+              <img src="img/Spotify.jpg" alt="Spotify">
+              <img src="img/Disney.jpg" alt="Disney">
+              <img src="img/Primevideo.jpg" alt="Prime Video">
+            </div>
+          </div>
+        </div>
+        <div class="paso-texto">
+          <span class="numero">1️⃣</span>
+          <p>
+            <strong>✅ Selección del servicio digital y preparación de la operación:</strong><br>
+            El usuario puede revisar el catálogo disponible y seleccionar la plataforma de streaming que mejor se ajuste a sus requerimientos de uso, compatibilidad y duración del servicio.
+            La plataforma se encuentra orientada a ofrecer acceso funcional en múltiples entornos, incluyendo Smart TV, teléfonos móviles, tablets, laptops, consolas y otros dispositivos compatibles.
+            Esta fase permite identificar con precisión el producto a adquirir antes de iniciar el proceso de acreditación de saldo dentro de la cuenta del cliente.
+          </p>
+        </div>
       </div>
-      <div class="paso-texto">
-        <span class="numero">3️⃣</span>
-        <p>
-          <strong>✅Registro del comprobante de pago:</strong><br>
-          Una vez que hayas realizado el pago con Yape o QR, solo necesitas enviarnos los datos básicos del comprobante. Es un paso súper sencillo y rápido que nos permite confirmar la transacción de forma automática y segura, para que tu cuenta premium quede activa en minutos.
-¿Qué te pedimos exactamente?:
-Nombre de la persona que yapeó
 
-Captura de la transacción
-
-Número de operación o código de transacción (el que aparece en tu app de Yape o banca)
+      <div class="paso">
+        <div class="paso-img">
+          <img src="img/paso2.jpg" alt="Paso 2: Recarga de saldo por Yape">
+        </div>
+        <div class="paso-texto">
+          <span class="numero">2️⃣</span>
+          <p>
+            <strong>✅ Registro de recarga de saldo desde el apartado de Recargas:</strong><br>
+            Para realizar compras dentro de la plataforma, el cliente debe ingresar al apartado de <strong>Recargas</strong> y registrar una operación de acreditación de saldo mediante <strong>Yape</strong>.
+            En esta sección, el usuario consigna el monto transferido, el número de operación y el comprobante correspondiente.
+            Una vez enviada la solicitud, esta queda almacenada con estado <strong>Pendiente</strong>, a la espera de su validación administrativa.
+            Tras la revisión del comprobante, la operación puede ser marcada como <strong>Aprobada</strong>, acreditando automáticamente el saldo en la cuenta del cliente, o como <strong>Rechazada</strong> si no cumple los criterios de verificación establecidos.
+          </p>
+        </div>
       </div>
+
+      <div class="paso">
+        <div class="paso-img">
+          <img src="img/paso3.jpg" alt="Paso 3: Compra con saldo acreditado">
+        </div>
+        <div class="paso-texto">
+          <span class="numero">3️⃣</span>
+          <p>
+            <strong>✅ Ejecución de compra con saldo disponible:</strong><br>
+            Una vez acreditado el saldo, el cliente puede ejecutar la compra del servicio seleccionado directamente desde la tienda, sin necesidad de repetir el proceso de pago por cada operación.
+            El sistema descuenta automáticamente el importe correspondiente del saldo disponible y procesa la solicitud en función del stock activo.
+            Este esquema optimiza la trazabilidad de las operaciones, reduce tiempos de espera y mejora la eficiencia del flujo de compra dentro de la plataforma.
+          </p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-img">
+          <img src="img/paso4.jpg" alt="Paso 4: Entrega automática del acceso">
+        </div>
+        <div class="paso-texto">
+          <span class="numero">4️⃣</span>
+          <p>
+            <strong>✅ Entrega automatizada del acceso y gestión de incidencias específicas:</strong><br>
+            Tras completarse la compra con saldo, la plataforma realiza la entrega automática de la cuenta o credenciales asignadas, permitiendo al cliente acceder de forma inmediata al servicio adquirido.
+            En la mayoría de productos, el acceso se entrega listo para uso directo, sin requerir validaciones adicionales, reenvío de códigos ni intervención manual.
+            No obstante, en servicios como <strong>Netflix</strong> y <strong>Disney</strong>, puede presentarse una validación complementaria mediante código <strong>PIN</strong> enviado al correo principal de la cuenta.
+            En dichos casos, el usuario deberá comunicarse con el área de soporte para completar la gestión correspondiente y finalizar correctamente la habilitación del acceso.
+          </p>
+
+          <ul class="lista-soporte">
+            <li class="soporte-wspp">
+              <span class="texto">
+                <span class="icono">🟢</span>
+                <strong>Canal de soporte por WhatsApp:</strong>
+                Disponible para validaciones operativas, incidencias de acceso y asistencia en productos que requieran intervención manual, como confirmaciones por PIN o verificaciones asociadas al correo principal.
+                <span class="horario">Lun-Vie 10:00-23:00, Sáb-Dom 11:00-17:00</span>
+              </span>
+            </li>
+
+            <li class="soporte-rojo">
+              <span class="texto">
+                <span class="icono">🔴</span>
+                <strong>Soporte interno de la tienda:</strong>
+                Atención inicial automatizada con escalamiento al administrador cuando la operación requiere revisión, validación adicional o asistencia técnica complementaria.
+                <span class="horario">Disponibilidad continua para recepción de solicitudes y atención según prioridad operativa.</span>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
     </div>
-
-    <!-- Paso 4 -->
-    <div class="paso">
-      <div class="paso-img">
-        <img src="img/paso4.jpg" alt="Paso 4: Recepción del acceso">
-      </div>
-      <div class="paso-texto">
-        <span class="numero">4️⃣</span>
-        <p>
-          <strong>✅Recepción y activación del acceso:</strong><br>
-          Tras la verificación del comprobante, recibirás las credenciales o enlaces de acceso.
-        </p>
-
-<ul class="lista-soporte">
-  <li class="soporte-wspp">
-    
-    <span class="texto">
-    <span class="icono">🟢</span>
-      <strong>Botón de soporte WhatsApp:</strong>Puede realizar cualquier consulta; asimismo, al registrar su compra, su solicitud será derivada automáticamente al área de soporte para su correspondiente validación
-      <span class="horario">Lun-Vie 10:00-23:00, Sáb-Dom 11:00-17:00</span>
-    </span>
-  </li>
-  <li class="soporte-rojo">
-    
-    <span class="texto">
-    <span class="icono">🔴</span>
-      <strong>Botón de soporte tienda:</strong> Soporte vía AgenteIA, con escalamiento a administrador humano.
-      <span class="horario">Asistencia permanente 24/7 con intervención de administrador cuando se requiere.</span>
-    </span>
-  </li>
-</ul>
-      </div>
-    </div>
-
   </div>
-</div>
-<script src="script.js"></script>
-<div id="toastGracias">¡Gracias por su visita! Vuelva pronto.</div>
-<script>
-function toggleMenu() {
-  document.getElementById("menuLateral").classList.toggle("activo");
-}
 
-/* BLOQUEAR CLICK DERECHO */
-document.addEventListener("contextmenu", function(e){
-e.preventDefault();
-});
+  <div id="toastGracias">¡Gracias por su visita! Vuelva pronto.</div>
 
-/* BLOQUEAR INSPECCIONAR */
-document.onkeydown = function(e){
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="script.js"></script>
 
-if(e.keyCode == 123){
-return false;
-}
+  <script>
+    document.addEventListener("contextmenu", function(e){
+      e.preventDefault();
+    });
 
-if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)){
-return false;
-}
+    document.onkeydown = function(e){
+      if(e.keyCode == 123){
+        return false;
+      }
 
-if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)){
-return false;
-}
+      if(e.ctrlKey && e.shiftKey && e.keyCode == "I".charCodeAt(0)){
+        return false;
+      }
 
-if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)){
-return false;
-}
+      if(e.ctrlKey && e.shiftKey && e.keyCode == "C".charCodeAt(0)){
+        return false;
+      }
 
-if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)){
-return false;
-}
+      if(e.ctrlKey && e.shiftKey && e.keyCode == "J".charCodeAt(0)){
+        return false;
+      }
 
-};
+      if(e.ctrlKey && e.keyCode == "U".charCodeAt(0)){
+        return false;
+      }
+    };
 
-/* BLOQUEAR SELECCION DE TEXTO */
-document.addEventListener("selectstart", function(e){
-e.preventDefault();
-});
+    document.addEventListener("selectstart", function(e){
+      e.preventDefault();
+    });
 
-/* BLOQUEAR ARRASTRAR */
-document.addEventListener("dragstart", function(e){
-e.preventDefault();
-});
-</script>
+    document.addEventListener("dragstart", function(e){
+      e.preventDefault();
+    });
+  </script>
 
 </body>
 </html>
