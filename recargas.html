@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!--
+  StreamsVip Oficial
+  Sitio original creado 2026
+  Propietario: StreamsVip
+  -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recargas - StreamsVip</title>
+
+  <link rel="icon" type="image/x-icon" href="img/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="manifest" href="img/site.webmanifest">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="recargas.css">
+</head>
+<body>
+
+  <div class="menuIcon" onclick="toggleMenu()">☰</div>
+
+  <nav id="menuLateral" class="menuLateral">
+    <div class="menuLogo">
+      <img src="img/logo.jpg" alt="StreamsVip">
+    </div>
+
+    <div class="panelUsuario">
+      <div id="panelUsuarioNombre" class="panelUsuarioNombre">Cargando...</div>
+      <div id="panelUsuarioHandle" class="panelUsuarioHandle">@usuario</div>
+
+      <div class="panelSaldoBox">
+        <div class="panelSaldoLabel">Saldo</div>
+        <div id="panelUsuarioSaldo" class="panelSaldoValor">
+          S/ 0.00 <span class="panelSaldoMoneda">PEN</span>
+        </div>
+      </div>
+    </div>
+
+    <a href="tienda.html"><span class="menu-emoji">🛍️</span> Tienda</a>
+    <a href="como-comprar.html"><span class="menu-emoji">💳</span> Cómo comprar</a>
+    <a href="ofertas.html"><span class="menu-emoji">🔥</span> Ofertas</a>
+    <a href="recargas.html" class="activo"><span class="menu-emoji">💸</span> Recargas</a>
+    <a href="#" onclick="salir(); return false;" class="salir"><span class="menu-emoji">🔙</span> Salir</a>
+
+    <script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=074c5be8-e613-4e2e-b987-7910106c9302"></script>
+
+    <div class="chatcbox">
+      <iframe
+        src="https://www3.cbox.ws/box/?boxid=3553105&boxtag=bZwmgx"
+        allowtransparency="yes"
+        allow="autoplay"
+        frameborder="0"
+        marginheight="0"
+        marginwidth="0"
+        scrolling="auto">
+      </iframe>
+    </div>
+  </nav>
+
+  <main class="recargasPage">
+    <section class="recargasHero">
+      <div class="recargasHeroText">
+        <h1>Recargas de saldo</h1>
+        <p>
+          Registra tu operación de recarga en soles peruanos. Toda solicitud se procesa con validación
+          administrativa y permanecerá en estado <strong>Pendiente</strong> hasta su revisión oficial.
+        </p>
+      </div>
+    </section>
+
+    <section class="recargasGrid">
+      <article class="panelCard">
+        <div class="panelHead">
+          <h2>Registrar recarga</h2>
+          <p>Completa los datos de la operación y adjunta tu comprobante.</p>
+        </div>
+
+        <form id="formRecarga" class="formRecarga">
+          <div class="formGroup">
+            <label>Moneda habilitada</label>
+            <div class="currencyCard activeCurrency">
+              <div class="currencyIcon">S/</div>
+              <div class="currencyContent">
+                <strong>Soles Peruanos (PEN)</strong>
+                <span>La plataforma procesa recargas exclusivamente en moneda nacional.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="formGroup">
+            <label for="monto">Monto de recarga</label>
+            <input type="number" id="monto" min="1" step="0.01" placeholder="Ejemplo: 20.00" required>
+          </div>
+
+          <div class="formGroup">
+            <label for="metodoPago">Método de pago</label>
+            <select id="metodoPago" required>
+              <option value="">Seleccionar método</option>
+              <option value="Yape">Yape</option>
+              <option value="Plin">Plin</option>
+              <option value="Transferencia bancaria">Transferencia bancaria</option>
+              <option value="Depósito">Depósito</option>
+            </select>
+          </div>
+
+          <div class="formGroup">
+            <label for="operacion">Número de operación / transacción</label>
+            <input type="text" id="operacion" maxlength="60" placeholder="Ingresa tu número de operación" required>
+          </div>
+
+          <div class="formGroup">
+            <label for="comprobante">Comprobante de pago</label>
+            <input type="file" id="comprobante" accept=".jpg,.jpeg,.png,.webp" required>
+            <small>Formatos permitidos: JPG, JPEG, PNG y WEBP. Tamaño máximo: 5 MB.</small>
+          </div>
+
+          <div class="formInfo">
+            <p>
+              <strong>Importante:</strong> luego de enviar la solicitud, esta será registrada con estado
+              <span class="badge pending">Pendiente</span> hasta que el área administrativa la apruebe o rechace.
+            </p>
+          </div>
+
+          <button type="submit" id="btnEnviar" class="btnPrimary">Enviar solicitud</button>
+          <div id="mensajeRecarga" class="mensajeBox"></div>
+        </form>
+      </article>
+
+      <article class="panelCard">
+        <div class="panelHead">
+          <h2>Historial de recargas</h2>
+          <p>Consulta el estado actualizado de todas tus solicitudes.</p>
+        </div>
+
+        <div class="tableWrap">
+          <table class="tablaHistorial">
+            <thead>
+              <tr>
+                <th>Monto</th>
+                <th>Método</th>
+                <th>Operación</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody id="historialBody">
+              <tr>
+                <td colspan="5" class="emptyState">Cargando historial...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
+  <script src="script.js"></script>
+
+  <script>
+    const storage = firebase.storage();
+
+    const formRecarga = document.getElementById("formRecarga");
+    const montoInput = document.getElementById("monto");
+    const metodoPagoInput = document.getElementById("metodoPago");
+    const operacionInput = document.getElementById("operacion");
+    const comprobanteInput = document.getElementById("comprobante");
+    const btnEnviar = document.getElementById("btnEnviar");
+    const mensajeRecarga = document.getElementById("mensajeRecarga");
+    const historialBody = document.getElementById("historialBody");
+
+    const panelUsuarioNombre = document.getElementById("panelUsuarioNombre");
+    const panelUsuarioHandle = document.getElementById("panelUsuarioHandle");
+    const panelUsuarioSaldo = document.getElementById("panelUsuarioSaldo");
+
+    let usuarioRecargaActual = null;
+    let datosUsuarioRecarga = null;
+
+    function mostrarMensaje(texto, tipo) {
+      mensajeRecarga.className = "mensajeBox show " + tipo;
+      mensajeRecarga.textContent = texto;
+    }
+
+    function limpiarMensaje() {
+      mensajeRecarga.className = "mensajeBox";
+      mensajeRecarga.textContent = "";
+    }
+
+    function formatearFecha(timestamp) {
+      if (!timestamp) return "-";
+      const fecha = new Date(timestamp);
+      if (isNaN(fecha.getTime())) return String(timestamp);
+
+      return fecha.toLocaleDateString("es-PE") + " " + fecha.toLocaleTimeString("es-PE", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function textoEstadoUsuario(estado) {
+      const valor = String(estado || "").toLowerCase();
+      if (valor === "aprobada") return "Aprobada";
+      if (valor === "rechazada") return "Rechazada";
+      return "Pendiente";
+    }
+
+    function claseEstado(estado) {
+      const valor = String(estado || "").toLowerCase();
+      if (valor === "aprobada") return "approved";
+      if (valor === "rechazada") return "rejected";
+      return "pending";
+    }
+
+    function renderHistorial(data) {
+      historialBody.innerHTML = "";
+
+      if (!data || typeof data !== "object") {
+        historialBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="emptyState">Aún no registras solicitudes de recarga.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      const items = Object.keys(data)
+        .filter(id => data[id] && typeof data[id] === "object" && id !== "temp")
+        .map(id => ({ id, ...data[id] }))
+        .sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
+
+      if (!items.length) {
+        historialBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="emptyState">Aún no registras solicitudes de recarga.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      items.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>S/ ${(Number(item.monto) || 0).toFixed(2)}</td>
+          <td>${item.metodoPago || "-"}</td>
+          <td>${item.operacion || "-"}</td>
+          <td><span class="badge ${claseEstado(item.estado)}">${textoEstadoUsuario(item.estado)}</span></td>
+          <td>${formatearFecha(item.fecha)}</td>
+        `;
+        historialBody.appendChild(tr);
+      });
+    }
+
+    function cargarDatosUsuarioRecarga(uid) {
+      db.ref("usuarios/" + uid).on("value", snapshot => {
+        datosUsuarioRecarga = snapshot.val() || {};
+
+        const nombre =
+          datosUsuarioRecarga.nombreCompleto ||
+          ((datosUsuarioRecarga.nombre || "") + " " + (datosUsuarioRecarga.apellido || "")).trim() ||
+          datosUsuarioRecarga.usuario ||
+          "Usuario";
+
+        const handle = datosUsuarioRecarga.usuario ? "@" + datosUsuarioRecarga.usuario : "@usuario";
+        const saldo = Number(datosUsuarioRecarga.saldo || 0);
+
+        if (panelUsuarioNombre) panelUsuarioNombre.textContent = String(nombre).toUpperCase();
+        if (panelUsuarioHandle) panelUsuarioHandle.textContent = handle;
+        if (panelUsuarioSaldo) {
+          panelUsuarioSaldo.innerHTML = `S/ ${saldo.toFixed(2)} <span class="panelSaldoMoneda">PEN</span>`;
+        }
+      });
+    }
+
+    function cargarHistorial(uid) {
+      db.ref("recargas")
+        .orderByChild("uid")
+        .equalTo(uid)
+        .on("value", snapshot => {
+          renderHistorial(snapshot.val());
+        }, error => {
+          console.error("Error cargando historial:", error);
+          historialBody.innerHTML = `
+            <tr>
+              <td colspan="5" class="emptyState">No se pudo cargar el historial.</td>
+            </tr>
+          `;
+        });
+    }
+
+    auth.onAuthStateChanged(user => {
+      const pagina = window.location.pathname.split("/").pop() || "index.html";
+
+      if (!user) {
+        usuarioRecargaActual = null;
+        btnEnviar.disabled = true;
+        historialBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="emptyState">Debes iniciar sesión para usar esta sección.</td>
+          </tr>
+        `;
+        mostrarMensaje("Debes iniciar sesión para registrar una recarga.", "error");
+        return;
+      }
+
+      usuarioRecargaActual = user;
+      btnEnviar.disabled = false;
+      limpiarMensaje();
+
+      if (pagina === "recargas.html") {
+        cargarDatosUsuarioRecarga(user.uid);
+        cargarHistorial(user.uid);
+      }
+    });
+
+    formRecarga.addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      if (!usuarioRecargaActual) {
+        mostrarMensaje("Debes iniciar sesión para registrar una recarga.", "error");
+        return;
+      }
+
+      const monto = parseFloat(montoInput.value);
+      const metodoPago = metodoPagoInput.value.trim();
+      const operacion = operacionInput.value.trim();
+      const archivo = comprobanteInput.files[0];
+
+      if (!monto || monto <= 0) {
+        mostrarMensaje("Ingresa un monto válido en soles.", "error");
+        return;
+      }
+
+      if (!metodoPago) {
+        mostrarMensaje("Selecciona un método de pago.", "error");
+        return;
+      }
+
+      if (!operacion || operacion.length < 4) {
+        mostrarMensaje("Ingresa un número de operación válido.", "error");
+        return;
+      }
+
+      if (!archivo) {
+        mostrarMensaje("Debes adjuntar el comprobante de pago.", "error");
+        return;
+      }
+
+      if (archivo.size > 5 * 1024 * 1024) {
+        mostrarMensaje("El comprobante supera el límite de 5 MB.", "error");
+        return;
+      }
+
+      const formatosPermitidos = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+      if (!formatosPermitidos.includes(archivo.type)) {
+        mostrarMensaje("Formato no permitido. Usa JPG, JPEG, PNG o WEBP.", "error");
+        return;
+      }
+
+      btnEnviar.disabled = true;
+      btnEnviar.textContent = "Procesando...";
+      mostrarMensaje("Subiendo comprobante y registrando solicitud...", "info");
+
+      try {
+        const recargaRef = db.ref("recargas").push();
+        const recargaId = recargaRef.key;
+
+        const extension = archivo.name.split(".").pop().toLowerCase();
+        const rutaStorage = `comprobantes_recargas/${usuarioRecargaActual.uid}/${recargaId}.${extension}`;
+
+        const uploadTaskSnapshot = await storage.ref(rutaStorage).put(archivo);
+        const comprobanteURL = await uploadTaskSnapshot.ref.getDownloadURL();
+
+        const nombreUsuario =
+          (datosUsuarioRecarga && (
+            datosUsuarioRecarga.nombreCompleto ||
+            ((datosUsuarioRecarga.nombre || "") + " " + (datosUsuarioRecarga.apellido || "")).trim() ||
+            datosUsuarioRecarga.usuario
+          )) || "Usuario";
+
+        const ahora = Date.now();
+
+        const payload = {
+          uid: usuarioRecargaActual.uid,
+          uidUsuario: usuarioRecargaActual.uid,
+          nombre: nombreUsuario,
+          monto: Number(monto.toFixed(2)),
+          operacion: operacion,
+          metodoPago: metodoPago,
+          comprobanteURL: comprobanteURL,
+          comprobantePath: rutaStorage,
+          estado: "pendiente",
+          fecha: ahora,
+          fechaHora: new Date(ahora).toLocaleDateString("es-PE") + " " + new Date(ahora).toLocaleTimeString("es-PE", {
+            hour: "2-digit",
+            minute: "2-digit"
+          }),
+          fechaAprobacion: "",
+          fechaRechazo: "",
+          observacionAdmin: "",
+          email: usuarioRecargaActual.email || ""
+        };
+
+        await recargaRef.set(payload);
+
+        mostrarMensaje("Solicitud enviada correctamente. Tu recarga quedó en estado Pendiente hasta su validación administrativa.", "success");
+        formRecarga.reset();
+
+      } catch (error) {
+        console.error("Error registrando recarga:", error);
+        mostrarMensaje("No se pudo registrar la recarga. Verifica tus rules de Storage y Database, luego vuelve a intentarlo.", "error");
+      } finally {
+        btnEnviar.disabled = false;
+        btnEnviar.textContent = "Enviar solicitud";
+      }
+    });
+  </script>
+
+  <div style="opacity:0;position:absolute;">StreamsVip Oficial 2026</div>
+</body>
+</html>
