@@ -1617,6 +1617,8 @@ border-color: #ff2a2a !important;
 .pagina-como-comprar .paso-img{
   width:100%;
   max-width:290px;
+  min-width:0;
+  overflow:hidden;
 }
 
 .pagina-como-comprar .paso-img img{
@@ -1632,6 +1634,8 @@ border-color: #ff2a2a !important;
   display:block;
   color:#d7d7d7;
   text-align:left;
+  min-width:0;
+  width:100%;
 }
 
 .pagina-como-comprar .numero{
@@ -1681,6 +1685,8 @@ border-color: #ff2a2a !important;
 }
 
 .pagina-como-comprar .carrusel-plataformas{
+  width:100%;
+  max-width:100%;
   overflow:hidden;
   border-radius:16px;
   background:#101010;
@@ -1691,8 +1697,10 @@ border-color: #ff2a2a !important;
 
 .pagina-como-comprar .carrusel-track{
   display:flex;
+  align-items:center;
   gap:14px;
   width:max-content;
+  max-width:none;
   animation:scrollPlataformas 20s linear infinite;
 }
 
@@ -1838,6 +1846,7 @@ border-color: #ff2a2a !important;
   .pagina-como-comprar .paso{
     grid-template-columns:1fr;
     text-align:left;
+    overflow:hidden;
   }
 
   .pagina-como-comprar .paso::before{
@@ -1845,8 +1854,17 @@ border-color: #ff2a2a !important;
   }
 
   .pagina-como-comprar .paso-img{
-    max-width:100%;
-  }
+  max-width:100%;
+  width:100%;
+  min-width:0;
+  order:2;
+}
+
+.pagina-como-comprar .paso-texto{
+  width:100%;
+  min-width:0;
+  order:1;
+}
 
   .pagina-como-comprar .paso-img img{
     height:220px;
@@ -1877,10 +1895,25 @@ border-color: #ff2a2a !important;
   }
 
   .pagina-como-comprar .paso{
+    grid-template-columns:1fr;
     padding:18px;
     border-radius:18px;
     gap:16px;
+    overflow:hidden;
   }
+
+  .pagina-como-comprar .paso-img{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  order:2;
+}
+
+.pagina-como-comprar .paso-texto{
+  width:100%;
+  min-width:0;
+  order:1;
+}
 
   .pagina-como-comprar .paso-img img{
     height:190px;
@@ -1895,15 +1928,30 @@ border-color: #ff2a2a !important;
 
   .pagina-como-comprar .paso-texto h3{
     font-size:22px;
+    line-height:1.2;
+    word-break:break-word;
   }
 
   .pagina-como-comprar .paso-texto p{
     font-size:14px;
+    line-height:1.65;
+    word-break:break-word;
+  }
+
+  .pagina-como-comprar .carrusel-plataformas{
+    width:100%;
+    max-width:100%;
+    overflow:hidden;
+  }
+
+  .pagina-como-comprar .carrusel-track{
+    gap:12px;
   }
 
   .pagina-como-comprar .carrusel-track img{
     width:74px;
     height:74px;
+    flex-shrink:0;
   }
 
   .estadoTag{
