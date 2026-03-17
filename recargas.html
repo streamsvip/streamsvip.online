@@ -76,7 +76,7 @@
       <article class="panelCard">
         <div class="panelHead">
           <h2>Registrar recarga</h2>
-          <p>Completa los datos de la operación y adjunta tu comprobante.</p>
+          <p>Completa los datos de la operación. El módulo de comprobante se encuentra temporalmente inactivo.</p>
         </div>
 
         <form id="formRecarga" class="formRecarga">
@@ -112,10 +112,10 @@
             <input type="text" id="operacion" maxlength="60" placeholder="Ingresa tu número de operación" required>
           </div>
 
-          <div class="formGroup">
+          <div class="formGroup comprobanteDisabled">
             <label for="comprobante">Comprobante de pago</label>
-            <input type="file" id="comprobante" accept=".jpg,.jpeg,.png,.webp" required>
-            <small>Formatos permitidos: JPG, JPEG, PNG y WEBP. Tamaño máximo: 5 MB.</small>
+            <input type="file" id="comprobante" accept=".jpg,.jpeg,.png,.webp" disabled>
+            <small>Temporalmente inactivo. Este módulo se habilitará cuando se complete la integración de almacenamiento seguro.</small>
           </div>
 
           <div class="formInfo">
@@ -161,18 +161,14 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
   <script src="script.js"></script>
 
   <script>
-    const storage = firebase.storage();
-
     const formRecarga = document.getElementById("formRecarga");
     const montoInput = document.getElementById("monto");
     const metodoPagoInput = document.getElementById("metodoPago");
     const operacionInput = document.getElementById("operacion");
-    const comprobanteInput = document.getElementById("comprobante");
     const btnEnviar = document.getElementById("btnEnviar");
     const mensajeRecarga = document.getElementById("mensajeRecarga");
     const historialBody = document.getElementById("historialBody");
@@ -331,7 +327,6 @@
       const monto = parseFloat(montoInput.value);
       const metodoPago = metodoPagoInput.value.trim();
       const operacion = operacionInput.value.trim();
-      const archivo = comprobanteInput.files[0];
 
       if (!monto || monto <= 0) {
         mostrarMensaje("Ingresa un monto válido en soles.", "error");
@@ -348,35 +343,12 @@
         return;
       }
 
-      if (!archivo) {
-        mostrarMensaje("Debes adjuntar el comprobante de pago.", "error");
-        return;
-      }
-
-      if (archivo.size > 5 * 1024 * 1024) {
-        mostrarMensaje("El comprobante supera el límite de 5 MB.", "error");
-        return;
-      }
-
-      const formatosPermitidos = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-      if (!formatosPermitidos.includes(archivo.type)) {
-        mostrarMensaje("Formato no permitido. Usa JPG, JPEG, PNG o WEBP.", "error");
-        return;
-      }
-
       btnEnviar.disabled = true;
       btnEnviar.textContent = "Procesando...";
-      mostrarMensaje("Subiendo comprobante y registrando solicitud...", "info");
+      mostrarMensaje("Registrando solicitud de recarga...", "info");
 
       try {
         const recargaRef = db.ref("recargas").push();
-        const recargaId = recargaRef.key;
-
-        const extension = archivo.name.split(".").pop().toLowerCase();
-        const rutaStorage = `comprobantes_recargas/${usuarioRecargaActual.uid}/${recargaId}.${extension}`;
-
-        const uploadTaskSnapshot = await storage.ref(rutaStorage).put(archivo);
-        const comprobanteURL = await uploadTaskSnapshot.ref.getDownloadURL();
 
         const nombreUsuario =
           (datosUsuarioRecarga && (
@@ -385,17 +357,23 @@
             datosUsuarioRecarga.usuario
           )) || "Usuario";
 
+        const usuarioSistema =
+          (datosUsuarioRecarga && datosUsuarioRecarga.usuario)
+            ? String(datosUsuarioRecarga.usuario).trim()
+            : "";
+
         const ahora = Date.now();
 
         const payload = {
           uid: usuarioRecargaActual.uid,
           uidUsuario: usuarioRecargaActual.uid,
           nombre: nombreUsuario,
+          usuario: usuarioSistema,
           monto: Number(monto.toFixed(2)),
           operacion: operacion,
           metodoPago: metodoPago,
-          comprobanteURL: comprobanteURL,
-          comprobantePath: rutaStorage,
+          comprobanteURL: "",
+          comprobantePath: "",
           estado: "pendiente",
           fecha: ahora,
           fechaHora: new Date(ahora).toLocaleDateString("es-PE") + " " + new Date(ahora).toLocaleTimeString("es-PE", {
@@ -404,7 +382,7 @@
           }),
           fechaAprobacion: "",
           fechaRechazo: "",
-          observacionAdmin: "",
+          observacionAdmin: "Comprobante temporalmente no adjunto por mantenimiento de almacenamiento.",
           email: usuarioRecargaActual.email || ""
         };
 
@@ -415,7 +393,7 @@
 
       } catch (error) {
         console.error("Error registrando recarga:", error);
-        mostrarMensaje("No se pudo registrar la recarga. Verifica tus rules de Storage y Database, luego vuelve a intentarlo.", "error");
+        mostrarMensaje("No se pudo registrar la recarga. Revisa tus rules de Database y vuelve a intentarlo.", "error");
       } finally {
         btnEnviar.disabled = false;
         btnEnviar.textContent = "Enviar solicitud";
