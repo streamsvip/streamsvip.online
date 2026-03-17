@@ -554,3 +554,11 @@
     font-size:0.9rem;
   }
 }
+.comprobanteDisabled input[type="file"]{
+  opacity: .65;
+  cursor: not-allowed;
+}
+
+.comprobanteDisabled small{
+  color: #ffcc66;
+}
