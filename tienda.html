@@ -1,390 +1,241 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="es">
 <head>
   <!--
-StreamsVip Oficial
-Sitio original creado 2026
-Propietario: StreamsVip
--->
-<head>
+  StreamsVip Oficial
+  Sitio original creado 2026
+  Propietario: StreamsVip
+  -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StreamsVip</title>
 
-<title>StreamsVip</title>
+  <link rel="icon" type="image/x-icon" href="img/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="manifest" href="img/site.webmanifest">
 
-<link rel="icon" type="image/x-icon" href="img/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
-<link rel="manifest" href="img/site.webmanifest">
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link rel="stylesheet" href="style.css">
-
+  <link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
-<div class="menuIcon" onclick="toggleMenu()">☰</div>
+  <div class="menuIcon" onclick="toggleMenu()">☰</div>
 
-<nav id="menuLateral" class="menuLateral">
+  <nav id="menuLateral" class="menuLateral">
 
-<div class="menuLogo">
-<img src="img/logo.jpg">
-</div>
+    <div class="menuLogo">
+      <img src="img/logo.jpg" alt="StreamsVip">
+    </div>
 
-<a href="tienda.html" class="activo"><span class="menu-emoji">🛍️</span> Tienda</a>
-<a href="como-comprar.html"><span class="menu-emoji">💳</span> Cómo comprar</a>
-<a href="ofertas.html"><span class="menu-emoji">🔥</span> Ofertas</a>
+    <div class="panelUsuario">
+      <div id="panelUsuarioNombre" class="panelUsuarioNombre">Cargando...</div>
+      <div id="panelUsuarioHandle" class="panelUsuarioHandle">@usuario</div>
 
-<a href="#" onclick="salir()" class="salir"><span class="menu-emoji">🔙</span> Salir</a>
+      <div class="panelSaldoBox">
+        <div class="panelSaldoLabel">Saldo</div>
+        <div id="panelUsuarioSaldo" class="panelSaldoValor">
+          S/ 0.00 <span class="panelSaldoMoneda">PEN</span>
+        </div>
+      </div>
+    </div>
 
-<!-- Start of streamsviponline Zendesk Widget script -->
-<script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=074c5be8-e613-4e2e-b987-7910106c9302"> </script>
-<!-- End of streamsviponline Zendesk Widget script -->
+    <a href="tienda.html" class="activo"><span class="menu-emoji">🛍️</span> Tienda</a>
+    <a href="como-comprar.html"><span class="menu-emoji">💳</span> Cómo comprar</a>
+    <a href="ofertas.html"><span class="menu-emoji">🔥</span> Ofertas</a>
+    <a href="recargas.html"><span class="menu-emoji">💸</span> Recargas</a>
+    <a href="#" onclick="salir(); return false;" class="salir"><span class="menu-emoji">🔙</span> Salir</a>
 
+    <script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=074c5be8-e613-4e2e-b987-7910106c9302"></script>
 
-  <!-- Contenedor de Chat -->
-   <div class="chatcbox">
-    <iframe 
-        src="https://www3.cbox.ws/box/?boxid=3553105&boxtag=bZwmgx" 
-        allowtransparency="yes" 
-        allow="autoplay" 
-        frameborder="0" 
-        marginheight="0" 
-        marginwidth="0" 
+    <div class="chatcbox">
+      <iframe
+        src="https://www3.cbox.ws/box/?boxid=3553105&boxtag=bZwmgx"
+        allowtransparency="yes"
+        allow="autoplay"
+        frameborder="0"
+        marginheight="0"
+        marginwidth="0"
         scrolling="auto">
-    </iframe>
-</div>
+      </iframe>
+    </div>
 
-</nav>
+  </nav>
 
-<!-- BANNER -->
-<div class="bannerFull">
+  <div class="bannerFull">
+    <div class="slides-container">
+      <div class="slide active">
+        <img src="img/banner.jpg" alt="Banner 1">
+      </div>
 
-<div class="slides-container">
+      <div class="slide">
+        <img src="img/banner2.jpg" alt="Banner 2">
+      </div>
+    </div>
 
-<div class="slide fade active">
-<img src="img/banner.jpg">
-</div> 
+    <a class="prev" onclick="plusSlides(-1)">❮</a>
+    <a class="next" onclick="plusSlides(1)">❯</a>
 
-<div class="slide fade">
-<img src="img/banner2.jpg">
-</div>
-
-</div>
-
-<a class="prev" onclick="plusSlides(-1)">❮</a>
-<a class="next" onclick="plusSlides(1)">❯</a>
-
-<div class="dots">
-<span class="dot active" onclick="currentSlide(1)"></span>
-<span class="dot" onclick="currentSlide(2)"></span>
-</div>
-
-</div>
-
-<!-- PRODUCTOS -->
-<!-- PRODUCTOS -->
-<div class="productos">
-
-<div class="producto" id="productoNetflix">
-<img src="img/Netflix.jpg">
-<h2>Netflix Perfil 4K HD🍿</h2>
-<p class="precio">S/15</p>
-<p class="stock">Stock: <span id="stockNetflix"></span></p>
-<p class="duracionServicio">Duración: 1 mes</p>
-
-
-<button class="btnComprar"
-onclick="agregarCarrito('Netflix Perfil 4K HD',15,'Perfil Netflix privado válido por 30 días, para un dispositivo.','img/Netflix.jpg')">
-
-🛒Agregar al carrito
-</button>
-</div>
-
-
-<div class="producto" id="productoDisney">
-<img src="img/Disney.jpg">
-<h2>Disney+ Espn 7 Hulu Perfil⭐</h2>
-<p class="precio">S/10</p>
-<p class="stock">Stock: <span id="stockDisney"></span></p>
-<p class="duracionServicio">Duración: 1 mes</p>
-
-
-<button class="btnComprar"
-onclick="agregarCarrito('Disney+ Espn 7 Hulu Premium Perfil✨',10,'Perfil Disney+ con acceso completo a Espn 7 y Hulu por 30 días.','img/Disney.jpg')">
-🛒Agregar al carrito
-</button>
-</div>
-
-
-<div class="producto" id="productoPrime">
-<img src="img/Primevideo.jpg">
-<h2>Prime Video Perfil🔥</h2>
-<p class="precio">S/8</p>
-<p class="stock">Stock: <span id="stockPrime"></span></p>
-<p class="duracionServicio">Duración: 1 mes</p>
-
-
-<button class="btnComprar"
-onclick="agregarCarrito('Prime Video Perfil',8,'Perfil Prime Video con acceso completo al catálogo durante 30 días.','img/Primevideo.jpg')">
-🛒Agregar al carrito
-</button>
-</div>
-
-
-<div class="producto" id="productoHBO">
-<img src="img/Hbomax.jpg">
-<h2>HBO Max Standar Perfil✨</h2>
-<p class="precio">S/6</p>
-<p class="stock">Stock: <span id="stockHBO"></span></p>
-<p class="duracionServicio">Duración: 1 mes</p>
-
-
-<button class="btnComprar"
-onclick="agregarCarrito('HBO Max Perfil Standard',6,'Perfil HBO Max con acceso completo al catálogo durante 30 días.','img/Hbomax.jpg')">
-🛒Agregar al carrito
-</button>
-</div>
-
-
-<div class="producto" id="productoParamount">
-<img src="img/Paramount.jpg">
-<h2>Paramount+ Perfil💠</h2>
-<p class="precio">S/6</p>
-<p class="stock">Stock: <span id="stockParamount"></span></p>
-<p class="duracionServicio">Duración: 1 mes</p>
-
-
-<button class="btnComprar"
-onclick="agregarCarrito('Paramount+ Perfil',6,'Perfil Paramount+ con acceso completo durante 30 días.','img/Paramount.jpg')">
-🛒Agregar al carrito
-</button>
-</div>
-
-
-<div class="producto" id="productoSpotify">
-<img src="img/Spotify.jpg">
-<h2>Spotify Premium Individual🎧</h2>
-<p class="precio">S/13</p>
-<p class="stock">Stock: <span id="stockSpotify"></span></p>
-<p class="duracionServicio">Duración: 1 mes</p>
-
-
-<button class="btnComprar"
-onclick="agregarCarrito('Spotify Premium Individual',13,'Cuenta Spotify Premium individual válida por 30 días.','img/Spotify.jpg')">
-🛒Agregar al carrito
-</button>
-</div>
-
-</div>
-
-
-<!-- MODAL -->
-<div id="modalCompra" class="modalCompra">
-<div class="modalContenido">
-
-<span class="cerrarModal" onclick="cerrarModal()">✖</span>
-
-<div class="modalProducto">
-
-<img id="modalImagen">
-
-<div class="modalInfo">
-
-<h2 id="modalNombre"></h2>
-
-<div class="descripcionProducto">
-<h3>Descripción del producto</h3>
-<p id="modalDescripcion"></p>
-</div>
-
-<div class="reglasUso">
-<h3>Reglas de uso</h3>
-<ul id="listaReglas"></ul>
-</div>
-
-<div class="garantiaBox">
-<p>✔ Entrega rápida después del pago</p>
-<p>✔ Soporte disponible</p>
-<p>✔ Garantía durante la duración del servicio</p>
-</div>
-
-<div class="cantidadBox">
-  <span class="etiqueta-cantidad">Cantidad</span>
- <button onclick="cambiarCantidad(-1)">-</button>
-  <span id="cantidadProducto">1</span>
-  <button onclick="cambiarCantidad(1)">+</button>
-</div>
-
-<h3>Total: S/ <span id="precioTotal">0</span></h3>
-
-<button class="btnComprarAhora" onclick="comprarAhora()">
-Comprar ahora
-</button>
-
-</div>
-</div>
-</div>
-</div>
-
-<!-- QR MEJORADO -->
-<div id="pantallaQR" class="pantallaQR">
-  <h2>Paga con Yape</h2>
-
-  <div class="qrContainer">
-    <!-- Nombre arriba del QR -->
-    <div class="qrNombre">Leidy Ser.</div>
-
-    <!-- QR -->
-    <img src="img/Qr.jpeg" class="qr">
-
-    <!-- Número y botón debajo del QR -->
-    <div class="yapeBox">
-      <span class="yapeNumero">917107386</span>
-      <button id="btnCopiar" onclick="copiarYape()">📋 Copiar número</button>
+    <div class="dots">
+      <span class="dot active" onclick="currentSlide(1)"></span>
+      <span class="dot" onclick="currentSlide(2)"></span>
     </div>
   </div>
 
-  <p class="qrAtencion"><br>Realiza el pago y luego registra tu comprobante</p>
+  <div class="productos">
 
-  <div class="qrBtns">
-    <button class="btnYape" onclick="abrirYape()">Abrir Yape</button>
-    <button onclick="mostrarFormulario()">Registrar pago</button>
-  </div>
-</div>
-<!-- FORMULARIO -->
-<div id="formulario" class="formulario">
-
-<h2>Registrar pago</h2>
-
-<form id="formCompra">
-
-  <input type="hidden" id="producto">
-  <input type="hidden" id="precio">
-
- <!-- Campo bloqueado dentro de un solo recuadro elegante -->
-<input type="text" id="montoPagar" readonly placeholder="Monto a pagar (S/)" class="montoBloqueado">
-
-  <input type="text" name="nombrePago" placeholder="Nombre de quien yapeo" required>
-  <input type="text" name="transaccion" placeholder="Número de transacción" required>
-  <input type="file" name="comprobante" required>
-
-  <button type="submit">Enviar compra</button>
-</form>
-
-</form>
-
-</div>
-
-<div id="notificacionCompra" class="notificacionCompra">
-<span id="textoCompra"></span>
-</div>
-<!-- MODAL OFERTA VIGENTE -->
-<div id="modalOfertaVigente" class="modalOfertaVigente">
-  <div class="modalOfertaBox">
-
-    <span id="cerrarOfertaX" class="cerrarOferta">✖</span>
-
-    <div class="modalOfertaBadge">
-      🔥 PROMOCIÓN ACTIVA
+    <div class="producto" id="productoNetflix">
+      <img src="img/Netflix.jpg" alt="Netflix">
+      <h2>Netflix Perfil 4K HD🍿</h2>
+      <p class="precio">S/15</p>
+      <p class="stock">Stock: <span id="stockNetflix">0</span></p>
+      <p class="duracionServicio">Duración: 1 mes</p>
+      <button class="btnComprar"
+        onclick="agregarCarrito('Netflix Perfil 4K HD',15,'Perfil Netflix privado válido por 30 días, para un dispositivo.','img/Netflix.jpg')">
+        🛒Agregar al carrito
+      </button>
     </div>
 
-    <p>
-      Aprovecha nuestra promoción activa por tiempo limitado.
-      Revisa el apartado de ofertas antes de que finalice.
-    </p>
+    <div class="producto" id="productoDisney">
+      <img src="img/Disney.jpg" alt="Disney">
+      <h2>Disney+ Espn 7 Hulu Perfil⭐</h2>
+      <p class="precio">S/10</p>
+      <p class="stock">Stock: <span id="stockDisney">0</span></p>
+      <p class="duracionServicio">Duración: 1 mes</p>
+      <button class="btnComprar"
+        onclick="agregarCarrito('Disney+ Espn 7 Hulu Premium Perfil✨',10,'Perfil Disney+ con acceso completo a Espn 7 y Hulu por 30 días.','img/Disney.jpg')">
+        🛒Agregar al carrito
+      </button>
+    </div>
 
-    <div class="btnsOferta">
-      <button id="btnVerOferta" class="btnVerOferta">Ver oferta</button>
-      <button id="btnCerrarOferta" class="btnCerrarOferta">Cerrar</button>
+    <div class="producto" id="productoPrime">
+      <img src="img/Primevideo.jpg" alt="Prime Video">
+      <h2>Prime Video Perfil🔥</h2>
+      <p class="precio">S/8</p>
+      <p class="stock">Stock: <span id="stockPrime">0</span></p>
+      <p class="duracionServicio">Duración: 1 mes</p>
+      <button class="btnComprar"
+        onclick="agregarCarrito('Prime Video Perfil',8,'Perfil Prime Video con acceso completo al catálogo durante 30 días.','img/Primevideo.jpg')">
+        🛒Agregar al carrito
+      </button>
+    </div>
+
+    <div class="producto" id="productoHBO">
+      <img src="img/Hbomax.jpg" alt="HBO Max">
+      <h2>HBO Max Standar Perfil✨</h2>
+      <p class="precio">S/6</p>
+      <p class="stock">Stock: <span id="stockHBO">0</span></p>
+      <p class="duracionServicio">Duración: 1 mes</p>
+      <button class="btnComprar"
+        onclick="agregarCarrito('HBO Max Perfil Standard',6,'Perfil HBO Max con acceso completo al catálogo durante 30 días.','img/Hbomax.jpg')">
+        🛒Agregar al carrito
+      </button>
+    </div>
+
+    <div class="producto" id="productoParamount">
+      <img src="img/Paramount.jpg" alt="Paramount+">
+      <h2>Paramount+ Perfil💠</h2>
+      <p class="precio">S/6</p>
+      <p class="stock">Stock: <span id="stockParamount">0</span></p>
+      <p class="duracionServicio">Duración: 1 mes</p>
+      <button class="btnComprar"
+        onclick="agregarCarrito('Paramount+ Perfil',6,'Perfil Paramount+ con acceso completo durante 30 días.','img/Paramount.jpg')">
+        🛒Agregar al carrito
+      </button>
+    </div>
+
+    <div class="producto" id="productoSpotify">
+      <img src="img/Spotify.jpg" alt="Spotify">
+      <h2>Spotify Premium Individual🎧</h2>
+      <p class="precio">S/13</p>
+      <p class="stock">Stock: <span id="stockSpotify">0</span></p>
+      <p class="duracionServicio">Duración: 1 mes</p>
+      <button class="btnComprar"
+        onclick="agregarCarrito('Spotify Premium Individual',13,'Cuenta Spotify Premium individual válida por 30 días.','img/Spotify.jpg')">
+        🛒Agregar al carrito
+      </button>
     </div>
 
   </div>
-</div>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-<script src="script.js"></script>
+  <div id="modalCompra" class="modalCompra">
+    <div class="modalContenido">
+      <span class="cerrarModal" onclick="cerrarModal()">✖</span>
 
-<div id="toastGracias">¡Gracias por su visita! Vuelva pronto.</div>
+      <div class="modalProducto">
+        <img id="modalImagen" alt="Producto">
 
-<script>
+        <div class="modalInfo">
+          <h2 id="modalNombre"></h2>
 
-/* ABRIR MODAL SIN PARPADEO */
+          <div class="descripcionProducto">
+            <h3>Descripción del producto</h3>
+            <p id="modalDescripcion"></p>
+          </div>
 
-document.querySelectorAll(".producto").forEach(producto => {
+          <div class="reglasUso">
+            <h3>Reglas de uso</h3>
+            <ul id="listaReglas"></ul>
+          </div>
 
-producto.addEventListener("click",function(e){
+          <div class="garantiaBox">
+            <p>✔ Entrega rápida después del pago</p>
+            <p>✔ Soporte disponible</p>
+            <p>✔ Garantía durante la duración del servicio</p>
+          </div>
 
-if(e.target.tagName === "BUTTON") return
+          <div class="cantidadBox">
+            <span class="etiqueta-cantidad">Cantidad</span>
+            <button type="button" onclick="cambiarCantidad(-1)">-</button>
+            <span id="cantidadProducto">1</span>
+            <button type="button" onclick="cambiarCantidad(1)">+</button>
+          </div>
 
-const boton=this.querySelector("button")
-boton.click()
+          <h3>Total: S/ <span id="precioTotal">0.00</span></h3>
 
-})
+          <button class="btnComprarAhora" onclick="comprarAhora()">
+            Comprar ahora
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-})
+  <div id="pantallaQR" class="pantallaQR" style="display:none;"></div>
+  <div id="formulario" class="formulario" style="display:none;"></div>
 
-document.addEventListener("keydown",function(e){
+  <div id="notificacionCompra" class="notificacionCompra">
+    <span id="textoCompra"></span>
+  </div>
 
-if(e.key==="Escape"){
+  <div id="modalOfertaVigente" class="modalOfertaVigente">
+    <div class="modalOfertaBox">
+      <span id="cerrarOfertaX" class="cerrarOferta">✖</span>
 
-const modal=document.getElementById("modalCompra")
+      <div class="modalOfertaBadge">
+        🔥 PROMOCIÓN ACTIVA
+      </div>
 
-if(modal){
-modal.style.display="none"}}
+      <p>
+        Aprovecha nuestra promoción activa por tiempo limitado.
+        Revisa el apartado de ofertas antes de que finalice.
+      </p>
 
-});
-/* BLOQUEAR CLICK DERECHO */
-document.addEventListener("contextmenu", function(e){
-e.preventDefault();
-});
+      <div class="btnsOferta"><div class="panelSaldoBox">
+        <button id="btnVerOferta" class="btnVerOferta">Ver oferta</button>
+        <button id="btnCerrarOferta" class="btnCerrarOferta">Cerrar</button>
+      </div>
+    </div>
+  </div>
 
-/* BLOQUEAR INSPECCIONAR */
-document.onkeydown = function(e){
+  <div id="toastGracias">¡Gracias por su visita! Vuelva pronto.</div>
 
-if(e.keyCode == 123){
-return false;
-}
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="script.js"></script>
 
-if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)){
-return false;
-}
-
-if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)){
-return false;
-}
-
-if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)){
-return false;
-}
-
-if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)){
-return false;
-}
-
-};
-
-/* BLOQUEAR SELECCION DE TEXTO */
-document.addEventListener("selectstart", function(e){
-e.preventDefault();
-});
-
-/* BLOQUEAR ARRASTRAR */
-document.addEventListener("dragstart", function(e){
-e.preventDefault();
-});
-/* MENU */
-function toggleMenu(){
-  document.getElementById("menuLateral").classList.toggle("activo");
-}
-</script>
-<div style="opacity:0;position:absolute;">
-StreamsVip Oficial 2026
-</div>
+  <div style="opacity:0;position:absolute;">StreamsVip Oficial 2026</div>
 </body>
 </html>
