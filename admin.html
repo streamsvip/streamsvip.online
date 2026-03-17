@@ -1150,6 +1150,10 @@
           throw new Error("Esta recarga ya fue aprobada.");
         }
 
+        if(estadoActual === "rechazada"){
+          throw new Error("Esta recarga ya fue rechazada.");
+        }
+
         return db.ref("usuarios/" + uid).once("value")
         .then((snapshot) => {
           const usuario = snapshot.val();
@@ -1177,9 +1181,28 @@
     }
 
     function rechazarRecarga(id){
-      db.ref("recargas/" + id).update({
-        estado: "rechazada",
-        fechaRechazo: Date.now()
+      db.ref("recargas/" + id).once("value")
+      .then((snap) => {
+        const item = snap.val();
+
+        if(!item || typeof item !== "object"){
+          throw new Error("La recarga no existe.");
+        }
+
+        const estadoActual = String(item.estado || "").toLowerCase();
+
+        if(estadoActual === "aprobada"){
+          throw new Error("No puedes rechazar una recarga ya aprobada.");
+        }
+
+        if(estadoActual === "rechazada"){
+          throw new Error("Esta recarga ya fue rechazada.");
+        }
+
+        return db.ref("recargas/" + id).update({
+          estado: "rechazada",
+          fechaRechazo: Date.now()
+        });
       })
       .then(() => {
         mostrarMensajeRecarga("Recarga rechazada correctamente.");
@@ -1350,9 +1373,20 @@
 
         const keys = Object.keys(data)
           .filter(id => data[id] && typeof data[id] === "object" && id !== "temp")
-          .reverse();
+          .sort((a, b) => (data[b].fecha || 0) - (data[a].fecha || 0));
 
-        document.getElementById("totalRecargas").textContent = keys.length;
+        let totalPendientes = 0;
+
+        keys.forEach((id) => {
+          const item = data[id] || {};
+          const estado = String(item.estado || "").toLowerCase().trim();
+
+          if(estado !== "aprobada" && estado !== "rechazada"){
+            totalPendientes++;
+          }
+        });
+
+        document.getElementById("totalRecargas").textContent = totalPendientes;
 
         if(keys.length === 0){
           tabla.classList.add("hidden");
@@ -1362,19 +1396,20 @@
 
         keys.forEach((id) => {
           const item = data[id] || {};
-          const estado = String(item.estado || "pendiente").toLowerCase();
+          const estado = String(item.estado || "pendiente").toLowerCase().trim();
+          const usuarioMostrado = item.usuario ? "@" + item.usuario : (item.nombre || item.uid || "-");
 
           tbody.innerHTML += `
             <tr>
               <td>${id}</td>
-              <td>${textoSeguro(item.nombre || item.usuario || item.uid)}</td>
+              <td>${usuarioMostrado}</td>
               <td>${textoSeguro(item.uidUsuario || item.uid)}</td>
               <td>${formatearDinero(item.monto || 0)}</td>
               <td>${textoSeguro(item.operacion || item.numeroOperacion)}</td>
               <td>${badgeEstado(estado)}</td>
               <td>${textoSeguro(formatearFecha(item.fecha || item.fechaHora))}</td>
               <td>
-                ${estado === "pendiente" ? `
+                ${estado !== "aprobada" && estado !== "rechazada" ? `
                   <div class="actionGroup">
                     <button class="smallBtn btnSave" onclick="aprobarRecarga('${id}')">Aprobar</button>
                     <button class="smallBtn btnDelete" onclick="rechazarRecarga('${id}')">Rechazar</button>
