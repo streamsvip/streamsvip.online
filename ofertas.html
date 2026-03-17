@@ -4,20 +4,18 @@
 <head>
   <title>Ofertas</title>
 
-<link rel="icon" type="image/x-icon" href="img/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
-<link rel="manifest" href="img/site.webmanifest">
+  <link rel="icon" type="image/x-icon" href="img/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="manifest" href="img/site.webmanifest">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css">
 
-<style>
-
-    /* ====================== FONDO ====================== */
+  <style>
     body {
       background-image: url('img/mkk.png');
       background-repeat: repeat;
@@ -27,7 +25,12 @@
       padding: 0;
     }
 
-    /* ====================== OFERTA CARD ====================== */
+    .tituloOfertas{
+      text-align:center;
+      margin:30px 15px 10px;
+      color:#fff;
+    }
+
     .ofertaContainer { display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; margin-bottom: 60px; padding: 0 15px; }
     .ofertaCard { background: linear-gradient(145deg, #2a2a3a, #1b1b2b); border-radius: 20px; width: 300px; min-height: 460px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 30px rgba(0,0,0,0.7); text-align: center; position: relative; cursor: pointer; transition: transform 0.4s ease, box-shadow 0.4s ease; }
     .ofertaCard:hover { transform: translateY(-8px); box-shadow: 0 12px 40px rgba(255,191,0,0.8); }
@@ -40,7 +43,6 @@
     .btnOferta:hover { background: #ffc107; transform: scale(1.05); }
     .contadorOfertaBox { text-align: center; margin: 15px 0; font-size: 1.3rem; font-weight: 700; color: #ffeb3b; text-shadow: 1px 1px 4px #000; }
 
-    /* ====================== MODALES ====================== */
     .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; z-index:1000; justify-content:center; align-items:center; font-family: Arial, sans-serif; }
     .modal-overlay { position:absolute; width:100%; height:100%; background: rgba(0,0,0,0.6); top:0; left:0; }
     .modal-content { position: relative; background:#1b1b2b; color:#fff; padding:30px 25px; border-radius:15px; width:90%; max-width:400px; text-align:center; z-index:1001; box-shadow:0 10px 40px rgba(0,0,0,0.7); }
@@ -54,7 +56,6 @@
     .btnYape { background:#8a2be2; color:#fff; }
     .btnYape:hover { background:#9b30ff; }
 
-    /* RESPONSIVE */
     @media(max-width:768px) {
       .ofertaContainer { flex-direction: column; align-items:center; }
       .ofertaCard { width:90%; min-height:auto; }
@@ -63,36 +64,62 @@
       .qrPago { width:180px; height:180px; }
     }
   </style>
+
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <script>
-    const firebaseConfig={
-      apiKey:"AIzaSyC3rYEe4akJ0w8zcNM4q-25yG7q6CaUHhY",
-      authDomain:"streamsvip-b7d91.firebaseapp.com",
-      databaseURL:"https://streamsvip-b7d91-default-rtdb.firebaseio.com",
-      projectId:"streamsvip-b7d91",
-      storageBucket:"streamsvip-b7d91.appspot.com",
-      messagingSenderId:"440618225611",
-      appId:"1:440618225611:web:eeb4230a10499e1dfff04e"
+    const firebaseConfig = {
+      apiKey: "AIzaSyC3rYEe4akJ0w8zcNM4q-25yG7q6CaUHhY",
+      authDomain: "streamsvip-b7d91.firebaseapp.com",
+      databaseURL: "https://streamsvip-b7d91-default-rtdb.firebaseio.com",
+      projectId: "streamsvip-b7d91",
+      storageBucket: "streamsvip-b7d91.appspot.com",
+      messagingSenderId: "440618225611",
+      appId: "1:440618225611:web:eeb4230a10499e1dfff04e"
     };
-    firebase.initializeApp(firebaseConfig);
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
     const db = firebase.database();
+    const auth = firebase.auth();
   </script>
 </head>
 
 <body>
   <div class="menuIcon" onclick="toggleMenu()">☰</div>
+
   <nav id="menuLateral" class="menuLateral">
-    <div class="menuLogo"><img src="img/logo.jpg" alt="Logo"></div>
+    <div class="menuLogo">
+      <img src="img/logo.jpg" alt="StreamsVip">
+    </div>
+
+    <div class="panelUsuario">
+      <div id="panelUsuarioNombre" class="panelUsuarioNombre">Cargando...</div>
+      <div id="panelUsuarioHandle" class="panelUsuarioHandle">@usuario</div>
+
+      <div class="panelSaldoBox">
+        <div class="panelSaldoLabel">Saldo</div>
+        <div id="panelUsuarioSaldo" class="panelSaldoValor">
+          S/ 0.00 <span class="panelSaldoMoneda">PEN</span>
+        </div>
+      </div>
+    </div>
+
     <a href="tienda.html"><span class="menu-emoji">🛍️</span> Tienda</a>
     <a href="como-comprar.html"><span class="menu-emoji">💳</span> Cómo comprar</a>
     <a href="ofertas.html" class="activo"><span class="menu-emoji">🔥</span> Ofertas</a>
-    <a class="soporte" href="https://wa.me/51917107386?text=Hola%20necesito%20ayuda%20con%20mi%20compra" target="_blank">
-      <img src="img/wspp.png" alt="Soporte"><span class="tooltip">Soporte</span>
-    </a>
-    <a href="#" onclick="salir()" class="salir"><span class="menu-emoji">🔙</span> Salir</a>
-    <div class="chatcbox"><iframe src="https://www3.cbox.ws/box/?boxid=3553105&boxtag=bZwmgx" frameborder="0"></iframe></div>
+    <a href="recargas.html"><span class="menu-emoji">💸</span> Recargas</a>
+    <a href="#" onclick="salir(); return false;" class="salir"><span class="menu-emoji">🔙</span> Salir</a>
+
+    <script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=074c5be8-e613-4e2e-b987-7910106c9302"></script>
+
+    <div class="chatcbox">
+      <iframe src="https://www3.cbox.ws/box/?boxid=3553105&boxtag=bZwmgx" frameborder="0"></iframe>
+    </div>
   </nav>
 
   <h1 class="tituloOfertas">🔥 Oferta Makanaky 🔥</h1>
@@ -143,7 +170,7 @@
           return;
         }
 
-        if(stock <= 0){
+        if (stock <= 0) {
           btnOferta.disabled = true;
           btnOferta.style.background = "#888";
           btnOferta.style.cursor = "not-allowed";
@@ -151,13 +178,13 @@
         } else {
           ofertaActivaConStock();
         }
-      }).catch(err=>console.error(err));
+      }).catch(err => console.error(err));
     }
+
     actualizarStock();
-    setInterval(actualizarStock,5000);
+    setInterval(actualizarStock, 5000);
   </script>
 
-  <!-- MODALES -->
   <div id="modalCompra" class="modal">
     <div class="modal-overlay" onclick="cerrarModal()"></div>
     <div class="modal-content">
@@ -202,7 +229,59 @@
   <div id="toastGracias">¡Gracias por su visita! Vuelva pronto.</div>
 
   <script>
-    // MENU
+    function formatearSaldo(saldo) {
+      const monto = Number(saldo || 0).toFixed(2);
+      return `S/ ${monto} <span class="panelSaldoMoneda">PEN</span>`;
+    }
+
+    function cargarPanelUsuario(user) {
+      if (!user) return;
+
+      const nombreBox = document.getElementById("panelUsuarioNombre");
+      const handleBox = document.getElementById("panelUsuarioHandle");
+      const saldoBox = document.getElementById("panelUsuarioSaldo");
+
+      const correoAuth = user.email || "";
+      const usuarioCorreo = correoAuth ? correoAuth.split("@")[0] : "usuario";
+
+      if (nombreBox) nombreBox.innerText = "Cargando...";
+      if (handleBox) handleBox.innerText = "@" + usuarioCorreo;
+      if (saldoBox) saldoBox.innerHTML = formatearSaldo(0);
+
+      db.ref("usuarios/" + user.uid).on("value", (snap) => {
+        const data = snap.val() || {};
+
+        const nombreCompleto =
+          data.nombreCompleto ||
+          [data.nombre, data.apellido].filter(Boolean).join(" ").trim() ||
+          data.nombre ||
+          user.displayName ||
+          usuarioCorreo ||
+          "Usuario";
+
+        const usuario =
+          data.usuario ||
+          usuarioCorreo ||
+          "usuario";
+
+        const saldo = Number(data.saldo || 0);
+
+        if (nombreBox) nombreBox.innerText = String(nombreCompleto).toUpperCase();
+        if (handleBox) handleBox.innerText = "@" + String(usuario);
+        if (saldoBox) saldoBox.innerHTML = formatearSaldo(saldo);
+      }, () => {
+        if (nombreBox) nombreBox.innerText = "USUARIO";
+        if (handleBox) handleBox.innerText = "@" + usuarioCorreo;
+        if (saldoBox) saldoBox.innerHTML = formatearSaldo(0);
+      });
+    }
+
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        cargarPanelUsuario(user);
+      }
+    });
+
     function toggleMenu() {
       document.getElementById("menuLateral").classList.toggle("activo");
     }
@@ -210,33 +289,36 @@
     function salir() {
       const toast = document.getElementById("toastGracias");
 
-      if(toast){
+      if (toast) {
         toast.classList.add("show");
       }
 
       setTimeout(() => {
-        localStorage.removeItem("clienteNombre");
-        window.location.href = "index.html";
-      }, 1800);
+        auth.signOut()
+          .then(() => {
+            window.location.href = "index.html";
+          })
+          .catch(() => {
+            window.location.href = "index.html";
+          });
+      }, 1200);
     }
 
-    // CONTADOR - 10 HORAS REALES SIN REINICIARSE AL CAMBIAR DE PAGINA
     let tiempoFinalGuardado = localStorage.getItem("ofertaTiempo");
 
     if (!tiempoFinalGuardado || Number(tiempoFinalGuardado) <= Date.now()) {
-  tiempoFinalGuardado = Date.now() + (10 * 60 * 60 * 1000);
-  localStorage.setItem("ofertaTiempo", tiempoFinalGuardado);
-  localStorage.removeItem("visitoOfertas");
-}
-
+      tiempoFinalGuardado = Date.now() + (10 * 60 * 60 * 1000);
+      localStorage.setItem("ofertaTiempo", tiempoFinalGuardado);
+      localStorage.removeItem("visitoOfertas");
+    }
 
     let tiempoFinal = Number(localStorage.getItem("ofertaTiempo"));
 
-    function actualizarContador(){
+    function actualizarContador() {
       let ahora = Date.now();
       let diferencia = tiempoFinal - ahora;
 
-      if(diferencia <= 0){
+      if (diferencia <= 0) {
         document.getElementById("contadorOferta").innerText = "Oferta finalizada";
         ofertaTerminada();
         return;
@@ -250,10 +332,9 @@
     }
 
     actualizarContador();
-    setInterval(actualizarContador,1000);
+    setInterval(actualizarContador, 1000);
 
-    // MODALES
-    function abrirModalCompra(){
+    function abrirModalCompra() {
       if (contadorExpirado()) {
         ofertaTerminada();
         return;
@@ -262,66 +343,56 @@
       document.getElementById("modalCompra").style.display = "flex";
     }
 
-    function abrirModalDesdeCard(e){
+    function abrirModalDesdeCard(e) {
       if (e.target.closest(".btnOferta")) return;
       abrirModalCompra();
     }
 
-    function mostrarQR(){
+    function mostrarQR() {
       document.getElementById("modalCompra").style.display = "none";
       document.getElementById("modalQR").style.display = "flex";
     }
 
-    function cerrarModal(){
+    function cerrarModal() {
       document.getElementById("modalCompra").style.display = "none";
       document.getElementById("modalQR").style.display = "none";
       document.getElementById("modalFormulario").style.display = "none";
     }
 
-    function abrirYape(){
+    function abrirYape() {
+      const telefono = "917107386";
+      const esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-      const telefono="917107386";
-
-      /* detectar celular */
-      const esMovil=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-      if(esMovil){
-
-        window.location.href="yape://pay?phone="+telefono;
-
-      }else{
-
+      if (esMovil) {
+        window.location.href = "yape://pay?phone=" + telefono;
+      } else {
         alert("Para abrir Yape debes usar un celular");
-
       }
-
     }
 
-    function copiarYape(btn){
+    function copiarYape(btn) {
       navigator.clipboard.writeText(btn.innerText);
       let original = btn.innerText;
       btn.innerText = "¡Copiado!";
-      setTimeout(()=>{btn.innerText = original;},3000);
+      setTimeout(() => { btn.innerText = original; }, 3000);
     }
 
-    function abrirFormulario(){
+    function abrirFormulario() {
       document.getElementById("modalQR").style.display = "none";
       document.getElementById("modalFormulario").style.display = "flex";
     }
 
-    function cerrarModalFormulario(){
+    function cerrarModalFormulario() {
       document.getElementById("modalFormulario").style.display = "none";
     }
 
-    // CERRAR CON ESCAPE
-    document.addEventListener("keydown", function(e){
-      if(e.key === "Escape"){
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") {
         cerrarModal();
       }
     });
 
-    // FORMULARIO
-    document.getElementById("formCompra").addEventListener("submit", function(e){
+    document.getElementById("formCompra").addEventListener("submit", function(e) {
       e.preventDefault();
 
       if (contadorExpirado()) {
@@ -333,32 +404,32 @@
       const nombre = document.getElementById("nombreCliente").value;
       const transaccion = document.getElementById("numeroTransaccion").value;
       const fechaActual = new Date();
-      const fechaHora = fechaActual.toLocaleString('es-PE',{hour12:true});
-      const diasVencer = Math.floor(Math.random()*6)+15;
-      const fechaVence = new Date(fechaActual.getTime()+diasVencer*24*60*60*1000);
+      const fechaHora = fechaActual.toLocaleString('es-PE', { hour12: true });
+      const diasVencer = Math.floor(Math.random() * 6) + 15;
+      const fechaVence = new Date(fechaActual.getTime() + diasVencer * 24 * 60 * 60 * 1000);
       const fechaVenceStr = fechaVence.toLocaleDateString('es-PE');
       const mensaje = `Compra Oferta Makanaky\nCliente: ${nombre}\nYapeo: S/6.50\nNúmero de transacción: ${transaccion}\nFecha/Hora: ${fechaHora}\nVence: ${fechaVenceStr}`;
 
       const stockRef = db.ref("stock/hboprime");
-      stockRef.transaction(currentStock=>{
-        if(currentStock > 0) return currentStock - 1;
+      stockRef.transaction(currentStock => {
+        if (currentStock > 0) return currentStock - 1;
         else return 0;
-      },(error,committed,snapshot)=>{
-        if(error){
-          console.error("Error actualizando stock:",error);
-        } else if(!committed){
+      }, (error, committed) => {
+        if (error) {
+          console.error("Error actualizando stock:", error);
+        } else if (!committed) {
           console.log("No se pudo descontar stock");
         } else {
           actualizarStock();
         }
       });
 
-      window.open(`https://api.whatsapp.com/send?phone=51916252754&text=${encodeURIComponent(mensaje)}`,"_blank");
+      window.open(`https://api.whatsapp.com/send?phone=51916252754&text=${encodeURIComponent(mensaje)}`, "_blank");
       cerrarModalFormulario();
       alert("Datos enviados a WhatsApp para validación.");
     });
-    localStorage.setItem("visitoOfertas","si");
 
+    localStorage.setItem("visitoOfertas", "si");
   </script>
 
 </body>
