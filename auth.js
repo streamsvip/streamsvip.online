@@ -15,6 +15,23 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const db = firebase.database();
 
+/* =========================
+CONFIGURACIÓN DE INACTIVIDAD
+========================= */
+
+const TIEMPO_INACTIVIDAD_USUARIO = 15 * 60 * 1000; // 15 minutos
+const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;   // 7 minutos
+const TIEMPO_AVISO = 1 * 60 * 1000;               // aviso 1 minuto antes
+
+let temporizadorInactividad = null;
+let temporizadorAviso = null;
+let controlInactividadIniciado = false;
+let avisoMostrado = false;
+
+/* =========================
+FUNCIONES GENERALES
+========================= */
+
 function mostrarMensajeAuth(texto, color = "#ffffff") {
   const box = document.getElementById("mensajeAuth");
   if (!box) return;
@@ -37,6 +54,115 @@ function limpiarUsuario(valor) {
 function esCorreoValido(valor) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(limpiarTexto(valor));
 }
+
+function esPaginaPrivada(pagina) {
+  const paginasPrivadas = [
+    "tienda.html",
+    "panel.html",
+    "recargas.html",
+    "admin.html",
+    "perfil.html",
+    "saldo.html",
+    "compras.html"
+  ];
+
+  return paginasPrivadas.includes(pagina);
+}
+
+/* =========================
+INACTIVIDAD / AUTO LOGOUT
+========================= */
+
+function limpiarTemporizadoresInactividad() {
+  if (temporizadorInactividad) {
+    clearTimeout(temporizadorInactividad);
+    temporizadorInactividad = null;
+  }
+
+  if (temporizadorAviso) {
+    clearTimeout(temporizadorAviso);
+    temporizadorAviso = null;
+  }
+}
+
+function cerrarSesionPorInactividad() {
+  limpiarTemporizadoresInactividad();
+  avisoMostrado = false;
+
+  auth.signOut()
+    .then(() => {
+      alert("Tu sesión se cerró por inactividad.");
+      window.location.href = "index.html";
+    })
+    .catch(() => {
+      alert("Tu sesión se cerró por inactividad.");
+      window.location.href = "index.html";
+    });
+}
+
+function mostrarAvisoInactividad() {
+  if (avisoMostrado) return;
+  avisoMostrado = true;
+  alert("Llevas un tiempo inactivo. Tu sesión se cerrará en 1 minuto si no realizas ninguna acción.");
+}
+
+function obtenerTiempoInactividadPorPagina() {
+  const pagina = obtenerPaginaActual();
+  return pagina === "admin.html" ? TIEMPO_INACTIVIDAD_ADMIN : TIEMPO_INACTIVIDAD_USUARIO;
+}
+
+function reiniciarTemporizadorInactividad() {
+  limpiarTemporizadoresInactividad();
+  avisoMostrado = false;
+
+  const tiempoInactividad = obtenerTiempoInactividadPorPagina();
+
+  if (tiempoInactividad > TIEMPO_AVISO) {
+    temporizadorAviso = setTimeout(() => {
+      mostrarAvisoInactividad();
+    }, tiempoInactividad - TIEMPO_AVISO);
+  }
+
+  temporizadorInactividad = setTimeout(() => {
+    cerrarSesionPorInactividad();
+  }, tiempoInactividad);
+}
+
+function iniciarControlInactividad() {
+  if (controlInactividadIniciado) {
+    reiniciarTemporizadorInactividad();
+    return;
+  }
+
+  const eventos = [
+    "mousemove",
+    "mousedown",
+    "click",
+    "scroll",
+    "keypress",
+    "touchstart",
+    "touchmove",
+    "keydown"
+  ];
+
+  eventos.forEach((evento) => {
+    document.addEventListener(evento, reiniciarTemporizadorInactividad, true);
+  });
+
+  window.addEventListener("focus", reiniciarTemporizadorInactividad);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      reiniciarTemporizadorInactividad();
+    }
+  });
+
+  controlInactividadIniciado = true;
+  reiniciarTemporizadorInactividad();
+}
+
+/* =========================
+CARGA INICIAL
+========================= */
 
 document.addEventListener("DOMContentLoaded", () => {
   const correoInput = document.getElementById("correo");
@@ -73,13 +199,44 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-auth.onAuthStateChanged((user) => {
+/* =========================
+CONTROL DE SESIÓN
+========================= */
+
+auth.onAuthStateChanged(async (user) => {
   const pagina = obtenerPaginaActual();
 
-  if (!user && pagina === "tienda.html") {
-    window.location.href = "index.html";
+  if (!user) {
+    limpiarTemporizadoresInactividad();
+
+    if (esPaginaPrivada(pagina)) {
+      window.location.href = "index.html";
+    }
+    return;
+  }
+
+  if (esPaginaPrivada(pagina)) {
+    iniciarControlInactividad();
+  }
+
+  if (pagina === "admin.html") {
+    try {
+      const snap = await db.ref("usuarios/" + user.uid + "/rol").once("value");
+      const rol = snap.val();
+
+      if (rol !== "admin") {
+        window.location.href = "tienda.html";
+      }
+    } catch (error) {
+      console.error("Error verificando rol admin:", error);
+      window.location.href = "tienda.html";
+    }
   }
 });
+
+/* =========================
+UI AUTH
+========================= */
 
 function togglePassword(inputId = "password", btn = null) {
   const input = document.getElementById(inputId);
@@ -116,6 +273,10 @@ function aceptarTerminos() {
   if (modal) modal.style.display = "none";
 }
 
+/* =========================
+LOGIN
+========================= */
+
 function manejarErrorLogin(error) {
   console.error("Error login completo:", error);
   console.error("Código detectado:", error?.code);
@@ -127,6 +288,12 @@ function manejarErrorLogin(error) {
     mensaje = "Demasiados intentos. Intenta más tarde.";
   } else if (codigo === "auth/network-request-failed") {
     mensaje = "Error de conexión. Verifica tu internet.";
+  } else if (codigo === "auth/user-not-found") {
+    mensaje = "Usuario/correo o contraseña incorrectos.";
+  } else if (codigo === "auth/wrong-password") {
+    mensaje = "Usuario/correo o contraseña incorrectos.";
+  } else if (codigo === "auth/invalid-email") {
+    mensaje = "Correo electrónico no válido.";
   }
 
   mostrarMensajeAuth(mensaje, "#ff6b6b");
@@ -198,6 +365,10 @@ function iniciarSesion() {
     })
     .catch(manejarErrorLogin);
 }
+
+/* =========================
+REGISTRO
+========================= */
 
 async function crearCuenta() {
   const nombre = limpiarTexto(document.getElementById("nombre")?.value);
@@ -342,6 +513,10 @@ async function crearCuenta() {
   }
 }
 
+/* =========================
+RECUPERAR CONTRASEÑA
+========================= */
+
 function recuperarPassword() {
   const correo = limpiarTexto(document.getElementById("correo")?.value);
 
@@ -376,9 +551,14 @@ function recuperarPassword() {
     });
 }
 
+/* =========================
+CERRAR SESIÓN MANUAL
+========================= */
+
 function salir() {
   localStorage.removeItem("streamsvip_login_recordado");
   localStorage.removeItem("streamsvip_mantener_sesion");
+  limpiarTemporizadoresInactividad();
 
   auth.signOut()
     .then(() => {
