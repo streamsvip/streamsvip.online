@@ -40,6 +40,10 @@ let usuarioActual = null;
 let slideIndex = 1;
 let sliderInterval = null;
 
+let productoSeleccionadoId = "";
+let productoSeleccionadoData = null;
+let productosTiendaCache = {};
+
 /* =========================
 UTILIDADES
 ========================= */
@@ -60,6 +64,19 @@ function mostrarMensajeAuth(texto, color = "#fff") {
   box.style.color = color;
 }
 
+function escaparHTML(texto) {
+  return String(texto || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatearPrecioProducto(precio) {
+  return "S/ " + Number(precio || 0).toFixed(2);
+}
+
 function normalizarProductoBase(nombre) {
   const texto = String(nombre || "").toLowerCase();
 
@@ -69,8 +86,56 @@ function normalizarProductoBase(nombre) {
   if (texto.includes("hbo")) return "HBO";
   if (texto.includes("paramount")) return "Paramount";
   if (texto.includes("spotify")) return "Spotify";
+  if (texto.includes("vix")) return "Vix";
+  if (texto.includes("crunchy")) return "Crunchyroll";
 
   return "";
+}
+
+function obtenerImagenProducto(item, idProducto) {
+  if (item.imagen && String(item.imagen).trim() !== "") {
+    return String(item.imagen).trim();
+  }
+
+  const mapa = {
+    netflix: "img/Netflix.jpg",
+    disney: "img/Disney.jpg",
+    prime: "img/Primevideo.jpg",
+    hbo: "img/Hbomax.jpg",
+    paramount: "img/Paramount.jpg",
+    spotify: "img/Spotify.jpg",
+    vix: "img/logo.jpg",
+    crunchyroll: "img/logo.jpg"
+  };
+
+  const clave = String(idProducto || "").toLowerCase();
+  return mapa[clave] || "img/logo.jpg";
+}
+
+function obtenerDuracionTexto(item) {
+  const dias = Number(item.duracionDias || 30);
+
+  if (dias === 30) return "Duración: 1 mes";
+  if (dias === 1) return "Duración: 1 día";
+
+  return "Duración: " + dias + " días";
+}
+
+function calcularRepartoVenta(precioUnitario, cantidad, itemProducto = {}) {
+  const total = Number(precioUnitario || 0) * Number(cantidad || 1);
+  const porcentajePlataforma = Number(itemProducto.comisionPlataforma ?? 4);
+  const porcentajeProveedor = Number(itemProducto.comisionProveedor ?? (100 - porcentajePlataforma));
+
+  const montoPlataforma = Number((total * porcentajePlataforma / 100).toFixed(2));
+  const montoProveedor = Number((total - montoPlataforma).toFixed(2));
+
+  return {
+    total: Number(total.toFixed(2)),
+    porcentajePlataforma,
+    porcentajeProveedor,
+    montoPlataforma,
+    montoProveedor
+  };
 }
 
 function obtenerReglasProducto(productoBase) {
@@ -140,7 +205,12 @@ function obtenerReglasProducto(productoBase) {
     `;
   }
 
-  return "";
+  return `
+    <li>Uso exclusivamente personal.</li>
+    <li>No modificar credenciales ni configuraciones.</li>
+    <li>No compartir el acceso con terceros.</li>
+    <li>El incumplimiento de estas condiciones anula la garantía.</li>
+  `;
 }
 
 /* =========================
@@ -360,19 +430,127 @@ db.ref("comprasLive").limitToLast(1).on("child_added", (snap) => {
 });
 
 /* =========================
-MODAL PRODUCTO
+PRODUCTOS DINÁMICOS TIENDA
 ========================= */
 
-function agregarCarrito(nombre, precio, descripcion, imagen) {
-  const modal = document.getElementById("modalCompra");
-  if (!modal) return;
+function renderizarProductosTienda(data) {
+  const contenedor = document.getElementById("contenedorProductos");
+  if (!contenedor) return;
 
+  contenedor.innerHTML = "";
+
+  if (!data || typeof data !== "object") {
+    contenedor.innerHTML = '<div class="cargandoProductos">No hay productos disponibles.</div>';
+    return;
+  }
+
+  const ids = Object.keys(data).filter((id) => {
+    const item = data[id] || {};
+    return item.activo !== false;
+  });
+
+  if (ids.length === 0) {
+    contenedor.innerHTML = '<div class="cargandoProductos">No hay productos activos disponibles.</div>';
+    return;
+  }
+
+  ids.sort((a, b) => {
+    const nombreA = String((data[a] || {}).nombre || a).toLowerCase();
+    const nombreB = String((data[b] || {}).nombre || b).toLowerCase();
+    return nombreA.localeCompare(nombreB);
+  });
+
+  ids.forEach((id) => {
+    const item = data[id] || {};
+    const nombre = item.nombre || id;
+    const precio = Number(item.precio || 0);
+    const stock = Number(item.stock || 0);
+    const proveedorNombre = item.proveedorNombre || "Josking";
+    const imagen = obtenerImagenProducto(item, id);
+    const descripcion = item.descripcion || "Producto digital disponible.";
+    const duracionTexto = obtenerDuracionTexto(item);
+    const agotado = stock <= 0;
+
+    const html = `
+      <div class="producto" id="producto_${escaparHTML(id)}">
+        <img src="${escaparHTML(imagen)}" alt="${escaparHTML(nombre)}">
+        <h2>${escaparHTML(nombre)}</h2>
+        <p class="productoProveedor">🛡 ${escaparHTML(proveedorNombre)}</p>
+        <p class="precio">${escaparHTML(formatearPrecioProducto(precio))}</p>
+        <p class="stock">Stock: <span id="stock_${escaparHTML(id)}">${stock}</span></p>
+        <p class="duracionServicio">${escaparHTML(duracionTexto)}</p>
+        <button
+          class="btnComprar"
+          ${agotado ? "disabled" : ""}
+          onclick="abrirProductoPorId('${escaparHTML(id)}')">
+          ${agotado ? "AGOTADO" : "🛒Agregar al carrito"}
+        </button>
+      </div>
+    `;
+
+    contenedor.insertAdjacentHTML("beforeend", html);
+  });
+
+  document.querySelectorAll(".producto").forEach((producto) => {
+    producto.addEventListener("click", function (e) {
+      if (e.target.closest("button")) return;
+
+      const boton = this.querySelector("button");
+      if (boton && !boton.disabled) {
+        boton.click();
+      }
+    });
+  });
+}
+
+function cargarProductosTienda() {
+  const contenedor = document.getElementById("contenedorProductos");
+  if (!contenedor) return;
+
+  db.ref("productos").on("value", (snapshot) => {
+    const data = snapshot.val() || {};
+    productosTiendaCache = data;
+    renderizarProductosTienda(productosTiendaCache);
+  }, () => {
+    contenedor.innerHTML = '<div class="cargandoProductos">No se pudieron cargar los productos.</div>';
+  });
+}
+
+function abrirProductoPorId(productoId) {
+  const item = productosTiendaCache[productoId];
+  if (!item) {
+    alert("No se encontró el producto.");
+    return;
+  }
+
+  if (item.activo === false) {
+    alert("Este producto no está disponible.");
+    return;
+  }
+
+  const nombre = item.nombre || productoId;
+  const precio = Number(item.precio || 0);
+  const descripcion = item.descripcion || "Producto digital disponible.";
+  const imagen = obtenerImagenProducto(item, productoId);
+  const stock = Number(item.stock || 0);
+  const proveedorNombre = item.proveedorNombre || "Josking";
+
+  if (stock <= 0) {
+    alert("Producto agotado");
+    return;
+  }
+
+  productoSeleccionadoId = productoId;
+  productoSeleccionadoData = item;
   productoActual = nombre;
-  precioBase = Number(precio || 0);
+  precioBase = precio;
   cantidadProducto = 1;
+  stockDisponible = stock;
   productoBaseActual = normalizarProductoBase(nombre);
 
+  const modal = document.getElementById("modalCompra");
   const modalNombre = document.getElementById("modalNombre");
+  const modalProveedor = document.getElementById("modalProveedor");
   const modalDescripcion = document.getElementById("modalDescripcion");
   const modalImagen = document.getElementById("modalImagen");
   const cantidadEl = document.getElementById("cantidadProducto");
@@ -380,27 +558,32 @@ function agregarCarrito(nombre, precio, descripcion, imagen) {
   const lista = document.getElementById("listaReglas");
 
   if (modalNombre) modalNombre.innerText = nombre;
+  if (modalProveedor) modalProveedor.innerText = "Proveedor: " + proveedorNombre;
   if (modalDescripcion) modalDescripcion.innerText = descripcion;
   if (modalImagen) modalImagen.src = imagen;
   if (cantidadEl) cantidadEl.innerText = "1";
-  if (totalEl) totalEl.innerText = precioBase.toFixed(2);
-  if (lista) lista.innerHTML = obtenerReglasProducto(productoBaseActual);
+  if (totalEl) totalEl.innerText = precio.toFixed(2);
+  if (lista) lista.innerHTML = obtenerReglasProducto(normalizarProductoBase(nombre));
 
-  db.ref("stock/" + productoBaseActual).once("value")
-    .then((snap) => {
-      stockDisponible = Number(snap.val() || 0);
+  if (modal) modal.style.display = "flex";
+}
 
-      if (stockDisponible <= 0) {
-        alert("Producto agotado");
-        return;
-      }
+/* =========================
+MODAL PRODUCTO
+========================= */
 
-      modal.style.display = "flex";
-    })
-    .catch(() => {
-      stockDisponible = 0;
-      alert("No se pudo consultar el stock");
-    });
+function agregarCarrito(nombre, precio, descripcion, imagen) {
+  const productoEncontradoId = Object.keys(productosTiendaCache).find((id) => {
+    const item = productosTiendaCache[id] || {};
+    return String(item.nombre || "").trim().toLowerCase() === String(nombre || "").trim().toLowerCase();
+  });
+
+  if (!productoEncontradoId) {
+    alert("No se encontró el producto.");
+    return;
+  }
+
+  abrirProductoPorId(productoEncontradoId);
 }
 
 function cerrarModal() {
@@ -432,12 +615,26 @@ COMPRAR
 ========================= */
 
 function comprarAhora() {
+  if (!productoSeleccionadoData || !productoSeleccionadoId) {
+    alert("Selecciona un producto válido.");
+    return;
+  }
+
   if (cantidadProducto > stockDisponible) {
     alert("No hay suficiente stock disponible");
     return;
   }
 
-  alert("Muy pronto esta compra se realizará con saldo automático.");
+  const reparto = calcularRepartoVenta(precioBase, cantidadProducto, productoSeleccionadoData);
+
+  alert(
+    "Muy pronto esta compra se realizará con saldo automático.\n\n" +
+    "Producto: " + productoActual + "\n" +
+    "Cantidad: " + cantidadProducto + "\n" +
+    "Total: S/ " + reparto.total.toFixed(2) + "\n" +
+    "Proveedor: S/ " + reparto.montoProveedor.toFixed(2) + "\n" +
+    "Plataforma: S/ " + reparto.montoPlataforma.toFixed(2)
+  );
 }
 
 /* =========================
@@ -457,24 +654,40 @@ REGISTRAR COMPRA
 ========================= */
 
 function registrarCompra(producto) {
-  const nombre = "Cliente";
+  const nombre = usuarioActual?.displayName || "Cliente";
 
   db.ref("comprasHoy").transaction((total) => {
     return (total || 0) + 1;
   });
 
-  let productoBase = normalizarProductoBase(producto);
+  const productoId = productoSeleccionadoId;
+  const item = productoSeleccionadoData || {};
+  const reparto = calcularRepartoVenta(precioBase, cantidadProducto, item);
 
-  if (productoBase !== "") {
-    db.ref("ventas/" + productoBase).transaction((total) => {
-      return (total || 0) + 1;
-    });
-
-    db.ref("stock/" + productoBase).transaction((stock) => {
+  if (productoId) {
+    db.ref("productos/" + productoId + "/stock").transaction((stock) => {
+      stock = Number(stock || 0);
       if (stock >= cantidadProducto) {
         return stock - cantidadProducto;
       }
       return stock;
+    });
+
+    db.ref("ventas/" + productoId).push({
+      productoId: productoId,
+      producto: item.nombre || producto,
+      proveedorId: item.proveedorId || "",
+      proveedorNombre: item.proveedorNombre || "Josking",
+      porcentajeProveedor: reparto.porcentajeProveedor,
+      porcentajePlataforma: reparto.porcentajePlataforma,
+      montoProveedor: reparto.montoProveedor,
+      montoPlataforma: reparto.montoPlataforma,
+      montoTotal: reparto.total,
+      cantidad: cantidadProducto,
+      nombre: nombre,
+      uidUsuario: usuarioActual?.uid || "",
+      fecha: Date.now(),
+      estado: "registrado"
     });
   }
 
@@ -484,62 +697,6 @@ function registrarCompra(producto) {
     time: Date.now()
   });
 }
-
-/* =========================
-CONTROL STOCK
-========================= */
-
-const listaStock = ["Netflix", "Disney", "Prime", "HBO", "Paramount", "Spotify"];
-
-listaStock.forEach((prod) => {
-  db.ref("stock/" + prod).on("value", (snap) => {
-    let stock = snap.val();
-    if (stock == null) stock = 0;
-
-    const span = document.getElementById("stock" + prod);
-    if (span) span.innerText = stock;
-
-    const card = document.getElementById("producto" + prod);
-    if (!card) return;
-
-    const boton = card.querySelector("button");
-    if (!boton) return;
-
-    let aviso = card.querySelector(".avisoStock");
-
-    if (!aviso) {
-      aviso = document.createElement("p");
-      aviso.className = "avisoStock";
-
-      const stockTexto = card.querySelector(".stock");
-
-      if (stockTexto) {
-        stockTexto.insertAdjacentElement("afterend", aviso);
-      } else {
-        card.appendChild(aviso);
-      }
-    }
-
-    if (stock <= 0) {
-      boton.innerText = "AGOTADO";
-      boton.disabled = true;
-      aviso.style.display = "none";
-    } else {
-      boton.innerText = "🛒Agregar al carrito";
-      boton.disabled = false;
-
-      if (stock > 1 && stock <= 5) {
-        aviso.style.display = "block";
-        aviso.innerText = `⚠ Solo quedan ${stock} perfiles disponibles`;
-      } else if (stock === 1) {
-        aviso.style.display = "block";
-        aviso.innerText = "⚠ Solo queda 1 perfil disponible";
-      } else {
-        aviso.style.display = "none";
-      }
-    }
-  });
-});
 
 /* =========================
 BANNER SLIDER
@@ -605,6 +762,7 @@ function toggleMenu() {
 
   menu.classList.toggle("activo");
 }
+
 /* =========================
 MODAL OFERTA VIGENTE
 ========================= */
@@ -661,6 +819,7 @@ DOM READY
 document.addEventListener("DOMContentLoaded", function () {
   iniciarSlider();
   verificarUrgenciaOferta();
+  cargarProductosTienda();
 
   if (ofertaSigueActiva() && !localStorage.getItem("visitoOfertas")) {
     mostrarModalOfertaVigente();
@@ -673,17 +832,6 @@ document.addEventListener("DOMContentLoaded", function () {
       alert("Este formulario quedará reservado para futuras recargas de saldo.");
     });
   }
-
-  document.querySelectorAll(".producto").forEach((producto) => {
-    producto.addEventListener("click", function (e) {
-      if (e.target.closest("button")) return;
-
-      const boton = this.querySelector("button");
-      if (boton && !boton.disabled) {
-        boton.click();
-      }
-    });
-  });
 });
 
 /* =========================
