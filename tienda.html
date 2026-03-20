@@ -83,80 +83,9 @@
     </div>
   </div>
 
-  <div class="productos">
-
-    <div class="producto" id="productoNetflix">
-      <img src="img/Netflix.jpg" alt="Netflix">
-      <h2>Netflix Perfil 4K HD🍿</h2>
-      <p class="precio">S/15</p>
-      <p class="stock">Stock: <span id="stockNetflix">0</span></p>
-      <p class="duracionServicio">Duración: 1 mes</p>
-      <button class="btnComprar"
-        onclick="agregarCarrito('Netflix Perfil 4K HD',15,'Perfil Netflix privado válido por 30 días, para un dispositivo.','img/Netflix.jpg')">
-        🛒Agregar al carrito
-      </button>
-    </div>
-
-    <div class="producto" id="productoDisney">
-      <img src="img/Disney.jpg" alt="Disney">
-      <h2>Disney+ Espn 7 Hulu Perfil⭐</h2>
-      <p class="precio">S/10</p>
-      <p class="stock">Stock: <span id="stockDisney">0</span></p>
-      <p class="duracionServicio">Duración: 1 mes</p>
-      <button class="btnComprar"
-        onclick="agregarCarrito('Disney+ Espn 7 Hulu Premium Perfil✨',10,'Perfil Disney+ con acceso completo a Espn 7 y Hulu por 30 días.','img/Disney.jpg')">
-        🛒Agregar al carrito
-      </button>
-    </div>
-
-    <div class="producto" id="productoPrime">
-      <img src="img/Primevideo.jpg" alt="Prime Video">
-      <h2>Prime Video Perfil🔥</h2>
-      <p class="precio">S/8</p>
-      <p class="stock">Stock: <span id="stockPrime">0</span></p>
-      <p class="duracionServicio">Duración: 1 mes</p>
-      <button class="btnComprar"
-        onclick="agregarCarrito('Prime Video Perfil',8,'Perfil Prime Video con acceso completo al catálogo durante 30 días.','img/Primevideo.jpg')">
-        🛒Agregar al carrito
-      </button>
-    </div>
-
-    <div class="producto" id="productoHBO">
-      <img src="img/Hbomax.jpg" alt="HBO Max">
-      <h2>HBO Max Standar Perfil✨</h2>
-      <p class="precio">S/6</p>
-      <p class="stock">Stock: <span id="stockHBO">0</span></p>
-      <p class="duracionServicio">Duración: 1 mes</p>
-      <button class="btnComprar"
-        onclick="agregarCarrito('HBO Max Perfil Standard',6,'Perfil HBO Max con acceso completo al catálogo durante 30 días.','img/Hbomax.jpg')">
-        🛒Agregar al carrito
-      </button>
-    </div>
-
-    <div class="producto" id="productoParamount">
-      <img src="img/Paramount.jpg" alt="Paramount+">
-      <h2>Paramount+ Perfil💠</h2>
-      <p class="precio">S/6</p>
-      <p class="stock">Stock: <span id="stockParamount">0</span></p>
-      <p class="duracionServicio">Duración: 1 mes</p>
-      <button class="btnComprar"
-        onclick="agregarCarrito('Paramount+ Perfil',6,'Perfil Paramount+ con acceso completo durante 30 días.','img/Paramount.jpg')">
-        🛒Agregar al carrito
-      </button>
-    </div>
-
-    <div class="producto" id="productoSpotify">
-      <img src="img/Spotify.jpg" alt="Spotify">
-      <h2>Spotify Premium Individual🎧</h2>
-      <p class="precio">S/13</p>
-      <p class="stock">Stock: <span id="stockSpotify">0</span></p>
-      <p class="duracionServicio">Duración: 1 mes</p>
-      <button class="btnComprar"
-        onclick="agregarCarrito('Spotify Premium Individual',13,'Cuenta Spotify Premium individual válida por 30 días.','img/Spotify.jpg')">
-        🛒Agregar al carrito
-      </button>
-    </div>
-
+  <!-- PRODUCTOS DINÁMICOS -->
+  <div class="productos" id="contenedorProductos">
+    <div class="cargandoProductos" id="cargandoProductos">Cargando productos...</div>
   </div>
 
   <div id="modalCompra" class="modalCompra">
@@ -168,6 +97,8 @@
 
         <div class="modalInfo">
           <h2 id="modalNombre"></h2>
+
+          <p id="modalProveedor" class="modalProveedor"></p>
 
           <div class="descripcionProducto">
             <h3>Descripción del producto</h3>
@@ -222,7 +153,7 @@
         Revisa el apartado de ofertas antes de que finalice.
       </p>
 
-      <div class="btnsOferta"><div class="panelSaldoBox">
+      <div class="btnsOferta">
         <button id="btnVerOferta" class="btnVerOferta">Ver oferta</button>
         <button id="btnCerrarOferta" class="btnCerrarOferta">Cerrar</button>
       </div>
