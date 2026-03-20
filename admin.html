@@ -166,6 +166,9 @@
                   <th>Duración</th>
                   <th>Estado</th>
                   <th>Categoría</th>
+                  <th>Proveedor</th>
+                  <th>Com. Prov.</th>
+                  <th>Com. Plataf.</th>
                   <th>Descripción</th>
                   <th>Acciones</th>
                 </tr>
@@ -408,95 +411,245 @@
 
     let stockCache = {};
     let productosCache = {};
+    let panelAdminYaCargado = false;
 
-    function togglePassword(){
+    const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;
+    const TIEMPO_AVISO_ADMIN = 1 * 60 * 1000;
+
+    let adminTimeoutLogout = null;
+    let adminTimeoutAviso = null;
+    let adminControlIniciado = false;
+    let adminAvisoMostrado = false;
+
+    function limpiarAdminInactividad() {
+      if (adminTimeoutLogout) {
+        clearTimeout(adminTimeoutLogout);
+        adminTimeoutLogout = null;
+      }
+
+      if (adminTimeoutAviso) {
+        clearTimeout(adminTimeoutAviso);
+        adminTimeoutAviso = null;
+      }
+    }
+
+    function avisoAdminInactividad() {
+      if (adminAvisoMostrado) return;
+      adminAvisoMostrado = true;
+      alert("Panel administrador inactivo. La sesión se cerrará en 1 minuto si no realizas ninguna acción.");
+    }
+
+    function cerrarAdminPorInactividad() {
+      limpiarAdminInactividad();
+      adminAvisoMostrado = false;
+
+      auth.signOut()
+        .then(() => {
+          alert("La sesión del administrador se cerró por inactividad.");
+          window.location.replace("admin.html");
+        })
+        .catch(() => {
+          alert("La sesión del administrador se cerró por inactividad.");
+          window.location.replace("admin.html");
+        });
+    }
+
+    function reiniciarAdminInactividad() {
+      limpiarAdminInactividad();
+      adminAvisoMostrado = false;
+
+      adminTimeoutAviso = setTimeout(() => {
+        avisoAdminInactividad();
+      }, TIEMPO_INACTIVIDAD_ADMIN - TIEMPO_AVISO_ADMIN);
+
+      adminTimeoutLogout = setTimeout(() => {
+        cerrarAdminPorInactividad();
+      }, TIEMPO_INACTIVIDAD_ADMIN);
+    }
+
+    function iniciarControlAdminInactividad() {
+      if (adminControlIniciado) {
+        reiniciarAdminInactividad();
+        return;
+      }
+
+      const eventos = [
+        "mousemove",
+        "mousedown",
+        "click",
+        "scroll",
+        "keypress",
+        "touchstart",
+        "touchmove",
+        "keydown"
+      ];
+
+      eventos.forEach((evento) => {
+        document.addEventListener(evento, reiniciarAdminInactividad, true);
+      });
+
+      window.addEventListener("focus", reiniciarAdminInactividad);
+
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+          reiniciarAdminInactividad();
+        }
+      });
+
+      adminControlIniciado = true;
+      reiniciarAdminInactividad();
+    }
+
+    function togglePassword() {
       adminPasswordInput.type = adminPasswordInput.type === "password" ? "text" : "password";
       toggleBtn.textContent = adminPasswordInput.type === "password" ? "👁️" : "🙈";
     }
 
-    function toggleCuentaPassword(inputId, btn){
+    function toggleCuentaPassword(inputId, btn) {
       const input = document.getElementById(inputId);
-      if(!input) return;
+      if (!input) return;
       input.type = input.type === "password" ? "text" : "password";
       btn.textContent = input.type === "password" ? "👁️" : "🙈";
     }
 
-    function toggleSection(button){
+    function toggleSection(button) {
       const card = button.closest(".collapsibleCard");
-      if(!card) return;
+      if (!card) return;
       card.classList.toggle("closed");
     }
 
-    adminEmailInput.addEventListener("keydown", e => { if(e.key === "Enter") loginAdmin(); });
-    adminPasswordInput.addEventListener("keydown", e => { if(e.key === "Enter") loginAdmin(); });
+    adminEmailInput.addEventListener("keydown", e => { if (e.key === "Enter") loginAdmin(); });
+    adminPasswordInput.addEventListener("keydown", e => { if (e.key === "Enter") loginAdmin(); });
 
-    function setLoading(estado){
+    function setLoading(estado) {
       loginBtn.disabled = estado;
       loginBtn.textContent = estado ? "Ingresando..." : "Iniciar sesión";
     }
 
-    function loginAdmin(){
+    function loginAdmin() {
       const email = adminEmailInput.value.trim().toLowerCase();
       const password = adminPasswordInput.value.trim();
 
       loginMsg.textContent = "";
 
-      if(!email || !password){
+      if (!email || !password) {
         loginMsg.textContent = "Completa correo y contraseña.";
         return;
       }
 
       setLoading(true);
 
-      auth.signInWithEmailAndPassword(email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        if(!user || !user.email){
-          auth.signOut();
-          loginMsg.textContent = "No se pudo validar el usuario.";
-          setLoading(false);
-          return;
-        }
+      auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+        .then(() => {
+          return auth.signInWithEmailAndPassword(email, password);
+        })
+        .then((userCredential) => {
+          const user = userCredential.user;
 
-        if(user.email.toLowerCase() !== ADMIN_EMAIL){
-          auth.signOut();
-          loginMsg.textContent = "Acceso denegado. Este usuario no es administrador.";
-          setLoading(false);
-          return;
-        }
+          if (!user || !user.email) {
+            return auth.signOut().then(() => {
+              throw new Error("No se pudo validar el usuario.");
+            });
+          }
 
-        setLoading(false);
-      })
-      .catch((error) => {
-        setLoading(false);
-        if(error.code === "auth/user-not-found"){
-          loginMsg.textContent = "Ese correo no existe en Firebase Authentication.";
-        }else if(error.code === "auth/wrong-password"){
-          loginMsg.textContent = "La contraseña es incorrecta.";
-        }else{
-          loginMsg.textContent = "Correo o contraseña incorrectos.";
-        }
-      });
+          if (user.email.toLowerCase() !== ADMIN_EMAIL) {
+            return auth.signOut().then(() => {
+              throw new Error("Acceso denegado. Este usuario no es administrador.");
+            });
+          }
+
+          return db.ref("usuarios/" + user.uid).once("value").then((snap) => {
+            const data = snap.val() || {};
+            const rol = data.rol || "";
+            const estado = (data.estado || "activo").toLowerCase();
+
+            if (rol !== "admin") {
+              return auth.signOut().then(() => {
+                throw new Error("Tu cuenta no tiene rol administrador.");
+              });
+            }
+
+            if (estado === "bloqueado") {
+              return auth.signOut().then(() => {
+                throw new Error("Tu cuenta administrativa está bloqueada.");
+              });
+            }
+          });
+        })
+        .then(() => {
+          setLoading(false);
+        })
+        .catch((error) => {
+          setLoading(false);
+
+          if (error.code === "auth/user-not-found") {
+            loginMsg.textContent = "Ese correo no existe en Firebase Authentication.";
+          } else if (error.code === "auth/wrong-password") {
+            loginMsg.textContent = "La contraseña es incorrecta.";
+          } else {
+            loginMsg.textContent = error.message || "Correo o contraseña incorrectos.";
+          }
+        });
     }
 
-    function cerrarSesion(){
-      auth.signOut();
+    function cerrarSesion() {
+      limpiarAdminInactividad();
+
+      auth.signOut()
+        .then(() => {
+          window.location.replace("admin.html");
+        })
+        .catch(() => {
+          window.location.replace("admin.html");
+        });
     }
 
-    auth.onAuthStateChanged((user) => {
-      if(user && user.email && user.email.toLowerCase() === ADMIN_EMAIL){
-        loginSection.classList.add("hidden");
-        panelSection.classList.remove("hidden");
-        adminInfo.textContent = user.email;
-        cargarPanel();
-      }else{
+    auth.onAuthStateChanged(async (user) => {
+      if (user && user.email && user.email.toLowerCase() === ADMIN_EMAIL) {
+        try {
+          const snap = await db.ref("usuarios/" + user.uid).once("value");
+          const data = snap.val() || {};
+          const rol = data.rol || "";
+          const estado = (data.estado || "activo").toLowerCase();
+
+          if (rol !== "admin" || estado === "bloqueado") {
+            await auth.signOut();
+            loginSection.classList.remove("hidden");
+            panelSection.classList.add("hidden");
+            loginMsg.textContent = "Acceso denegado.";
+            setLoading(false);
+            return;
+          }
+
+          loginSection.classList.add("hidden");
+          panelSection.classList.remove("hidden");
+          adminInfo.textContent = user.email;
+
+          if (!panelAdminYaCargado) {
+            cargarPanel();
+            panelAdminYaCargado = true;
+          }
+
+          iniciarControlAdminInactividad();
+
+        } catch (error) {
+          console.error("Error verificando admin:", error);
+          await auth.signOut();
+          loginSection.classList.remove("hidden");
+          panelSection.classList.add("hidden");
+          loginMsg.textContent = "No se pudo validar el acceso.";
+          setLoading(false);
+        }
+      } else {
+        limpiarAdminInactividad();
+        panelAdminYaCargado = false;
         loginSection.classList.remove("hidden");
         panelSection.classList.add("hidden");
         setLoading(false);
       }
     });
 
-    function cargarPanel(){
+    function cargarPanel() {
       cargarVentas();
       cargarComprasHoy();
       cargarStock();
@@ -508,75 +661,75 @@
       cargarCodigos();
     }
 
-    function badgeEstado(texto){
+    function badgeEstado(texto) {
       texto = (texto || "").toString().toLowerCase();
 
-      if(texto.includes("desactiv")){
+      if (texto.includes("desactiv")) {
         return '<span class="badge off">desactivado</span>';
       }
 
-      if(texto.includes("aprob") || texto.includes("activo") || texto.includes("complet") || texto === "true" || texto === "disponible"){
+      if (texto.includes("aprob") || texto.includes("activo") || texto.includes("complet") || texto === "true" || texto === "disponible") {
         return '<span class="badge ok">' + texto + '</span>';
       }
 
-      if(texto.includes("pend")){
+      if (texto.includes("pend")) {
         return '<span class="badge warn">' + texto + '</span>';
       }
 
       return '<span class="badge bad">' + texto + '</span>';
     }
 
-    function textoSeguro(valor, fallback = "-"){
-      if(valor === undefined || valor === null || valor === "") return fallback;
+    function textoSeguro(valor, fallback = "-") {
+      if (valor === undefined || valor === null || valor === "") return fallback;
       return valor;
     }
 
-    function obtenerMonto(item){
-      const monto = Number(item.precio ?? item.total ?? item.monto ?? item.precioTotal ?? 0);
+    function obtenerMonto(item) {
+      const monto = Number(item.precio ?? item.total ?? item.monto ?? item.precioTotal ?? item.montoPlataforma ?? 0);
       return isNaN(monto) ? 0 : monto;
     }
 
-    function formatearDinero(valor){
+    function formatearDinero(valor) {
       return "S/ " + Number(valor).toFixed(2);
     }
 
-    function formatearFecha(valor){
-      if(valor === undefined || valor === null || valor === "") return "-";
+    function formatearFecha(valor) {
+      if (valor === undefined || valor === null || valor === "") return "-";
 
-      if(typeof valor === "number"){
+      if (typeof valor === "number") {
         const d = new Date(valor);
-        if(isNaN(d.getTime())) return String(valor);
+        if (isNaN(d.getTime())) return String(valor);
         return d.toLocaleString();
       }
 
       const d = new Date(valor);
-      if(!isNaN(d.getTime())) return d.toLocaleString();
+      if (!isNaN(d.getTime())) return d.toLocaleString();
 
       return String(valor);
     }
 
-    function sumarDias(fechaBase, dias){
+    function sumarDias(fechaBase, dias) {
       const base = new Date(fechaBase);
-      if(isNaN(base.getTime())) return "";
+      if (isNaN(base.getTime())) return "";
       base.setDate(base.getDate() + Number(dias || 0));
       return base.toISOString();
     }
 
-    function mostrarMensajeStock(texto, error = false){
+    function mostrarMensajeStock(texto, error = false) {
       stockMsg.textContent = texto;
       stockMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
       clearTimeout(window.stockMsgTimeout);
       window.stockMsgTimeout = setTimeout(() => stockMsg.textContent = "", 3000);
     }
 
-    function mostrarMensajeProducto(texto, error = false){
+    function mostrarMensajeProducto(texto, error = false) {
       productoMsg.textContent = texto;
       productoMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
       clearTimeout(window.productoMsgTimeout);
       window.productoMsgTimeout = setTimeout(() => productoMsg.textContent = "", 3000);
     }
 
-    function mostrarMensajeCuenta(texto, error = false){
+    function mostrarMensajeCuenta(texto, error = false) {
       const cuentaMsg = document.getElementById("cuentaMsg");
       cuentaMsg.textContent = texto;
       cuentaMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
@@ -584,7 +737,7 @@
       window.cuentaMsgTimeout = setTimeout(() => cuentaMsg.textContent = "", 3000);
     }
 
-    function mostrarMensajeRecarga(texto, error = false){
+    function mostrarMensajeRecarga(texto, error = false) {
       const recargaMsg = document.getElementById("recargaMsg");
       recargaMsg.textContent = texto;
       recargaMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
@@ -592,21 +745,21 @@
       window.recargaMsgTimeout = setTimeout(() => recargaMsg.textContent = "", 3000);
     }
 
-    function cambiarCantidadInput(producto, cambio){
+    function cambiarCantidadInput(producto, cambio) {
       const input = document.getElementById("stockInput_" + producto);
-      if(!input) return;
+      if (!input) return;
       let valor = parseInt(input.value) || 0;
       valor += cambio;
-      if(valor < 0) valor = 0;
+      if (valor < 0) valor = 0;
       input.value = valor;
     }
 
-    function guardarStock(producto){
+    function guardarStock(producto) {
       const input = document.getElementById("stockInput_" + producto);
-      if(!input) return;
+      if (!input) return;
 
       const nuevoStock = parseInt(input.value);
-      if(isNaN(nuevoStock) || nuevoStock < 0){
+      if (isNaN(nuevoStock) || nuevoStock < 0) {
         mostrarMensajeStock("El stock de " + producto + " no es válido.", true);
         return;
       }
@@ -616,21 +769,21 @@
       updates["productos/" + producto + "/stock"] = nuevoStock;
 
       db.ref().update(updates)
-      .then(() => mostrarMensajeStock("Stock actualizado: " + producto + " = " + nuevoStock))
-      .catch((error) => mostrarMensajeStock("Error: " + error.message, true));
+        .then(() => mostrarMensajeStock("Stock actualizado: " + producto + " = " + nuevoStock))
+        .catch((error) => mostrarMensajeStock("Error: " + error.message, true));
     }
 
-    function agotarProducto(producto){
+    function agotarProducto(producto) {
       const updates = {};
       updates["stock/" + producto] = 0;
       updates["productos/" + producto + "/stock"] = 0;
 
       db.ref().update(updates)
-      .then(() => mostrarMensajeStock("Producto agotado: " + producto))
-      .catch((error) => mostrarMensajeStock("Error: " + error.message, true));
+        .then(() => mostrarMensajeStock("Producto agotado: " + producto))
+        .catch((error) => mostrarMensajeStock("Error: " + error.message, true));
     }
 
-    function crearProducto(){
+    function crearProducto() {
       const id = document.getElementById("nuevoIdProducto").value.trim().toLowerCase();
       const nombre = document.getElementById("nuevoNombreProducto").value.trim();
       const precio = parseFloat(document.getElementById("nuevoPrecioProducto").value);
@@ -639,95 +792,110 @@
       const categoria = document.getElementById("nuevaCategoriaProducto").value.trim();
       const descripcion = document.getElementById("nuevaDescripcionProducto").value.trim();
 
-      if(!id || !nombre){
+      if (!id || !nombre) {
         mostrarMensajeProducto("Completa el ID y nombre del producto.", true);
         return;
       }
 
-      if(isNaN(precio) || precio < 0){
+      if (isNaN(precio) || precio < 0) {
         mostrarMensajeProducto("El precio no es válido.", true);
         return;
       }
 
-      if(isNaN(stock) || stock < 0){
+      if (isNaN(stock) || stock < 0) {
         mostrarMensajeProducto("El stock no es válido.", true);
         return;
       }
 
-      if(isNaN(duracionDias) || duracionDias < 1){
+      if (isNaN(duracionDias) || duracionDias < 1) {
         mostrarMensajeProducto("La duración en días no es válida.", true);
         return;
       }
 
-      db.ref("productos/" + id).set({
+      const productoData = {
         nombre,
         precio,
         stock,
         duracionDias,
         activo: true,
         categoria: categoria || "general",
-        descripcion: descripcion || ""
-      })
-      .then(() => db.ref("stock/" + id).set(stock))
-      .then(() => {
-        mostrarMensajeProducto("Producto creado correctamente.");
-        document.getElementById("nuevoIdProducto").value = "";
-        document.getElementById("nuevoNombreProducto").value = "";
-        document.getElementById("nuevoPrecioProducto").value = "";
-        document.getElementById("nuevoStockProducto").value = "";
-        document.getElementById("nuevaDuracionProducto").value = "";
-        document.getElementById("nuevaCategoriaProducto").value = "";
-        document.getElementById("nuevaDescripcionProducto").value = "";
-      })
-      .catch((error) => mostrarMensajeProducto(error.message, true));
+        descripcion: descripcion || "",
+        imagen: "",
+        proveedorId: "admin_principal",
+        proveedorNombre: "Josking",
+        proveedorTipo: "admin",
+        comisionProveedor: 96,
+        comisionPlataforma: 4,
+        fechaCreacion: Date.now()
+      };
+
+      db.ref("productos/" + id).set(productoData)
+        .then(() => db.ref("stock/" + id).set(stock))
+        .then(() => {
+          mostrarMensajeProducto("Producto creado correctamente.");
+          document.getElementById("nuevoIdProducto").value = "";
+          document.getElementById("nuevoNombreProducto").value = "";
+          document.getElementById("nuevoPrecioProducto").value = "";
+          document.getElementById("nuevoStockProducto").value = "";
+          document.getElementById("nuevaDuracionProducto").value = "";
+          document.getElementById("nuevaCategoriaProducto").value = "";
+          document.getElementById("nuevaDescripcionProducto").value = "";
+        })
+        .catch((error) => mostrarMensajeProducto(error.message, true));
     }
 
-    function guardarProducto(id){
+    function guardarProducto(id) {
       const nombre = document.getElementById("prodNombre_" + id).value.trim();
       const precio = parseFloat(document.getElementById("prodPrecio_" + id).value);
       const duracionDias = parseInt(document.getElementById("prodDuracion_" + id).value);
       const categoria = document.getElementById("prodCategoria_" + id).value.trim();
       const descripcion = document.getElementById("prodDescripcion_" + id).value.trim();
 
-      if(!nombre){
+      if (!nombre) {
         mostrarMensajeProducto("El nombre no puede estar vacío.", true);
         return;
       }
 
-      if(isNaN(precio) || precio < 0){
+      if (isNaN(precio) || precio < 0) {
         mostrarMensajeProducto("Precio inválido en " + id, true);
         return;
       }
 
-      if(isNaN(duracionDias) || duracionDias < 1){
+      if (isNaN(duracionDias) || duracionDias < 1) {
         mostrarMensajeProducto("Duración inválida en " + id, true);
         return;
       }
 
       db.ref("productos/" + id).once("value")
-      .then((snapshot) => {
-        const actual = snapshot.val() || {};
-        return db.ref("productos/" + id).update({
-          nombre,
-          precio,
-          stock: Number(actual.stock || 0),
-          duracionDias,
-          categoria: categoria || "general",
-          descripcion: descripcion || ""
-        });
-      })
-      .then(() => mostrarMensajeProducto("Producto actualizado: " + id))
-      .catch((error) => mostrarMensajeProducto("Error: " + error.message, true));
+        .then((snapshot) => {
+          const actual = snapshot.val() || {};
+          return db.ref("productos/" + id).update({
+            nombre,
+            precio,
+            stock: Number(actual.stock || 0),
+            duracionDias,
+            categoria: categoria || "general",
+            descripcion: descripcion || "",
+            imagen: actual.imagen || "",
+            proveedorId: actual.proveedorId || "admin_principal",
+            proveedorNombre: actual.proveedorNombre || "Josking",
+            proveedorTipo: actual.proveedorTipo || "admin",
+            comisionProveedor: Number(actual.comisionProveedor ?? 96),
+            comisionPlataforma: Number(actual.comisionPlataforma ?? 4)
+          });
+        })
+        .then(() => mostrarMensajeProducto("Producto actualizado: " + id))
+        .catch((error) => mostrarMensajeProducto("Error: " + error.message, true));
     }
 
-    function toggleProductoActivo(id, estadoActual){
+    function toggleProductoActivo(id, estadoActual) {
       db.ref("productos/" + id + "/activo").set(!estadoActual)
-      .then(() => mostrarMensajeProducto("Estado actualizado: " + id))
-      .catch((error) => mostrarMensajeProducto("Error: " + error.message, true));
+        .then(() => mostrarMensajeProducto("Estado actualizado: " + id))
+        .catch((error) => mostrarMensajeProducto("Error: " + error.message, true));
     }
 
-    function eliminarProducto(id){
-      if(!confirm("¿Seguro que quieres eliminar el producto '" + id + "'?")) return;
+    function eliminarProducto(id) {
+      if (!confirm("¿Seguro que quieres eliminar el producto '" + id + "'?")) return;
 
       Promise.all([
         db.ref("productos/" + id).remove(),
@@ -737,7 +905,7 @@
       .catch((error) => mostrarMensajeProducto("Error: " + error.message, true));
     }
 
-    function renderStock(){
+    function renderStock() {
       const tbody = document.querySelector("#tablaStock tbody");
       const tabla = document.getElementById("tablaStock");
       const vacio = document.getElementById("stockVacio");
@@ -746,7 +914,7 @@
 
       const keys = Object.keys(stockCache || {});
 
-      if(keys.length === 0){
+      if (keys.length === 0) {
         tabla.classList.add("hidden");
         vacio.classList.remove("hidden");
         document.getElementById("totalStock").textContent = "0";
@@ -759,11 +927,11 @@
         const valor = stockCache[producto];
         let stockNum = 0;
 
-        if(typeof valor === "number"){
+        if (typeof valor === "number") {
           stockNum = valor;
-        }else if(typeof valor === "object" && valor !== null){
+        } else if (typeof valor === "object" && valor !== null) {
           stockNum = Number(valor.stock || valor.cantidad || 0);
-        }else{
+        } else {
           stockNum = Number(valor || 0);
         }
 
@@ -771,9 +939,9 @@
         const activo = productoInfo.activo !== false;
 
         let estado = "agotado";
-        if(!activo){
+        if (!activo) {
           estado = "desactivado";
-        }else if(stockNum > 0){
+        } else if (stockNum > 0) {
           estado = "activo";
         }
 
@@ -799,7 +967,7 @@
       vacio.classList.add("hidden");
     }
 
-    function cargarStock(){
+    function cargarStock() {
       db.ref("stock").on("value", (snapshot) => {
         stockCache = snapshot.val() || {};
         renderStock();
@@ -818,7 +986,7 @@
       });
     }
 
-    function cargarProductos(){
+    function cargarProductos() {
       db.ref("productos").on("value", (snapshot) => {
         const data = snapshot.val();
         productosCache = data || {};
@@ -829,7 +997,7 @@
 
         tbody.innerHTML = "";
 
-        if(!data || typeof data !== "object"){
+        if (!data || typeof data !== "object") {
           tabla.classList.add("hidden");
           vacio.classList.remove("hidden");
           return;
@@ -848,6 +1016,9 @@
               <td><input id="prodDuracion_${id}" class="tableInput" type="number" min="1" value="${Number(item.duracionDias || 30)}"></td>
               <td>${badgeEstado(estadoVisual)}</td>
               <td><input id="prodCategoria_${id}" class="tableInput tableInputWide" value="${item.categoria || "general"}"></td>
+              <td>${textoSeguro(item.proveedorNombre, "Josking")}</td>
+              <td>${Number(item.comisionProveedor ?? 96)}%</td>
+              <td>${Number(item.comisionPlataforma ?? 4)}%</td>
               <td><textarea id="prodDescripcion_${id}" class="tableInputDesc">${item.descripcion || ""}</textarea></td>
               <td>
                 <div class="actionGroup">
@@ -871,19 +1042,19 @@
       });
     }
 
-    function cargarProductosEnSelectCuentas(){
+    function cargarProductosEnSelectCuentas() {
       const select = document.getElementById("cuentaProducto");
       db.ref("productos").on("value", (snapshot) => {
         const data = snapshot.val();
         select.innerHTML = '<option value="">Selecciona producto</option>';
 
-        if(!data || typeof data !== "object"){
+        if (!data || typeof data !== "object") {
           select.innerHTML = '<option value="">Primero crea un producto</option>';
           return;
         }
 
         const keys = Object.keys(data);
-        if(keys.length === 0){
+        if (keys.length === 0) {
           select.innerHTML = '<option value="">Primero crea un producto</option>';
           return;
         }
@@ -895,7 +1066,7 @@
       });
     }
 
-    function crearCuenta(){
+    function crearCuenta() {
       const producto = document.getElementById("cuentaProducto").value.trim();
       const correo = document.getElementById("cuentaCorreo").value.trim();
       const clave = document.getElementById("cuentaClave").value.trim();
@@ -903,12 +1074,12 @@
       const pin = document.getElementById("cuentaPin").value.trim();
       const observacion = document.getElementById("cuentaObservacion").value.trim();
 
-      if(!producto){
+      if (!producto) {
         mostrarMensajeCuenta("Primero crea o selecciona un producto válido.", true);
         return;
       }
 
-      if(!correo || !clave){
+      if (!correo || !clave) {
         mostrarMensajeCuenta("Completa correo y contraseña de la cuenta.", true);
         return;
       }
@@ -960,8 +1131,8 @@
       .catch((error) => mostrarMensajeCuenta("Error: " + error.message, true));
     }
 
-    function eliminarCuenta(producto, cuentaId){
-      if(!confirm("¿Seguro que quieres eliminar esta cuenta?")) return;
+    function eliminarCuenta(producto, cuentaId) {
+      if (!confirm("¿Seguro que quieres eliminar esta cuenta?")) return;
 
       db.ref("cuentas/" + producto + "/" + cuentaId).once("value")
       .then((snapshot) => {
@@ -970,7 +1141,7 @@
 
         return db.ref("cuentas/" + producto + "/" + cuentaId).remove()
         .then(() => {
-          if(!eraDisponible) return;
+          if (!eraDisponible) return;
 
           return db.ref("stock/" + producto).once("value")
           .then((stockSnap) => {
@@ -989,7 +1160,7 @@
       .catch((error) => mostrarMensajeCuenta("Error: " + error.message, true));
     }
 
-    function marcarCuentaUsadaManual(producto, cuentaId){
+    function marcarCuentaUsadaManual(producto, cuentaId) {
       db.ref("cuentas/" + producto + "/" + cuentaId).once("value")
       .then((snapshot) => {
         const cuenta = snapshot.val();
@@ -1000,7 +1171,7 @@
           fechaEntrega: new Date().toISOString()
         })
         .then(() => {
-          if(!yaDisponible) return;
+          if (!yaDisponible) return;
 
           return db.ref("stock/" + producto).once("value")
           .then((stockSnap) => {
@@ -1019,7 +1190,7 @@
       .catch((error) => mostrarMensajeCuenta("Error: " + error.message, true));
     }
 
-    function cargarCuentas(){
+    function cargarCuentas() {
       db.ref("cuentas").on("value", (snapshot) => {
         const data = snapshot.val();
 
@@ -1037,7 +1208,7 @@
         let hayDisponibles = false;
         let hayUsadas = false;
 
-        if(!data){
+        if (!data) {
           tablaDisponibles.classList.add("hidden");
           vacioDisponibles.classList.remove("hidden");
           tablaUsadas.classList.add("hidden");
@@ -1052,7 +1223,7 @@
             const item = cuentasProducto[cuentaId] || {};
             const estado = (item.estado || "").toLowerCase();
 
-            if(estado === "disponible"){
+            if (estado === "disponible") {
               hayDisponibles = true;
               tbodyDisponibles.innerHTML += `
                 <tr>
@@ -1079,7 +1250,7 @@
                   </td>
                 </tr>
               `;
-            }else{
+            } else {
               hayUsadas = true;
               tbodyUsadas.innerHTML += `
                 <tr>
@@ -1099,18 +1270,18 @@
           });
         });
 
-        if(hayDisponibles){
+        if (hayDisponibles) {
           tablaDisponibles.classList.remove("hidden");
           vacioDisponibles.classList.add("hidden");
-        }else{
+        } else {
           tablaDisponibles.classList.add("hidden");
           vacioDisponibles.classList.remove("hidden");
         }
 
-        if(hayUsadas){
+        if (hayUsadas) {
           tablaUsadas.classList.remove("hidden");
           vacioUsadas.classList.add("hidden");
-        }else{
+        } else {
           tablaUsadas.classList.add("hidden");
           vacioUsadas.classList.remove("hidden");
         }
@@ -1119,18 +1290,18 @@
       });
     }
 
-    function toggleUsuarioEstado(uid, nuevoEstado){
+    function toggleUsuarioEstado(uid, nuevoEstado) {
       db.ref("usuarios/" + uid + "/estado").set(nuevoEstado)
       .then(() => {})
       .catch(() => {});
     }
 
-    function aprobarRecarga(id){
+    function aprobarRecarga(id) {
       db.ref("recargas/" + id).once("value")
       .then((snap) => {
         const item = snap.val();
 
-        if(!item || typeof item !== "object"){
+        if (!item || typeof item !== "object") {
           throw new Error("La recarga no existe.");
         }
 
@@ -1138,26 +1309,26 @@
         const monto = Number(item.monto || 0);
         const estadoActual = String(item.estado || "").toLowerCase();
 
-        if(!uid){
+        if (!uid) {
           throw new Error("La recarga no tiene uidUsuario o uid.");
         }
 
-        if(isNaN(monto) || monto <= 0){
+        if (isNaN(monto) || monto <= 0) {
           throw new Error("El monto de la recarga no es válido.");
         }
 
-        if(estadoActual === "aprobada"){
+        if (estadoActual === "aprobada") {
           throw new Error("Esta recarga ya fue aprobada.");
         }
 
-        if(estadoActual === "rechazada"){
+        if (estadoActual === "rechazada") {
           throw new Error("Esta recarga ya fue rechazada.");
         }
 
         return db.ref("usuarios/" + uid).once("value")
         .then((snapshot) => {
           const usuario = snapshot.val();
-          if(!usuario){
+          if (!usuario) {
             throw new Error("No existe el usuario en /usuarios/" + uid);
           }
 
@@ -1180,22 +1351,22 @@
       });
     }
 
-    function rechazarRecarga(id){
+    function rechazarRecarga(id) {
       db.ref("recargas/" + id).once("value")
       .then((snap) => {
         const item = snap.val();
 
-        if(!item || typeof item !== "object"){
+        if (!item || typeof item !== "object") {
           throw new Error("La recarga no existe.");
         }
 
         const estadoActual = String(item.estado || "").toLowerCase();
 
-        if(estadoActual === "aprobada"){
+        if (estadoActual === "aprobada") {
           throw new Error("No puedes rechazar una recarga ya aprobada.");
         }
 
-        if(estadoActual === "rechazada"){
+        if (estadoActual === "rechazada") {
           throw new Error("Esta recarga ya fue rechazada.");
         }
 
@@ -1212,7 +1383,7 @@
       });
     }
 
-    function cargarVentas(){
+    function cargarVentas() {
       db.ref("ventas").on("value", (snapshot) => {
         const data = snapshot.val();
         const tbody = document.querySelector("#tablaVentas tbody");
@@ -1221,8 +1392,10 @@
 
         tbody.innerHTML = "";
         let suma = 0;
+        let totalVentas = 0;
+        const ventasLista = [];
 
-        if(!data){
+        if (!data) {
           tabla.classList.add("hidden");
           vacio.classList.remove("hidden");
           document.getElementById("totalVentas").textContent = "0";
@@ -1230,20 +1403,61 @@
           return;
         }
 
-        const keys = Object.keys(data).reverse();
-        document.getElementById("totalVentas").textContent = keys.length;
+        Object.keys(data).forEach((clavePadre) => {
+          const bloque = data[clavePadre];
 
-        keys.forEach((id) => {
-          const item = data[id] || {};
-          const monto = obtenerMonto(item);
+          if (!bloque || typeof bloque !== "object") return;
+
+          const esVentaDirecta =
+            bloque.producto ||
+            bloque.plan ||
+            bloque.nombreProducto ||
+            bloque.monto ||
+            bloque.precio ||
+            bloque.total ||
+            bloque.precioTotal;
+
+          if (esVentaDirecta) {
+            ventasLista.push({
+              id: clavePadre,
+              ...bloque
+            });
+            return;
+          }
+
+          Object.keys(bloque).forEach((ventaId) => {
+            const item = bloque[ventaId];
+            if (!item || typeof item !== "object") return;
+
+            ventasLista.push({
+              id: ventaId,
+              ...item
+            });
+          });
+        });
+
+        ventasLista.sort((a, b) => Number(b.fecha || b.fechaHora || 0) - Number(a.fecha || a.fechaHora || 0));
+
+        totalVentas = ventasLista.length;
+        document.getElementById("totalVentas").textContent = totalVentas;
+
+        if (totalVentas === 0) {
+          tabla.classList.add("hidden");
+          vacio.classList.remove("hidden");
+          document.getElementById("gananciaTotal").textContent = formatearDinero(0);
+          return;
+        }
+
+        ventasLista.forEach((item) => {
+          const monto = Number(item.montoPlataforma ?? item.monto ?? item.total ?? item.precio ?? item.precioTotal ?? 0);
           suma += monto;
 
           tbody.innerHTML += `
             <tr>
-              <td>${id}</td>
+              <td>${textoSeguro(item.id)}</td>
               <td>${textoSeguro(item.producto || item.plan || item.nombreProducto)}</td>
               <td>${textoSeguro(item.nombre || item.cliente || item.usuario || item.nombreCliente)}</td>
-              <td>${textoSeguro(item.operacion || item.numeroOperacion || item.transaccion)}</td>
+              <td>${textoSeguro(item.operacion || item.numeroOperacion || item.transaccion || "-")}</td>
               <td>${formatearDinero(monto)}</td>
               <td>${textoSeguro(formatearFecha(item.fecha || item.fechaHora || item.hora))}</td>
               <td>${badgeEstado(item.estado || "registrado")}</td>
@@ -1257,7 +1471,7 @@
       });
     }
 
-    function cargarComprasHoy(){
+    function cargarComprasHoy() {
       db.ref("comprasHoy").on("value", (snapshot) => {
         const data = snapshot.val();
         const tbody = document.querySelector("#tablaComprasHoy tbody");
@@ -1265,9 +1479,16 @@
         const vacio = document.getElementById("comprasHoyVacio");
 
         tbody.innerHTML = "";
-        let sumaHoy = 0;
 
-        if(!data){
+        if (typeof data === "number") {
+          document.getElementById("totalComprasHoy").textContent = data;
+          document.getElementById("gananciaHoy").textContent = formatearDinero(0);
+          tabla.classList.add("hidden");
+          vacio.classList.remove("hidden");
+          return;
+        }
+
+        if (!data || typeof data !== "object") {
           tabla.classList.add("hidden");
           vacio.classList.remove("hidden");
           document.getElementById("totalComprasHoy").textContent = "0";
@@ -1275,20 +1496,36 @@
           return;
         }
 
-        const keys = Object.keys(data).reverse();
-        document.getElementById("totalComprasHoy").textContent = keys.length;
+        const comprasLista = [];
+        let sumaHoy = 0;
 
-        keys.forEach((id) => {
-          const item = data[id] || {};
-          const monto = obtenerMonto(item);
+        Object.keys(data).forEach((id) => {
+          const item = data[id];
+          if (!item || typeof item !== "object") return;
+          comprasLista.push({ id, ...item });
+        });
+
+        comprasLista.sort((a, b) => Number(b.fecha || b.fechaHora || 0) - Number(a.fecha || a.fechaHora || 0));
+
+        document.getElementById("totalComprasHoy").textContent = comprasLista.length;
+
+        if (comprasLista.length === 0) {
+          tabla.classList.add("hidden");
+          vacio.classList.remove("hidden");
+          document.getElementById("gananciaHoy").textContent = formatearDinero(0);
+          return;
+        }
+
+        comprasLista.forEach((item) => {
+          const monto = Number(item.montoPlataforma ?? item.monto ?? item.total ?? item.precio ?? item.precioTotal ?? 0);
           sumaHoy += monto;
 
           tbody.innerHTML += `
             <tr>
-              <td>${id}</td>
+              <td>${textoSeguro(item.id)}</td>
               <td>${textoSeguro(item.producto || item.plan || item.nombreProducto)}</td>
               <td>${textoSeguro(item.nombre || item.cliente || item.usuario || item.nombreCliente)}</td>
-              <td>${textoSeguro(item.operacion || item.numeroOperacion || item.transaccion)}</td>
+              <td>${textoSeguro(item.operacion || item.numeroOperacion || item.transaccion || "-")}</td>
               <td>${formatearDinero(monto)}</td>
               <td>${textoSeguro(formatearFecha(item.fecha || item.fechaHora || item.hora))}</td>
               <td>${badgeEstado(item.estado || "registrado")}</td>
@@ -1302,7 +1539,7 @@
       });
     }
 
-    function cargarUsuarios(){
+    function cargarUsuarios() {
       db.ref("usuarios").on("value", (snapshot) => {
         const data = snapshot.val();
         const tbody = document.querySelector("#tablaUsuarios tbody");
@@ -1311,7 +1548,7 @@
 
         tbody.innerHTML = "";
 
-        if(!data){
+        if (!data) {
           tabla.classList.add("hidden");
           vacio.classList.remove("hidden");
           document.getElementById("totalUsuarios").textContent = "0";
@@ -1355,7 +1592,7 @@
       });
     }
 
-    function cargarRecargas(){
+    function cargarRecargas() {
       db.ref("recargas").on("value", (snapshot) => {
         const data = snapshot.val();
         const tbody = document.querySelector("#tablaRecargas tbody");
@@ -1364,7 +1601,7 @@
 
         tbody.innerHTML = "";
 
-        if(!data || typeof data !== "object"){
+        if (!data || typeof data !== "object") {
           tabla.classList.add("hidden");
           vacio.classList.remove("hidden");
           document.getElementById("totalRecargas").textContent = "0";
@@ -1381,14 +1618,14 @@
           const item = data[id] || {};
           const estado = String(item.estado || "").toLowerCase().trim();
 
-          if(estado !== "aprobada" && estado !== "rechazada"){
+          if (estado !== "aprobada" && estado !== "rechazada") {
             totalPendientes++;
           }
         });
 
         document.getElementById("totalRecargas").textContent = totalPendientes;
 
-        if(keys.length === 0){
+        if (keys.length === 0) {
           tabla.classList.add("hidden");
           vacio.classList.remove("hidden");
           return;
@@ -1431,7 +1668,7 @@
       });
     }
 
-    function cargarCodigos(){
+    function cargarCodigos() {
       db.ref("codigos").on("value", (snapshot) => {
         const data = snapshot.val();
         const tbody = document.querySelector("#tablaCodigos tbody");
@@ -1440,7 +1677,7 @@
 
         tbody.innerHTML = "";
 
-        if(!data){
+        if (!data) {
           tabla.classList.add("hidden");
           vacio.classList.remove("hidden");
           document.getElementById("totalCodigos").textContent = "0";
