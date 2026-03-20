@@ -63,7 +63,9 @@ function esPaginaPrivada(pagina) {
     "admin.html",
     "perfil.html",
     "saldo.html",
-    "compras.html"
+    "compras.html",
+    "ofertas.html",
+    "como-comprar.html"
   ];
 
   return paginasPrivadas.includes(pagina);
@@ -92,11 +94,11 @@ function cerrarSesionPorInactividad() {
   auth.signOut()
     .then(() => {
       alert("Tu sesión se cerró por inactividad.");
-      window.location.href = "index.html";
+      window.location.replace("index.html");
     })
     .catch(() => {
       alert("Tu sesión se cerró por inactividad.");
-      window.location.href = "index.html";
+      window.location.replace("index.html");
     });
 }
 
@@ -150,6 +152,7 @@ function iniciarControlInactividad() {
   });
 
   window.addEventListener("focus", reiniciarTemporizadorInactividad);
+
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
       reiniciarTemporizadorInactividad();
@@ -210,26 +213,41 @@ auth.onAuthStateChanged(async (user) => {
     limpiarTemporizadoresInactividad();
 
     if (esPaginaPrivada(pagina)) {
-      window.location.href = "index.html";
+      window.location.replace("index.html");
     }
     return;
   }
 
-  if (esPaginaPrivada(pagina)) {
-    iniciarControlInactividad();
-  }
+  try {
+    const snap = await db.ref("usuarios/" + user.uid).once("value");
+    const dataUsuario = snap.val() || {};
+    const rol = dataUsuario.rol || "";
+    const estado = (dataUsuario.estado || "activo").toLowerCase();
 
-  if (pagina === "admin.html") {
-    try {
-      const snap = await db.ref("usuarios/" + user.uid + "/rol").once("value");
-      const rol = snap.val();
+    if (estado === "bloqueado") {
+      limpiarTemporizadoresInactividad();
+      await auth.signOut();
+      alert("Tu cuenta ha sido bloqueada. Contacta con soporte.");
+      window.location.replace("index.html");
+      return;
+    }
 
+    if (esPaginaPrivada(pagina)) {
+      iniciarControlInactividad();
+    }
+
+    if (pagina === "admin.html") {
       if (rol !== "admin") {
-        window.location.href = "tienda.html";
+        window.location.replace("tienda.html");
+        return;
       }
-    } catch (error) {
-      console.error("Error verificando rol admin:", error);
-      window.location.href = "tienda.html";
+    }
+
+  } catch (error) {
+    console.error("Error verificando usuario:", error);
+
+    if (pagina === "admin.html") {
+      window.location.replace("tienda.html");
     }
   }
 });
@@ -335,11 +353,7 @@ function iniciarSesion() {
 
   mostrarMensajeAuth("Ingresando...", "#ffd166");
 
-  const persistencia = mantenerSesion
-    ? firebase.auth.Auth.Persistence.LOCAL
-    : firebase.auth.Auth.Persistence.SESSION;
-
-  auth.setPersistence(persistencia)
+  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
     .then(() => {
       if (mantenerSesion) {
         localStorage.setItem("streamsvip_login_recordado", loginInput);
@@ -451,6 +465,8 @@ async function crearCuenta() {
       throw { code: "usuario-duplicado" };
     }
 
+    await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
+
     userCredential = await auth.createUserWithEmailAndPassword(correo, password);
     const user = userCredential.user;
 
@@ -556,15 +572,13 @@ CERRAR SESIÓN MANUAL
 ========================= */
 
 function salir() {
-  localStorage.removeItem("streamsvip_login_recordado");
-  localStorage.removeItem("streamsvip_mantener_sesion");
   limpiarTemporizadoresInactividad();
 
   auth.signOut()
     .then(() => {
-      window.location.href = "index.html";
+      window.location.replace("index.html");
     })
     .catch(() => {
-      window.location.href = "index.html";
+      window.location.replace("index.html");
     });
 }
