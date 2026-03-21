@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Compras - StreamsVip</title>
+
+  <link rel="icon" type="image/x-icon" href="img/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="manifest" href="img/site.webmanifest">
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body{
+      margin:0;
+      font-family:Arial, sans-serif;
+      background:#000;
+      color:#fff;
+    }
+
+    .misComprasPage{
+      margin-left:230px;
+      width:calc(100% - 230px);
+      min-height:100vh;
+      padding:28px 24px 40px;
+      box-sizing:border-box;
+      text-align:left;
+      background:
+        radial-gradient(circle at top right, rgba(255,0,0,0.05), transparent 20%),
+        radial-gradient(circle at bottom left, rgba(255,160,0,0.05), transparent 18%),
+        #000;
+    }
+
+    .misComprasTitulo{
+      font-size:24px;
+      font-weight:800;
+      margin:0 0 22px;
+      color:#fff;
+      letter-spacing:.2px;
+    }
+
+    .misComprasWrap{
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:22px;
+      padding:24px;
+      background:linear-gradient(180deg,#050505,#020202);
+      box-shadow:
+        0 10px 34px rgba(0,0,0,0.42),
+        inset 0 1px 0 rgba(255,255,255,0.02);
+    }
+
+    .misComprasAviso{
+      display:flex;
+      align-items:flex-start;
+      gap:12px;
+      background:linear-gradient(90deg,rgba(0,50,130,0.28),rgba(70,0,40,0.22));
+      border:1px solid rgba(70,130,255,0.30);
+      color:#dfe8ff;
+      padding:16px 18px;
+      border-radius:14px;
+      margin-bottom:18px;
+      font-size:14px;
+      line-height:1.5;
+      box-shadow:0 10px 24px rgba(0,0,0,0.18);
+    }
+
+    .misComprasAvisoIcon{
+      font-size:18px;
+      flex-shrink:0;
+    }
+
+    .misComprasFiltros{
+      display:grid;
+      grid-template-columns:180px 1fr 180px;
+      gap:10px;
+      margin-bottom:18px;
+    }
+
+    .misComprasSelect,
+    .misComprasBuscar{
+      width:100%;
+      height:42px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:#101010;
+      color:#fff;
+      padding:0 12px;
+      box-sizing:border-box;
+      outline:none;
+      transition:border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .misComprasSelect:focus,
+    .misComprasBuscar:focus{
+      border-color:rgba(90,170,255,0.45);
+      box-shadow:0 0 0 3px rgba(80,160,255,0.08);
+    }
+
+    .misComprasTabla{
+      width:100%;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .misComprasHead{
+      display:grid;
+      grid-template-columns:2.1fr 1fr 1fr .8fr .9fr 1.2fr 2fr;
+      gap:12px;
+      padding:12px 14px;
+      font-size:13px;
+      font-weight:800;
+      color:#f0f0f0;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+    }
+
+    #listaCompras{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .misCompraItem{
+      display:grid;
+      grid-template-columns:2.1fr 1fr 1fr .8fr .9fr 1.2fr 2fr;
+      gap:12px;
+      align-items:center;
+      background:linear-gradient(180deg,#090909,#050505);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:16px;
+      padding:14px 16px;
+      box-shadow:
+        0 12px 28px rgba(0,0,0,0.20),
+        inset 0 1px 0 rgba(255,255,255,0.02);
+      transition:border-color .22s ease, box-shadow .22s ease, background .22s ease;
+    }
+
+    .misCompraItem:hover{
+      transform:none;
+      border-color:rgba(255,255,255,0.10);
+      box-shadow:
+        0 12px 28px rgba(0,0,0,0.20),
+        inset 0 1px 0 rgba(255,255,255,0.02);
+      background:linear-gradient(180deg,#0b0b0b,#060606);
+    }
+
+    .misCompraServicio{
+      font-size:15px;
+      color:#fff;
+      line-height:1.4;
+      word-break:break-word;
+      font-weight:700;
+    }
+
+    .misCompraCuentaWrap{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .btnVerCuenta{
+      border:none;
+      background:linear-gradient(180deg,#3d1774,#2b1350);
+      color:#e8d5ff;
+      border:1px solid rgba(180,120,255,0.35);
+      padding:10px 14px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+      font-size:14px;
+      transition:background .22s ease, border-color .22s ease, box-shadow .22s ease;
+      box-shadow:0 8px 18px rgba(72,20,140,0.22);
+    }
+
+    .btnVerCuenta:hover{
+      transform:none;
+      background:linear-gradient(180deg,#4a1d8f,#341661);
+      border-color:rgba(194,142,255,0.48);
+      box-shadow:0 10px 20px rgba(72,20,140,0.28);
+    }
+
+    .misCompraDato{
+      font-size:15px;
+      color:#fff;
+      word-break:break-word;
+    }
+
+    .misCompraDatoOculto{
+      color:#9aa3ad;
+      font-size:14px;
+      font-weight:700;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:8px 12px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.07);
+      background:linear-gradient(180deg,#151515,#0e0e0e);
+    }
+
+    .misCompraTiempo{
+      color:#00f0a8;
+      font-size:15px;
+      font-family:monospace;
+      font-weight:700;
+    }
+
+    .misCompraTiempo.expirada{
+      color:#ff7070;
+    }
+
+    .misCompraAcciones{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .btnSoporte,
+    .btnRenovar,
+    .btnReembolso,
+    .estadoReembolsado{
+      border:none;
+      border-radius:12px;
+      padding:10px 15px;
+      font-weight:800;
+      font-size:14px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      transition:all .22s ease;
+    }
+
+    .btnSoporte{
+      background:linear-gradient(180deg,#202020,#151515);
+      color:#fff;
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,0.06);
+      box-shadow:0 6px 16px rgba(0,0,0,0.18);
+    }
+
+    .btnSoporte:hover{
+      background:linear-gradient(180deg,#2a2a2a,#1b1b1b);
+      border-color:rgba(255,255,255,0.12);
+      transform:none;
+    }
+
+    .btnWhatsapp{
+      width:44px;
+      height:44px;
+      border:none;
+      border-radius:12px;
+      background:linear-gradient(180deg,#121212,#0b0b0b);
+      border:1px solid rgba(255,255,255,0.06);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:background .22s ease, border-color .22s ease, box-shadow .22s ease;
+      padding:0;
+      box-shadow:0 6px 16px rgba(0,0,0,0.20);
+    }
+
+    .btnWhatsapp:hover{
+      transform:none;
+      background:linear-gradient(180deg,#163924,#102c1b);
+      border-color:rgba(37,211,102,0.45);
+      box-shadow:0 10px 22px rgba(16,88,48,0.30);
+    }
+
+    .btnWhatsapp img{
+      width:23px;
+      height:23px;
+      object-fit:contain;
+      display:block;
+    }
+
+    .misCompraAcciones .btnRenovar{
+      background:linear-gradient(180deg,#23262d,#171a20) !important;
+      color:#8992a0 !important;
+      cursor:not-allowed !important;
+      border:1px solid rgba(255,255,255,0.06) !important;
+      box-shadow:0 6px 16px rgba(0,0,0,0.18) !important;
+      transform:none !important;
+    }
+
+    .misCompraAcciones .btnRenovar.activo{
+      background:linear-gradient(180deg,#59d2ff,#34b4ff) !important;
+      color:#ffffff !important;
+      cursor:pointer !important;
+      border:1px solid rgba(145,225,255,0.70) !important;
+      box-shadow:
+        0 10px 22px rgba(40,145,225,0.28),
+        inset 0 1px 0 rgba(255,255,255,0.20) !important;
+    }
+
+    .misCompraAcciones .btnRenovar.activo:hover{
+      background:linear-gradient(180deg,#79deff,#49c0ff) !important;
+      color:#ffffff !important;
+      border:1px solid rgba(185,238,255,0.90) !important;
+      box-shadow:
+        0 12px 26px rgba(45,160,235,0.34),
+        0 0 0 1px rgba(120,220,255,0.10) inset !important;
+      transform:none !important;
+    }
+
+    .btnReembolso{
+      background:linear-gradient(180deg,#571414,#3b0d0d);
+      color:#ffd8d8;
+      cursor:pointer;
+      border:1px solid rgba(255,90,90,0.30);
+      box-shadow:0 8px 18px rgba(70,10,10,0.26);
+    }
+
+    .btnReembolso:hover{
+      background:linear-gradient(180deg,#6b1818,#481010);
+      border-color:rgba(255,110,110,0.46);
+      color:#fff;
+      transform:none;
+    }
+
+    .estadoReembolsado{
+      background:linear-gradient(180deg,#13b37d,#109c6d);
+      color:#fff;
+    }
+
+    .misComprasVacio,
+    .misComprasCargando{
+      text-align:center;
+      padding:40px 20px;
+      color:#cfcfcf;
+      font-size:16px;
+      border:1px dashed rgba(255,255,255,0.12);
+      border-radius:14px;
+      background:#070707;
+    }
+
+    .modalCuenta{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.86);
+      backdrop-filter:blur(8px);
+      justify-content:center;
+      align-items:center;
+      padding:16px;
+      z-index:99999;
+    }
+
+    .modalCuentaBox{
+      width:100%;
+      max-width:620px;
+      background:
+        radial-gradient(circle at top right, rgba(255,70,70,0.08), transparent 24%),
+        radial-gradient(circle at bottom left, rgba(120,80,255,0.08), transparent 26%),
+        linear-gradient(180deg,#121212,#090909);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:28px;
+      padding:24px;
+      box-shadow:
+        0 26px 70px rgba(0,0,0,0.62),
+        inset 0 1px 0 rgba(255,255,255,0.03);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .modalCuentaHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:16px;
+    }
+
+    .modalCuentaHeaderLeft{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .modalCuentaIcono{
+      width:52px;
+      height:52px;
+      border-radius:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:24px;
+      background:linear-gradient(180deg,#1c1c1c,#111);
+      border:1px solid rgba(255,255,255,0.08);
+      box-shadow:0 8px 18px rgba(0,0,0,0.20);
+    }
+
+    .modalCuentaTituloWrap h2{
+      margin:0;
+      font-size:30px;
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+
+    .modalCuentaSub{
+      margin-top:4px;
+      color:#9ea7b3;
+      font-size:13px;
+    }
+
+    .cerrarModalCuenta{
+      width:40px;
+      height:40px;
+      border-radius:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:22px;
+      cursor:pointer;
+      color:#fff;
+      background:linear-gradient(180deg,#1d1d1d,#111);
+      border:1px solid rgba(255,255,255,0.08);
+      line-height:1;
+      opacity:.95;
+      transition:all .2s ease;
+    }
+
+    .cerrarModalCuenta:hover{
+      opacity:1;
+      transform:none;
+      background:linear-gradient(180deg,#282828,#171717);
+    }
+
+    .modalCuentaHero{
+      display:grid;
+      grid-template-columns:1.35fr .9fr;
+      gap:12px;
+      margin-bottom:14px;
+    }
+
+    .modalCuentaHeroCard{
+      background:linear-gradient(180deg,#101010,#0b0b0b);
+      border:1px solid rgba(255,255,255,0.07);
+      border-radius:18px;
+      padding:16px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,0.02);
+    }
+
+    .modalMiniLabel{
+      display:block;
+      font-size:11px;
+      color:#8f96a3;
+      margin-bottom:8px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.7px;
+    }
+
+    .modalHeroValor{
+      font-size:20px;
+      font-weight:800;
+      color:#fff;
+      line-height:1.35;
+    }
+
+    .modalHeroFecha{
+      font-size:18px;
+      font-weight:800;
+      color:#8bd3ff;
+    }
+
+    .modalCuentaGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .modalCuentaDato{
+      background:linear-gradient(180deg,#111111,#0d0d0d);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:16px;
+      padding:15px;
+      min-height:96px;
+      box-sizing:border-box;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.02),
+        0 8px 20px rgba(0,0,0,0.12);
+    }
+
+    .modalCuentaDato.full{
+      grid-column:1 / -1;
+    }
+
+    .modalCuentaLabel{
+      display:block;
+      font-size:11px;
+      color:#9198a3;
+      margin-bottom:10px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.7px;
+    }
+
+    .modalCuentaValor{
+      font-size:16px;
+      color:#fff;
+      word-break:break-word;
+      line-height:1.5;
+      font-weight:700;
+    }
+
+    .campoCopiable{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      justify-content:space-between;
+    }
+
+    .campoCopiableTexto{
+      flex:1;
+      min-width:0;
+      word-break:break-word;
+      user-select:text;
+      -webkit-user-select:text;
+      padding:10px 12px;
+      border-radius:12px;
+      background:rgba(255,255,255,0.02);
+      border:1px solid rgba(255,255,255,0.05);
+    }
+
+    .btnCopiar{
+      flex-shrink:0;
+      min-width:78px;
+      border:none;
+      border-radius:12px;
+      padding:10px 13px;
+      font-size:13px;
+      font-weight:800;
+      cursor:pointer;
+      color:#fff;
+      background:linear-gradient(180deg,#2a2a2a,#171717);
+      border:1px solid rgba(255,255,255,0.08);
+      transition:all .2s ease;
+      box-shadow:0 8px 18px rgba(0,0,0,0.16);
+    }
+
+    .btnCopiar:hover{
+      background:linear-gradient(180deg,#343434,#1d1d1d);
+      border-color:rgba(255,255,255,0.15);
+      transform:none;
+    }
+
+    .toastCopiado{
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      background:linear-gradient(180deg,#1a1a1a,#111);
+      color:#fff;
+      border:1px solid rgba(255,255,255,0.08);
+      border-left:4px solid #1ed760;
+      padding:12px 14px;
+      border-radius:12px;
+      font-size:14px;
+      font-weight:700;
+      box-shadow:0 12px 30px rgba(0,0,0,0.28);
+      opacity:0;
+      pointer-events:none;
+      transform:translateY(12px);
+      transition:opacity .25s ease, transform .25s ease;
+      z-index:100000;
+    }
+
+    .toastCopiado.show{
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    @media (max-width:1024px){
+      .misComprasPage{
+        margin-left:0;
+        width:100%;
+        padding:80px 16px 30px;
+      }
+
+      .misComprasFiltros{
+        grid-template-columns:1fr;
+      }
+
+      .misComprasHead{
+        display:none;
+      }
+
+      .modalCuentaBox{
+        max-width:100%;
+      }
+    }
+
+    @media (max-width:700px){
+
+      .misComprasPage{
+        padding:78px 12px 24px;
+      }
+
+      .misComprasTitulo{
+        font-size:22px;
+        margin-bottom:16px;
+      }
+
+      .misComprasWrap{
+        padding:14px;
+        border-radius:18px;
+      }
+
+      .misComprasAviso{
+        padding:14px;
+        border-radius:12px;
+        font-size:13px;
+        margin-bottom:14px;
+      }
+
+      .misComprasFiltros{
+        grid-template-columns:1fr;
+        gap:10px;
+        margin-bottom:14px;
+      }
+
+      .misComprasSelect,
+      .misComprasBuscar{
+        height:44px;
+        border-radius:12px;
+        font-size:14px;
+      }
+
+      .misComprasTabla{
+        gap:10px;
+      }
+
+      #listaCompras{
+        display:flex;
+        flex-direction:row;
+        gap:14px;
+        overflow-x:auto;
+        overflow-y:hidden;
+        scroll-snap-type:x mandatory;
+        -webkit-overflow-scrolling:touch;
+        padding-bottom:4px;
+      }
+
+      #listaCompras::-webkit-scrollbar{
+        height:6px;
+      }
+
+      #listaCompras::-webkit-scrollbar-thumb{
+        background:rgba(255,255,255,0.12);
+        border-radius:999px;
+      }
+
+      .misCompraItem{
+        min-width:88vw;
+        max-width:88vw;
+        flex:0 0 88vw;
+        scroll-snap-align:start;
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:12px 14px;
+        align-items:start;
+        padding:16px;
+        border-radius:18px;
+      }
+
+      .misCompraServicio{
+        grid-column:1 / -1;
+        font-size:16px;
+        line-height:1.35;
+        text-align:left;
+        padding-bottom:8px;
+        border-bottom:1px solid rgba(255,255,255,0.05);
+      }
+
+      .misCompraCuentaWrap{
+        grid-column:1 / 2;
+        display:flex;
+        flex-direction:column;
+        align-items:flex-start;
+        gap:6px;
+      }
+
+      .misCompraCuentaWrap::before{
+        content:"Cuenta";
+        display:block;
+        width:100%;
+        font-size:11px;
+        color:#8f96a3;
+        font-weight:800;
+        text-transform:uppercase;
+        letter-spacing:.7px;
+        margin-bottom:2px;
+      }
+
+      .misCompraDato{
+        font-size:14px;
+        line-height:1.35;
+      }
+
+      .misCompraDato.nombreCliente,
+      .misCompraDato.precio,
+      .misCompraDato.expira,
+      .misCompraTiempo{
+        display:flex;
+        flex-direction:column;
+        align-items:flex-start;
+        justify-content:flex-start;
+      }
+
+      .misCompraDato.nombreCliente::before,
+      .misCompraDato.precio::before,
+      .misCompraDato.expira::before,
+      .misCompraTiempo::before{
+        display:block;
+        font-size:11px;
+        color:#8f96a3;
+        margin-bottom:5px;
+        font-weight:800;
+        text-transform:uppercase;
+        letter-spacing:.7px;
+      }
+
+      .misCompraDato.nombreCliente::before{ content:"Cliente"; }
+      .misCompraDato.precio::before{ content:"Precio"; }
+      .misCompraDato.expira::before{ content:"Expira"; }
+      .misCompraTiempo::before{ content:"Tiempo restante"; }
+
+      .misCompraDato.nombreCliente{
+        grid-column:2 / 3;
+      }
+
+      .misCompraDato.precio{
+        grid-column:1 / 2;
+      }
+
+      .misCompraDato.expira{
+        grid-column:2 / 3;
+      }
+
+      .misCompraTiempo{
+        grid-column:1 / -1;
+        font-size:19px;
+        line-height:1.2;
+        padding:10px 12px;
+        border-radius:14px;
+        background:linear-gradient(180deg,#0d1412,#0a100e);
+        border:1px solid rgba(0,240,168,0.10);
+      }
+
+      .misCompraTiempo.expirada{
+        background:linear-gradient(180deg,#1a0f0f,#120a0a);
+        border:1px solid rgba(255,112,112,0.12);
+      }
+
+      .misCompraAcciones{
+        grid-column:1 / -1;
+        display:grid;
+        grid-template-columns:1fr 56px 1fr;
+        gap:10px;
+        align-items:stretch;
+        margin-top:2px;
+      }
+
+      .btnSoporte,
+      .btnRenovar,
+      .btnReembolso{
+        min-height:44px;
+        width:100%;
+        border-radius:12px;
+        justify-content:center;
+        font-size:14px;
+      }
+
+      .btnWhatsapp{
+        width:56px;
+        height:44px;
+        border-radius:12px;
+        justify-self:center;
+      }
+
+      .btnReembolso{
+        grid-column:1 / -1;
+      }
+
+      .misComprasVacio,
+      .misComprasCargando{
+        min-width:88vw;
+        max-width:88vw;
+        flex:0 0 88vw;
+        scroll-snap-align:start;
+        border-radius:18px;
+      }
+
+      .modalCuenta{
+        padding:10px;
+        align-items:flex-end;
+      }
+
+      .modalCuentaBox{
+        max-width:100%;
+        width:100%;
+        max-height:90dvh;
+        overflow-y:auto;
+        border-radius:22px 22px 0 0;
+        padding:18px 14px 16px;
+      }
+
+      .modalCuentaHeader{
+        align-items:flex-start;
+      }
+
+      .modalCuentaIcono{
+        width:46px;
+        height:46px;
+        border-radius:14px;
+        font-size:21px;
+      }
+
+      .modalCuentaTituloWrap h2{
+        font-size:24px;
+        line-height:1.15;
+      }
+
+      .modalCuentaSub{
+        font-size:12px;
+      }
+
+      .modalCuentaHero{
+        grid-template-columns:1fr;
+        gap:10px;
+      }
+
+      .modalCuentaGrid{
+        grid-template-columns:1fr;
+        gap:10px;
+      }
+
+      .modalCuentaDato{
+        min-height:auto;
+        padding:14px;
+      }
+
+      .campoCopiable{
+        flex-direction:column;
+        align-items:stretch;
+      }
+
+      .btnCopiar{
+        width:100%;
+        min-width:100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="menuIcon" onclick="toggleMenu()">☰</div>
+
+  <nav id="menuLateral" class="menuLateral">
+
+    <div class="menuLogo">
+      <img src="img/logo.jpg" alt="StreamsVip">
+    </div>
+
+    <div class="panelUsuario">
+      <div id="panelUsuarioNombre" class="panelUsuarioNombre">Cargando...</div>
+      <div id="panelUsuarioHandle" class="panelUsuarioHandle">@usuario</div>
+
+      <div class="panelSaldoBox">
+        <div class="panelSaldoLabel">Saldo</div>
+        <div id="panelUsuarioSaldo" class="panelSaldoValor">
+          S/ 0.00 <span class="panelSaldoMoneda">PEN</span>
+        </div>
+      </div>
+    </div>
+
+    <a href="tienda.html" data-menu="tienda"><span class="menu-emoji">🛍️</span> Tienda</a>
+    <a href="como-comprar.html" data-menu="como-comprar"><span class="menu-emoji">💳</span> Cómo comprar</a>
+    <a href="ofertas.html" data-menu="ofertas"><span class="menu-emoji">🔥</span> Ofertas</a>
+    <a href="recargas.html" data-menu="recargas"><span class="menu-emoji">💸</span> Recargas</a>
+    <a href="mis-compras.html" data-menu="mis-compras"><span class="menu-emoji">📦</span> Mis compras</a>
+    <a href="#" onclick="salir(); return false;" class="salir"><span class="menu-emoji">🔙</span> Salir</a>
+
+    <script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=074c5be8-e613-4e2e-b987-7910106c9302"></script>
+
+    <div class="chatcbox">
+      <iframe 
+        src="https://www3.cbox.ws/box/?boxid=3553105&boxtag=bZwmgx" 
+        allowtransparency="yes" 
+        allow="autoplay" 
+        frameborder="0" 
+        marginheight="0" 
+        marginwidth="0" 
+        scrolling="auto">
+      </iframe>
+    </div>
+
+  </nav>
+
+  <div class="misComprasPage">
+    <h1 class="misComprasTitulo">Mis Compras</h1>
+
+    <div class="misComprasWrap">
+      <div class="misComprasAviso">
+        <div class="misComprasAvisoIcon">ℹ️</div>
+        <div>
+          <strong>Sobre las renovaciones</strong><br>
+          Solo puedes renovar tus cuentas cuando falten <span style="color:#ffb300;font-weight:800;">3 días o menos</span> para que expiren.
+        </div>
+      </div>
+
+      <div class="misComprasFiltros">
+        <select id="filtroServicio" class="misComprasSelect">
+          <option value="todos">Servicio</option>
+        </select>
+
+        <input type="text" id="buscadorCompras" class="misComprasBuscar" placeholder="Buscar...">
+
+        <select id="filtroEstado" class="misComprasSelect">
+          <option value="todos">Todas las cuentas</option>
+          <option value="activa">Activas</option>
+          <option value="reembolsado">Reembolsadas</option>
+          <option value="expirada">Expiradas</option>
+        </select>
+      </div>
+
+      <div class="misComprasTabla">
+        <div class="misComprasHead">
+          <div>Servicio</div>
+          <div>Cuenta</div>
+          <div>Nombre cliente</div>
+          <div>Precio</div>
+          <div>Expira</div>
+          <div>Tiempo restante</div>
+          <div>Acciones</div>
+        </div>
+
+        <div id="listaCompras" class="misComprasCargando">Cargando compras...</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalCuenta" class="modalCuenta">
+    <div class="modalCuentaBox">
+      <div class="modalCuentaHeader">
+        <div class="modalCuentaHeaderLeft">
+          <div class="modalCuentaIcono">🔐</div>
+          <div class="modalCuentaTituloWrap">
+            <h2>Datos de la cuenta</h2>
+            <div class="modalCuentaSub">Acceso seguro y detalles de uso</div>
+          </div>
+        </div>
+        <div class="cerrarModalCuenta" onclick="cerrarModalCuenta()">&times;</div>
+      </div>
+
+      <div class="modalCuentaHero">
+        <div class="modalCuentaHeroCard">
+          <span class="modalMiniLabel">Servicio asignado</span>
+          <div id="modalServicio" class="modalHeroValor">-</div>
+        </div>
+
+        <div class="modalCuentaHeroCard">
+          <span class="modalMiniLabel">Expiración</span>
+          <div id="modalExpira" class="modalHeroFecha">-</div>
+        </div>
+      </div>
+
+      <div class="modalCuentaGrid">
+        <div class="modalCuentaDato full">
+          <span class="modalCuentaLabel">Correo / Usuario</span>
+          <div class="campoCopiable">
+            <div id="modalCorreo" class="modalCuentaValor campoCopiableTexto">-</div>
+            <button class="btnCopiar" onclick="copiarDato('modalCorreo', 'Correo / usuario copiado')">Copiar</button>
+          </div>
+        </div>
+
+        <div class="modalCuentaDato full">
+          <span class="modalCuentaLabel">Clave</span>
+          <div class="campoCopiable">
+            <div id="modalClave" class="modalCuentaValor campoCopiableTexto">-</div>
+            <button class="btnCopiar" onclick="copiarDato('modalClave', 'Clave copiada')">Copiar</button>
+          </div>
+        </div>
+
+        <div class="modalCuentaDato">
+          <span class="modalCuentaLabel">Perfil</span>
+          <div id="modalPerfil" class="modalCuentaValor">-</div>
+        </div>
+
+        <div class="modalCuentaDato">
+          <span class="modalCuentaLabel">PIN</span>
+          <div id="modalPin" class="modalCuentaValor">-</div>
+        </div>
+
+        <div class="modalCuentaDato full">
+          <span class="modalCuentaLabel">Observación</span>
+          <div id="modalObservacion" class="modalCuentaValor">-</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalNombreCliente" class="modalCuenta">
+    <div class="modalCuentaBox" style="max-width:460px;">
+      <div class="modalCuentaHeader">
+        <div class="modalCuentaHeaderLeft">
+          <div class="modalCuentaIcono">👤</div>
+          <div class="modalCuentaTituloWrap">
+            <h2>Registrar cliente</h2>
+            <div class="modalCuentaSub">Asigna un nombre antes de desbloquear la cuenta</div>
+          </div>
+        </div>
+        <div class="cerrarModalCuenta" onclick="cerrarModalNombreCliente()">&times;</div>
+      </div>
+
+      <div class="modalCuentaDato full">
+        <span class="modalCuentaLabel">Nombre del cliente o perfil</span>
+        <input
+          type="text"
+          id="inputNombreCliente"
+          class="misComprasBuscar"
+          placeholder="Ejemplo: José Alarco"
+          style="margin-top:6px;"
+        >
+      </div>
+
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px; flex-wrap:wrap;">
+        <button class="btnSoporte" onclick="cerrarModalNombreCliente()">Cancelar</button>
+        <button id="btnGuardarNombreCliente" class="btnRenovar activo" style="cursor:pointer;">Guardar y ver cuenta</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastCopiado" class="toastCopiado">Copiado</div>
+  <div id="toastGracias">¡Gracias por su visita! Vuelva pronto.</div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="script.js"></script>
+
+  <script>
+    const listaCompras = document.getElementById("listaCompras");
+    const filtroServicio = document.getElementById("filtroServicio");
+    const filtroEstado = document.getElementById("filtroEstado");
+    const buscadorCompras = document.getElementById("buscadorCompras");
+    const toastCopiado = document.getElementById("toastCopiado");
+
+    let comprasOriginales = [];
+    let timerToastCopiado = null;
+    let compraPendienteNombre = null;
+    let uidActual = null;
+
+    function formatearFecha(fecha) {
+      if (!fecha) return "-";
+      const f = new Date(fecha);
+      if (isNaN(f.getTime())) return "-";
+      return f.toLocaleDateString("es-PE");
+    }
+
+    function calcularTiempoRestante(fechaExpira, estado) {
+      if (estado === "reembolsado") return "Reembolsado";
+      if (!fechaExpira) return "Sin fecha";
+
+      const ahora = new Date().getTime();
+      const fin = new Date(fechaExpira).getTime();
+      const diff = fin - ahora;
+
+      if (diff <= 0) return "Expirada";
+
+      const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const horas = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutos = Math.floor((diff / (1000 * 60)) % 60);
+      const segundos = Math.floor((diff / 1000) % 60);
+
+      return `${dias}d ${horas}h ${minutos}m ${segundos}s`;
+    }
+
+    function obtenerEstadoReal(compra) {
+      if (compra.estado === "reembolsado") return "reembolsado";
+      if (!compra.fechaExpira) return compra.estado || "activa";
+
+      const ahora = new Date().getTime();
+      const fin = new Date(compra.fechaExpira).getTime();
+
+      if (!isNaN(fin) && fin <= ahora) return "expirada";
+      return compra.estado || "activa";
+    }
+
+    function puedeRenovar(fechaExpira, estado) {
+      if (estado === "reembolsado") return false;
+      if (!fechaExpira) return false;
+
+      const ahora = new Date().getTime();
+      const fin = new Date(fechaExpira).getTime();
+      const diff = fin - ahora;
+
+      if (diff <= 0) return false;
+
+      const diasRestantes = diff / (1000 * 60 * 60 * 24);
+      return diasRestantes <= 3;
+    }
+
+    function mostrarToastCopiado(texto) {
+      toastCopiado.textContent = texto || "Copiado";
+      toastCopiado.classList.add("show");
+
+      clearTimeout(timerToastCopiado);
+      timerToastCopiado = setTimeout(() => {
+        toastCopiado.classList.remove("show");
+      }, 1800);
+    }
+
+    async function copiarDato(idElemento, mensaje) {
+      const el = document.getElementById(idElemento);
+      if (!el) return;
+
+      const texto = (el.innerText || el.textContent || "").trim();
+      if (!texto || texto === "-") return;
+
+      try {
+        await navigator.clipboard.writeText(texto);
+        mostrarToastCopiado(mensaje || "Copiado correctamente");
+      } catch (error) {
+        const temp = document.createElement("textarea");
+        temp.value = texto;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        document.body.removeChild(temp);
+        mostrarToastCopiado(mensaje || "Copiado correctamente");
+      }
+    }
+
+    function abrirModalCuenta(compra) {
+      document.getElementById("modalServicio").innerText = compra.servicio || "-";
+      document.getElementById("modalCorreo").innerText = compra.cuenta || "-";
+      document.getElementById("modalClave").innerText = compra.clave || "-";
+      document.getElementById("modalPerfil").innerText = compra.perfil || "-";
+      document.getElementById("modalPin").innerText = compra.pin || "-";
+      document.getElementById("modalObservacion").innerText = compra.observacion || "-";
+      document.getElementById("modalExpira").innerText = formatearFecha(compra.fechaExpira);
+      document.getElementById("modalCuenta").style.display = "flex";
+    }
+
+    function cerrarModalCuenta() {
+      document.getElementById("modalCuenta").style.display = "none";
+    }
+
+    function abrirModalNombreCliente(compra) {
+      compraPendienteNombre = compra;
+      document.getElementById("inputNombreCliente").value = "";
+      document.getElementById("modalNombreCliente").style.display = "flex";
+    }
+
+    function cerrarModalNombreCliente() {
+      document.getElementById("modalNombreCliente").style.display = "none";
+      compraPendienteNombre = null;
+    }
+
+    function guardarNombreClienteYVerCuenta() {
+      if (!compraPendienteNombre || !uidActual) return;
+
+      const input = document.getElementById("inputNombreCliente");
+      const nombre = (input.value || "").trim();
+
+      if (!nombre) {
+        alert("Ingresa el nombre del cliente para continuar.");
+        input.focus();
+        return;
+      }
+
+      const compraId = compraPendienteNombre.id;
+      if (!compraId) {
+        alert("No se pudo identificar la compra.");
+        return;
+      }
+
+      db.ref(`ordenes/${uidActual}/${compraId}`).update({
+        nombreCliente: nombre
+      })
+      .then(() => {
+        compraPendienteNombre.nombreCliente = nombre;
+        cerrarModalNombreCliente();
+        abrirModalCuenta(compraPendienteNombre);
+      })
+      .catch((error) => {
+        console.error(error);
+        alert("No se pudo guardar el nombre del cliente.");
+      });
+    }
+
+    function crearFilaCompra(compra) {
+      const estadoReal = obtenerEstadoReal(compra);
+      const tiempo = calcularTiempoRestante(compra.fechaExpira, estadoReal);
+      const renovarActivo = puedeRenovar(compra.fechaExpira, estadoReal);
+      const numeroSoporte = compra.soporteNumero || "51916252754";
+      const tieneNombreCliente = !!(compra.nombreCliente && String(compra.nombreCliente).trim());
+
+      const div = document.createElement("div");
+      div.className = "misCompraItem";
+
+      div.innerHTML = `
+        <div class="misCompraServicio">${compra.servicio || "-"}</div>
+
+        <div class="misCompraCuentaWrap">
+          <button class="btnVerCuenta">${tieneNombreCliente ? "👁 Ver Cuenta" : "🔒 Registrar cliente"}</button>
+        </div>
+
+        <div class="misCompraDato nombreCliente">
+          ${
+            tieneNombreCliente
+              ? (compra.nombreCliente || "-")
+              : `<span class="misCompraDatoOculto">🔒 Pendiente</span>`
+          }
+        </div>
+
+        <div class="misCompraDato precio">S/ ${Number(compra.precio || 0).toFixed(2)}</div>
+
+        <div class="misCompraDato expira">${formatearFecha(compra.fechaExpira)}</div>
+
+        <div class="misCompraTiempo ${estadoReal === "expirada" ? "expirada" : ""}">${tiempo}</div>
+
+        <div class="misCompraAcciones">
+          ${
+            estadoReal === "reembolsado"
+              ? `<span class="estadoReembolsado">↩ Reembolsado</span>`
+              : `<button class="btnSoporte">🎧 Soporte</button>`
+          }
+
+          <button class="btnWhatsapp" title="WhatsApp">
+            <img src="img/wspp.png" alt="WhatsApp">
+          </button>
+
+          ${
+            estadoReal !== "reembolsado"
+              ? `<button class="btnRenovar ${renovarActivo ? "activo" : ""}">🔄 Renovar</button>`
+              : ``
+          }
+
+          ${
+            estadoReal !== "reembolsado"
+              ? `<button class="btnReembolso">⛔ Reembolso</button>`
+              : ``
+          }
+        </div>
+      `;
+
+      const btnVerCuenta = div.querySelector(".btnVerCuenta");
+      btnVerCuenta.addEventListener("click", () => {
+        if (!compra.nombreCliente || !String(compra.nombreCliente).trim()) {
+          abrirModalNombreCliente(compra);
+          return;
+        }
+        abrirModalCuenta(compra);
+      });
+
+      const btnSoporte = div.querySelector(".btnSoporte");
+      if (btnSoporte) {
+        btnSoporte.addEventListener("click", () => {
+          const msg = encodeURIComponent(`Hola, necesito soporte con mi compra: ${compra.servicio || ""}`);
+          window.open(`https://wa.me/${numeroSoporte}?text=${msg}`, "_blank");
+        });
+      }
+
+      const btnWhatsapp = div.querySelector(".btnWhatsapp");
+      if (btnWhatsapp) {
+        btnWhatsapp.addEventListener("click", () => {
+          const msg = encodeURIComponent(`Hola, tengo una consulta sobre mi compra: ${compra.servicio || ""}`);
+          window.open(`https://wa.me/${numeroSoporte}?text=${msg}`, "_blank");
+        });
+      }
+
+      const btnRenovar = div.querySelector(".btnRenovar.activo");
+      if (btnRenovar) {
+        btnRenovar.addEventListener("click", () => {
+          alert("Aquí luego conectamos tu sistema de renovación.");
+        });
+      }
+
+      const btnReembolso = div.querySelector(".btnReembolso");
+if (btnReembolso) {
+  btnReembolso.addEventListener("click", async () => {
+    if (!uidActual || !compra.id) {
+      alert("No se pudo identificar la compra.");
+      return;
+    }
+
+    const confirmar = confirm(`¿Deseas solicitar el reembolso de ${compra.servicio || "esta compra"}?`);
+    if (!confirmar) return;
+
+    try {
+      const snap = await db.ref("reembolsos").orderByChild("ordenId").equalTo(compra.id).once("value");
+      const existentes = snap.val() || {};
+
+      const yaExiste = Object.values(existentes).some(item => {
+        return item && item.uidUsuario === uidActual && item.estado !== "rechazado";
+      });
+
+      if (yaExiste) {
+        alert("Ya existe una solicitud de reembolso para esta compra.");
+        return;
+      }
+
+      const nuevaSolicitudRef = db.ref("reembolsos").push();
+
+      await nuevaSolicitudRef.set({
+        uidUsuario: uidActual,
+        ordenId: compra.id,
+        servicio: compra.servicio || "",
+        monto: Number(compra.precio || 0),
+        estado: "pendiente",
+        fechaSolicitud: Date.now(),
+        fechaCompra: compra.fechaCompra || "",
+        fechaExpira: compra.fechaExpira || "",
+        nombreCliente: compra.nombreCliente || "",
+        cuenta: compra.cuenta || "",
+        usuario: document.getElementById("panelUsuarioHandle")?.innerText?.replace("@", "") || "",
+        nombreComprador: document.getElementById("panelUsuarioNombre")?.innerText || ""
+      });
+
+      alert("Solicitud de reembolso enviada correctamente.");
+    } catch (error) {
+      console.error(error);
+      alert("No se pudo enviar la solicitud de reembolso.");
+    }
+  });
+}
+
+      return div;
+    }
+
+    function renderCompras() {
+      const servicio = filtroServicio.value;
+      const estado = filtroEstado.value;
+      const texto = buscadorCompras.value.trim().toLowerCase();
+
+      let filtradas = comprasOriginales.filter(compra => {
+        const estadoReal = obtenerEstadoReal(compra);
+        const coincideServicio = servicio === "todos" || (compra.servicio || "") === servicio;
+        const coincideEstado = estado === "todos" || estadoReal === estado;
+
+        const textoBase = `
+          ${compra.servicio || ""}
+          ${compra.nombreCliente || ""}
+          ${compra.cuenta || ""}
+          ${compra.perfil || ""}
+          ${compra.observacion || ""}
+        `.toLowerCase();
+
+        const coincideTexto = textoBase.includes(texto);
+
+        return coincideServicio && coincideEstado && coincideTexto;
+      });
+
+      if (!filtradas.length) {
+        listaCompras.innerHTML = `<div class="misComprasVacio">No se encontraron compras.</div>`;
+        return;
+      }
+
+      listaCompras.innerHTML = "";
+      filtradas.forEach(compra => {
+        listaCompras.appendChild(crearFilaCompra(compra));
+      });
+    }
+
+    function cargarServiciosEnFiltro(compras) {
+      const servicios = [...new Set(compras.map(c => c.servicio).filter(Boolean))];
+      filtroServicio.innerHTML = `<option value="todos">Servicio</option>`;
+
+      servicios.forEach(servicio => {
+        const option = document.createElement("option");
+        option.value = servicio;
+        option.textContent = servicio;
+        filtroServicio.appendChild(option);
+      });
+    }
+
+    function escucharComprasUsuario(uid) {
+      db.ref("ordenes/" + uid).on("value", snapshot => {
+        const data = snapshot.val() || {};
+        const compras = Object.keys(data).map(id => ({
+          id,
+          ...data[id]
+        }));
+
+        compras.sort((a, b) => {
+          const fa = new Date(a.fechaCompra || 0).getTime();
+          const fb = new Date(b.fechaCompra || 0).getTime();
+          return fb - fa;
+        });
+
+        comprasOriginales = compras;
+        cargarServiciosEnFiltro(comprasOriginales);
+        renderCompras();
+
+        if (typeof guardarComprasComoVistas === "function") {
+          guardarComprasComoVistas(uid, comprasOriginales.map(c => c.id));
+        }
+
+        if (typeof actualizarBadgeMisComprasDesdeIds === "function") {
+          actualizarBadgeMisComprasDesdeIds(uid, comprasOriginales.map(c => c.id));
+        }
+      }, error => {
+        listaCompras.innerHTML = `<div class="misComprasVacio">Error al cargar tus compras.</div>`;
+        console.error(error);
+      });
+    }
+
+    filtroServicio.addEventListener("change", renderCompras);
+    filtroEstado.addEventListener("change", renderCompras);
+    buscadorCompras.addEventListener("input", renderCompras);
+    document.getElementById("btnGuardarNombreCliente").addEventListener("click", guardarNombreClienteYVerCuenta);
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      uidActual = user.uid;
+      escucharComprasUsuario(user.uid);
+    });
+
+    setInterval(() => {
+      if (comprasOriginales.length) renderCompras();
+    }, 1000);
+
+    window.addEventListener("click", function(e){
+      const modalCuenta = document.getElementById("modalCuenta");
+      const modalNombre = document.getElementById("modalNombreCliente");
+
+      if (e.target === modalCuenta) {
+        cerrarModalCuenta();
+      }
+
+      if (e.target === modalNombre) {
+        cerrarModalNombreCliente();
+      }
+    });
+
+    document.onkeydown = function(e){
+      if(e.key === "F12"){
+        return false;
+      }
+
+      if(e.ctrlKey && e.shiftKey && e.key.toUpperCase() === "I"){
+        return false;
+      }
+
+      if(e.ctrlKey && e.shiftKey && e.key.toUpperCase() === "J"){
+        return false;
+      }
+    };
+  </script>
+
+  <script>
+    (function () {
+      const pagina = window.location.pathname.split("/").pop() || "tienda.html";
+
+      const mapa = {
+        "tienda.html": "tienda",
+        "como-comprar.html": "como-comprar",
+        "ofertas.html": "ofertas",
+        "recargas.html": "recargas",
+        "mis-compras.html": "mis-compras"
+      };
+
+      const claveActiva = mapa[pagina];
+      if (!claveActiva) return;
+
+      document.querySelectorAll("#menuLateral a[data-menu]").forEach((link) => {
+        link.classList.remove("activo");
+
+        if (link.getAttribute("data-menu") === claveActiva) {
+          link.classList.add("activo");
+        }
+      });
+    })();
+  </script>
+
+</body>
+</html>
