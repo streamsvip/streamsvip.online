@@ -60,7 +60,9 @@ input {
     border: none;
 }
 
-button {
+.inicio button,
+.card button,
+.modal-content button {
     background: red;
     border: none;
     color: white;
@@ -70,7 +72,9 @@ button {
     transition: 0.3s;
 }
 
-button:hover {
+.inicio button:hover,
+.card button:hover,
+.modal-content button:hover {
     transform: scale(1.05);
     background: #ff2a2a;
 }
@@ -2165,7 +2169,9 @@ margin:auto;
 width:100%;
 }
 
-button,
+.inicio button,
+.card button,
+.modal-content button,
 .btn,
 .btnComprar{
 width:100%;
@@ -3168,5 +3174,221 @@ AJUSTE PANEL USUARIO MOBILE
     padding:13px 16px;
     font-size:14px;
     gap:12px;
+  }
+}
+/* PRODUCTOS DINÁMICOS */
+.cargandoProductos{
+    width:100%;
+    text-align:center;
+    padding:30px 15px;
+    color:#cfcfcf;
+    font-size:16px;
+    font-weight:600;
+}
+
+/* =========================
+PROVEEDOR EN TARJETA
+========================= */
+.productoProveedor{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    width:100%;
+    max-width:190px;
+    margin:10px auto 6px;
+    padding:9px 12px;
+    border-radius:12px;
+    background:linear-gradient(180deg, rgba(20,24,32,0.95), rgba(12,16,24,0.98));
+    border:1px solid rgba(126,200,255,0.16);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.04),
+        0 8px 20px rgba(0,0,0,0.18);
+}
+
+.productoProveedorTop{
+    font-size:10.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:#8d98a7;
+    line-height:1;
+}
+
+.productoProveedorNombre{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    font-size:13px;
+    font-weight:800;
+    color:#dff3ff;
+    line-height:1.2;
+    text-align:center;
+}
+
+/* =========================
+PROVEEDOR EN MODAL
+========================= */
+.modalProveedor{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+    margin:8px 0 18px;
+    padding:12px 14px;
+    border-radius:14px;
+    background:linear-gradient(135deg, rgba(15,20,28,0.96), rgba(22,28,38,0.96));
+    border:1px solid rgba(126,200,255,0.18);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.04),
+        0 10px 24px rgba(0,0,0,0.22);
+}
+
+.proveedorLabel{
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:#95a3b6;
+    min-width:100%;
+}
+
+.proveedorNombreWrap{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 12px;
+    border-radius:12px;
+    background:rgba(126,200,255,0.08);
+    border:1px solid rgba(126,200,255,0.16);
+}
+
+.proveedorIcono{
+    font-size:15px;
+    line-height:1;
+}
+
+.proveedorNombreTexto{
+    font-size:14px;
+    font-weight:800;
+    color:#eaf7ff;
+    letter-spacing:0.2px;
+}
+
+.proveedorEstado{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:7px 10px;
+    border-radius:999px;
+    background:rgba(88,255,170,0.08);
+    border:1px solid rgba(88,255,170,0.16);
+    color:#8fffc1;
+    font-size:12px;
+    font-weight:700;
+    white-space:nowrap;
+}
+
+/* =========================
+RESPONSIVE
+========================= */
+@media (max-width: 768px){
+    .productoProveedor{
+        max-width:170px;
+        padding:8px 10px;
+    }
+
+    .productoProveedorTop{
+        font-size:10px;
+    }
+
+    .productoProveedorNombre{
+        font-size:12px;
+    }
+
+    .modalProveedor{
+        gap:8px;
+        padding:11px 12px;
+        border-radius:12px;
+    }
+
+    .proveedorLabel{
+        font-size:10px;
+    }
+
+    .proveedorNombreTexto{
+        font-size:13px;
+    }
+
+    .proveedorEstado{
+        font-size:11px;
+        padding:6px 9px;
+    }
+}
+.toastCompraExitosa{
+  position:fixed;
+  top:22px;
+  right:22px;
+  z-index:999999;
+  min-width:290px;
+  max-width:380px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 16px;
+  border-radius:16px;
+  background:linear-gradient(135deg,#101010,#1a1a1a);
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 18px 40px rgba(0,0,0,0.45);
+  color:#fff;
+  transform:translateY(-20px);
+  opacity:0;
+  pointer-events:none;
+  transition:all .28s ease;
+}
+
+.toastCompraExitosa.show{
+  transform:translateY(0);
+  opacity:1;
+}
+
+.toastCompraIcon{
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(30,215,96,0.16);
+  font-size:22px;
+  flex-shrink:0;
+}
+
+.toastCompraTexto{
+  display:flex;
+  flex-direction:column;
+  line-height:1.35;
+}
+
+.toastCompraTexto strong{
+  font-size:14px;
+  color:#ffffff;
+  font-weight:800;
+}
+
+.toastCompraTexto span{
+  font-size:13px;
+  color:#cfcfcf;
+}
+
+@media (max-width:700px){
+  .toastCompraExitosa{
+    right:12px;
+    left:12px;
+    top:14px;
+    min-width:auto;
+    max-width:none;
   }
 }
