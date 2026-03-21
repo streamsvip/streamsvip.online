@@ -76,7 +76,7 @@
       <article class="panelCard">
         <div class="panelHead">
           <h2>Registrar recarga</h2>
-          <p>Completa los datos de la operación. El módulo de comprobante se encuentra temporalmente inactivo.</p>
+          <p>Completa los datos de la operación y adjunta tu comprobante de pago.</p>
         </div>
 
         <form id="formRecarga" class="formRecarga">
@@ -112,10 +112,19 @@
             <input type="text" id="operacion" maxlength="60" placeholder="Ingresa tu número de operación" required>
           </div>
 
-          <div class="formGroup comprobanteDisabled">
+          <div class="formGroup">
             <label for="comprobante">Comprobante de pago</label>
-            <input type="file" id="comprobante" accept=".jpg,.jpeg,.png,.webp" disabled>
-            <small>Temporalmente inactivo. Este módulo se habilitará cuando se complete la integración de almacenamiento seguro.</small>
+            <input type="file" id="comprobante" accept=".jpg,.jpeg,.png,.webp" required>
+            <small>Formatos permitidos: JPG, JPEG, PNG y WEBP. Máximo permitido: 3 MB.</small>
+
+            <div id="previewWrap" style="display:none; margin-top:12px;">
+              <div style="font-size:13px; color:#bbb; margin-bottom:8px;">Vista previa del comprobante</div>
+              <img
+                id="previewComprobante"
+                alt="Vista previa del comprobante"
+                style="max-width:100%; width:100%; max-height:260px; object-fit:contain; border-radius:14px; background:#111; border:1px solid rgba(255,255,255,0.08); padding:8px;"
+              >
+            </div>
           </div>
 
           <div class="formInfo">
@@ -161,6 +170,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
   <script src="script.js"></script>
 
@@ -169,6 +179,7 @@
     const montoInput = document.getElementById("monto");
     const metodoPagoInput = document.getElementById("metodoPago");
     const operacionInput = document.getElementById("operacion");
+    const comprobanteInput = document.getElementById("comprobante");
     const btnEnviar = document.getElementById("btnEnviar");
     const mensajeRecarga = document.getElementById("mensajeRecarga");
     const historialBody = document.getElementById("historialBody");
@@ -177,8 +188,14 @@
     const panelUsuarioHandle = document.getElementById("panelUsuarioHandle");
     const panelUsuarioSaldo = document.getElementById("panelUsuarioSaldo");
 
+    const previewWrap = document.getElementById("previewWrap");
+    const previewComprobante = document.getElementById("previewComprobante");
+
+    const storage = firebase.storage();
+
     let usuarioRecargaActual = null;
     let datosUsuarioRecarga = null;
+    let enviandoRecarga = false;
 
     function mostrarMensaje(texto, tipo) {
       mensajeRecarga.className = "mensajeBox show " + tipo;
@@ -230,7 +247,7 @@
       const items = Object.keys(data)
         .filter(id => data[id] && typeof data[id] === "object" && id !== "temp")
         .map(id => ({ id, ...data[id] }))
-        .sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
+        .sort((a, b) => Number(b.fecha || 0) - Number(a.fecha || 0));
 
       if (!items.length) {
         historialBody.innerHTML = `
@@ -291,6 +308,54 @@
         });
     }
 
+    function limpiarPreview() {
+      if (previewComprobante) previewComprobante.removeAttribute("src");
+      if (previewWrap) previewWrap.style.display = "none";
+    }
+
+    function mostrarPreviewArchivo(archivo) {
+      if (!archivo || !archivo.type.startsWith("image/")) {
+        limpiarPreview();
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+        previewComprobante.src = ev.target.result;
+        previewWrap.style.display = "block";
+      };
+      reader.readAsDataURL(archivo);
+    }
+
+    comprobanteInput.addEventListener("change", function () {
+      limpiarMensaje();
+
+      const archivo = this.files && this.files[0] ? this.files[0] : null;
+      if (!archivo) {
+        limpiarPreview();
+        return;
+      }
+
+      const tiposPermitidos = ["image/jpeg", "image/png", "image/webp"];
+      const maxBytes = 3 * 1024 * 1024;
+
+      if (!tiposPermitidos.includes(archivo.type)) {
+        this.value = "";
+        limpiarPreview();
+        mostrarMensaje("Solo se permiten imágenes JPG, JPEG, PNG o WEBP.", "error");
+        return;
+      }
+
+      if (archivo.size > maxBytes) {
+        this.value = "";
+        limpiarPreview();
+        mostrarMensaje("El comprobante no debe superar los 3 MB.", "error");
+        return;
+      }
+
+      mostrarPreviewArchivo(archivo);
+    });
+
     auth.onAuthStateChanged(user => {
       const pagina = window.location.pathname.split("/").pop() || "index.html";
 
@@ -319,6 +384,8 @@
     formRecarga.addEventListener("submit", async function(e) {
       e.preventDefault();
 
+      if (enviandoRecarga) return;
+
       if (!usuarioRecargaActual) {
         mostrarMensaje("Debes iniciar sesión para registrar una recarga.", "error");
         return;
@@ -327,6 +394,7 @@
       const monto = parseFloat(montoInput.value);
       const metodoPago = metodoPagoInput.value.trim();
       const operacion = operacionInput.value.trim();
+      const archivo = comprobanteInput.files[0];
 
       if (!monto || monto <= 0) {
         mostrarMensaje("Ingresa un monto válido en soles.", "error");
@@ -343,12 +411,45 @@
         return;
       }
 
+      if (!archivo) {
+        mostrarMensaje("Debes adjuntar un comprobante de pago.", "error");
+        return;
+      }
+
+      const tiposPermitidos = ["image/jpeg", "image/png", "image/webp"];
+      if (!tiposPermitidos.includes(archivo.type)) {
+        mostrarMensaje("Solo se permiten imágenes JPG, JPEG, PNG o WEBP.", "error");
+        return;
+      }
+
+      const maxBytes = 3 * 1024 * 1024;
+      if (archivo.size > maxBytes) {
+        mostrarMensaje("El comprobante no debe superar los 3 MB.", "error");
+        return;
+      }
+
+      enviandoRecarga = true;
       btnEnviar.disabled = true;
-      btnEnviar.textContent = "Procesando...";
-      mostrarMensaje("Registrando solicitud de recarga...", "info");
+      btnEnviar.textContent = "Subiendo comprobante...";
+      mostrarMensaje("Subiendo comprobante y registrando solicitud...", "info");
+
+      let rutaStorage = "";
 
       try {
         const recargaRef = db.ref("recargas").push();
+        const recargaId = recargaRef.key;
+        const ahora = Date.now();
+
+        const extension = (archivo.name.split(".").pop() || "jpg").toLowerCase();
+        const nombreArchivoStorage = `comprobante_${ahora}.${extension}`;
+        rutaStorage = `comprobantesRecargas/${usuarioRecargaActual.uid}/${recargaId}/${nombreArchivoStorage}`;
+
+        const storageRef = storage.ref(rutaStorage);
+        const snapshotUpload = await storageRef.put(archivo, {
+          contentType: archivo.type || "image/jpeg"
+        });
+
+        const comprobanteURL = await snapshotUpload.ref.getDownloadURL();
 
         const nombreUsuario =
           (datosUsuarioRecarga && (
@@ -362,8 +463,6 @@
             ? String(datosUsuarioRecarga.usuario).trim()
             : "";
 
-        const ahora = Date.now();
-
         const payload = {
           uid: usuarioRecargaActual.uid,
           uidUsuario: usuarioRecargaActual.uid,
@@ -372,8 +471,10 @@
           monto: Number(monto.toFixed(2)),
           operacion: operacion,
           metodoPago: metodoPago,
-          comprobanteURL: "",
-          comprobantePath: "",
+          comprobanteURL: comprobanteURL,
+          comprobantePath: rutaStorage,
+          nombreArchivo: archivo.name,
+          tamanoArchivo: archivo.size,
           estado: "pendiente",
           fecha: ahora,
           fechaHora: new Date(ahora).toLocaleDateString("es-PE") + " " + new Date(ahora).toLocaleTimeString("es-PE", {
@@ -382,7 +483,7 @@
           }),
           fechaAprobacion: "",
           fechaRechazo: "",
-          observacionAdmin: "Comprobante temporalmente no adjunto por mantenimiento de almacenamiento.",
+          observacionAdmin: "",
           email: usuarioRecargaActual.email || ""
         };
 
@@ -390,11 +491,27 @@
 
         mostrarMensaje("Solicitud enviada correctamente. Tu recarga quedó en estado Pendiente hasta su validación administrativa.", "success");
         formRecarga.reset();
+        limpiarPreview();
 
       } catch (error) {
         console.error("Error registrando recarga:", error);
-        mostrarMensaje("No se pudo registrar la recarga. Revisa tus rules de Database y vuelve a intentarlo.", "error");
+
+        if (rutaStorage) {
+          try {
+            await storage.ref(rutaStorage).delete();
+          } catch (e) {
+            console.warn("No se pudo limpiar archivo huérfano en Storage:", e);
+          }
+        }
+
+        let mensajeError = "No se pudo registrar la recarga o subir el comprobante.";
+        if (error && error.message) {
+          mensajeError += " " + error.message;
+        }
+
+        mostrarMensaje(mensajeError, "error");
       } finally {
+        enviandoRecarga = false;
         btnEnviar.disabled = false;
         btnEnviar.textContent = "Enviar solicitud";
       }
