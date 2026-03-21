@@ -41,10 +41,11 @@
       </div>
     </div>
 
-    <a href="tienda.html" class="activo"><span class="menu-emoji">🛍️</span> Tienda</a>
-    <a href="como-comprar.html"><span class="menu-emoji">💳</span> Cómo comprar</a>
-    <a href="ofertas.html"><span class="menu-emoji">🔥</span> Ofertas</a>
-    <a href="recargas.html"><span class="menu-emoji">💸</span> Recargas</a>
+    <a href="tienda.html" data-menu="tienda"><span class="menu-emoji">🛍️</span> Tienda</a>
+    <a href="como-comprar.html" data-menu="como-comprar"><span class="menu-emoji">💳</span> Cómo comprar</a>
+    <a href="ofertas.html" data-menu="ofertas"><span class="menu-emoji">🔥</span> Ofertas</a>
+    <a href="recargas.html" data-menu="recargas"><span class="menu-emoji">💸</span> Recargas</a>
+    <a href="mis-compras.html" data-menu="mis-compras"><span class="menu-emoji">📦</span> Mis compras</a>
     <a href="#" onclick="salir(); return false;" class="salir"><span class="menu-emoji">🔙</span> Salir</a>
 
     <script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=074c5be8-e613-4e2e-b987-7910106c9302"></script>
@@ -166,6 +167,31 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script src="script.js"></script>
+
+  <script>
+    (function () {
+      const pagina = window.location.pathname.split("/").pop() || "tienda.html";
+
+      const mapa = {
+        "tienda.html": "tienda",
+        "como-comprar.html": "como-comprar",
+        "ofertas.html": "ofertas",
+        "recargas.html": "recargas",
+        "mis-compras.html": "mis-compras"
+      };
+
+      const claveActiva = mapa[pagina];
+      if (!claveActiva) return;
+
+      document.querySelectorAll("#menuLateral a[data-menu]").forEach((link) => {
+        link.classList.remove("activo");
+
+        if (link.getAttribute("data-menu") === claveActiva) {
+          link.classList.add("activo");
+        }
+      });
+    })();
+  </script>
 
   <div style="opacity:0;position:absolute;">StreamsVip Oficial 2026</div>
 </body>
