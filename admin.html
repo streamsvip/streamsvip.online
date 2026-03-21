@@ -63,6 +63,11 @@
         </div>
 
         <div class="miniCard">
+          <h3>Solicitudes reembolso</h3>
+          <p id="totalReembolsos">0</p>
+        </div>
+
+        <div class="miniCard">
           <h3>Códigos creados</h3>
           <p id="totalCodigos">0</p>
         </div>
@@ -95,7 +100,9 @@
                   <th>Usuario</th>
                   <th>UID</th>
                   <th>Monto</th>
+                  <th>Método</th>
                   <th>Operación</th>
+                  <th>Comprobante</th>
                   <th>Estado</th>
                   <th>Fecha</th>
                   <th>Acciones</th>
@@ -104,6 +111,37 @@
               <tbody></tbody>
             </table>
             <div id="recargasVacio" class="empty">Aún no existe el nodo recargas o no tiene datos.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REEMBOLSOS -->
+      <div class="card collapsibleCard">
+        <button class="collapseHeader" type="button" onclick="toggleSection(this)">
+          <span>Reembolsos</span>
+          <span class="collapseIcon">▼</span>
+        </button>
+
+        <div class="collapseContent">
+          <div id="reembolsoMsg" class="accountMsg"></div>
+          <div class="tableWrap">
+            <table id="tablaReembolsos" class="hidden">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Usuario</th>
+                  <th>UID</th>
+                  <th>Orden</th>
+                  <th>Servicio</th>
+                  <th>Monto</th>
+                  <th>Estado</th>
+                  <th>Fecha solicitud</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <div id="reembolsosVacio" class="empty">No hay solicitudes de reembolso.</div>
           </div>
         </div>
       </div>
@@ -376,6 +414,10 @@
     </div>
   </div>
 
+  <audio id="audioRecarga" preload="auto">
+    <source src="img/notificacion.mp3" type="audio/mpeg">
+  </audio>
+
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -420,6 +462,10 @@
     let adminTimeoutAviso = null;
     let adminControlIniciado = false;
     let adminAvisoMostrado = false;
+
+    let recargasInicializadas = false;
+    let recargasPendientesCache = {};
+    let recargasListenerActivo = false;
 
     function limpiarAdminInactividad() {
       if (adminTimeoutLogout) {
@@ -498,6 +544,16 @@
 
       adminControlIniciado = true;
       reiniciarAdminInactividad();
+    }
+
+    function reproducirSonidoRecarga() {
+      const audio = document.getElementById("audioRecarga");
+      if (!audio) return;
+
+      audio.currentTime = 0;
+      audio.play().catch(() => {
+        console.log("El navegador bloqueó la reproducción automática del audio.");
+      });
     }
 
     function togglePassword() {
@@ -643,6 +699,8 @@
       } else {
         limpiarAdminInactividad();
         panelAdminYaCargado = false;
+        recargasInicializadas = false;
+        recargasPendientesCache = {};
         loginSection.classList.remove("hidden");
         panelSection.classList.add("hidden");
         setLoading(false);
@@ -658,7 +716,9 @@
       cargarCuentas();
       cargarUsuarios();
       cargarRecargas();
+      cargarReembolsos();
       cargarCodigos();
+      escucharNuevasRecargasPendientes();
     }
 
     function badgeEstado(texto) {
@@ -682,11 +742,6 @@
     function textoSeguro(valor, fallback = "-") {
       if (valor === undefined || valor === null || valor === "") return fallback;
       return valor;
-    }
-
-    function obtenerMonto(item) {
-      const monto = Number(item.precio ?? item.total ?? item.monto ?? item.precioTotal ?? item.montoPlataforma ?? 0);
-      return isNaN(monto) ? 0 : monto;
     }
 
     function formatearDinero(valor) {
@@ -742,7 +797,15 @@
       recargaMsg.textContent = texto;
       recargaMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
       clearTimeout(window.recargaMsgTimeout);
-      window.recargaMsgTimeout = setTimeout(() => recargaMsg.textContent = "", 3000);
+      window.recargaMsgTimeout = setTimeout(() => recargaMsg.textContent = "", 3500);
+    }
+
+    function mostrarMensajeReembolso(texto, error = false) {
+      const reembolsoMsg = document.getElementById("reembolsoMsg");
+      reembolsoMsg.textContent = texto;
+      reembolsoMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
+      clearTimeout(window.reembolsoMsgTimeout);
+      window.reembolsoMsgTimeout = setTimeout(() => reembolsoMsg.textContent = "", 3000);
     }
 
     function cambiarCantidadInput(producto, cambio) {
@@ -1339,6 +1402,7 @@
           updates["usuarios/" + uid + "/saldo"] = nuevoSaldo;
           updates["recargas/" + id + "/estado"] = "aprobada";
           updates["recargas/" + id + "/fechaAprobacion"] = Date.now();
+          updates["recargas/" + id + "/updatedAt"] = Date.now();
 
           return db.ref().update(updates);
         });
@@ -1372,7 +1436,8 @@
 
         return db.ref("recargas/" + id).update({
           estado: "rechazada",
-          fechaRechazo: Date.now()
+          fechaRechazo: Date.now(),
+          updatedAt: Date.now()
         });
       })
       .then(() => {
@@ -1380,6 +1445,134 @@
       })
       .catch((error) => {
         mostrarMensajeRecarga("Error al rechazar recarga: " + error.message, true);
+      });
+    }
+
+    function aprobarReembolso(id) {
+      db.ref("reembolsos/" + id).once("value")
+      .then((snap) => {
+        const item = snap.val();
+
+        if (!item || typeof item !== "object") {
+          throw new Error("La solicitud no existe.");
+        }
+
+        const uid = item.uidUsuario || "";
+        const ordenId = item.ordenId || "";
+        const monto = Number(item.monto || item.precio || 0);
+        const estadoActual = String(item.estado || "").toLowerCase();
+
+        if (!uid) throw new Error("La solicitud no tiene uidUsuario.");
+        if (!ordenId) throw new Error("La solicitud no tiene ordenId.");
+        if (isNaN(monto) || monto <= 0) throw new Error("Monto inválido.");
+
+        if (estadoActual === "aprobado") throw new Error("Este reembolso ya fue aprobado.");
+        if (estadoActual === "rechazado") throw new Error("Este reembolso ya fue rechazado.");
+
+        return Promise.all([
+          db.ref("usuarios/" + uid).once("value"),
+          db.ref("ordenes/" + uid + "/" + ordenId).once("value")
+        ])
+        .then(([usuarioSnap, ordenSnap]) => {
+          const usuario = usuarioSnap.val();
+          const orden = ordenSnap.val();
+
+          if (!usuario) throw new Error("No existe el usuario del reembolso.");
+          if (!orden) throw new Error("No existe la orden vinculada.");
+
+          const ordenEstado = String(orden.estado || "").toLowerCase();
+          if (ordenEstado === "reembolsado") {
+            throw new Error("La orden ya figura como reembolsada.");
+          }
+
+          const saldoActual = Number(usuario.saldo || 0);
+          const nuevoSaldo = Number((saldoActual + monto).toFixed(2));
+
+          const updates = {};
+          updates["usuarios/" + uid + "/saldo"] = nuevoSaldo;
+          updates["ordenes/" + uid + "/" + ordenId + "/estado"] = "reembolsado";
+          updates["ordenes/" + uid + "/" + ordenId + "/fechaReembolso"] = Date.now();
+
+          updates["reembolsos/" + id + "/estado"] = "aprobado";
+          updates["reembolsos/" + id + "/fechaAprobacion"] = Date.now();
+
+          return db.ref().update(updates);
+        });
+      })
+      .then(() => {
+        mostrarMensajeReembolso("Reembolso aprobado y saldo devuelto correctamente.");
+      })
+      .catch((error) => {
+        mostrarMensajeReembolso("Error al aprobar reembolso: " + error.message, true);
+      });
+    }
+
+    function rechazarReembolso(id) {
+      db.ref("reembolsos/" + id).once("value")
+      .then((snap) => {
+        const item = snap.val();
+
+        if (!item || typeof item !== "object") {
+          throw new Error("La solicitud no existe.");
+        }
+
+        const estadoActual = String(item.estado || "").toLowerCase();
+
+        if (estadoActual === "aprobado") {
+          throw new Error("No puedes rechazar un reembolso ya aprobado.");
+        }
+
+        if (estadoActual === "rechazado") {
+          throw new Error("Este reembolso ya fue rechazado.");
+        }
+
+        return db.ref("reembolsos/" + id).update({
+          estado: "rechazado",
+          fechaRechazo: Date.now()
+        });
+      })
+      .then(() => {
+        mostrarMensajeReembolso("Reembolso rechazado correctamente.");
+      })
+      .catch((error) => {
+        mostrarMensajeReembolso("Error al rechazar reembolso: " + error.message, true);
+      });
+    }
+
+    function escucharNuevasRecargasPendientes() {
+      if (recargasListenerActivo) return;
+      recargasListenerActivo = true;
+
+      db.ref("recargas").on("value", (snapshot) => {
+        const data = snapshot.val() || {};
+        const nuevasPendientes = {};
+
+        Object.keys(data).forEach((id) => {
+          const item = data[id] || {};
+          const estado = String(item.estado || "").toLowerCase().trim();
+
+          if (estado === "pendiente") {
+            nuevasPendientes[id] = true;
+          }
+        });
+
+        if (!recargasInicializadas) {
+          recargasPendientesCache = nuevasPendientes;
+          recargasInicializadas = true;
+          return;
+        }
+
+        const idsActuales = Object.keys(nuevasPendientes);
+        const idsAnteriores = Object.keys(recargasPendientesCache);
+
+        const hayNueva = idsActuales.some(id => !idsAnteriores.includes(id));
+
+        if (hayNueva) {
+          reproducirSonidoRecarga();
+          mostrarMensajeRecarga("Nueva solicitud de recarga pendiente.");
+        }
+
+        recargasPendientesCache = nuevasPendientes;
       });
     }
 
@@ -1610,7 +1803,7 @@
 
         const keys = Object.keys(data)
           .filter(id => data[id] && typeof data[id] === "object" && id !== "temp")
-          .sort((a, b) => (data[b].fecha || 0) - (data[a].fecha || 0));
+          .sort((a, b) => Number(data[b].fecha || 0) - Number(data[a].fecha || 0));
 
         let totalPendientes = 0;
 
@@ -1636,13 +1829,19 @@
           const estado = String(item.estado || "pendiente").toLowerCase().trim();
           const usuarioMostrado = item.usuario ? "@" + item.usuario : (item.nombre || item.uid || "-");
 
+          const comprobanteHtml = item.comprobanteURL
+  ? `<a href="${item.comprobanteURL}" target="_blank" rel="noopener noreferrer" class="smallBtn btnSave">📄 Ver comprobante</a>`
+  : `<span class="badge bad">sin archivo</span>`;
+
           tbody.innerHTML += `
             <tr>
               <td>${id}</td>
               <td>${usuarioMostrado}</td>
               <td>${textoSeguro(item.uidUsuario || item.uid)}</td>
               <td>${formatearDinero(item.monto || 0)}</td>
+              <td>${textoSeguro(item.metodoPago)}</td>
               <td>${textoSeguro(item.operacion || item.numeroOperacion)}</td>
+              <td>${comprobanteHtml}</td>
               <td>${badgeEstado(estado)}</td>
               <td>${textoSeguro(formatearFecha(item.fecha || item.fechaHora))}</td>
               <td>
@@ -1665,6 +1864,82 @@
         document.getElementById("recargasVacio").classList.remove("hidden");
         document.getElementById("totalRecargas").textContent = "0";
         mostrarMensajeRecarga("No se pudieron leer las recargas. Revisa tus rules.", true);
+      });
+    }
+
+    function cargarReembolsos() {
+      db.ref("reembolsos").on("value", (snapshot) => {
+        const data = snapshot.val();
+        const tbody = document.querySelector("#tablaReembolsos tbody");
+        const tabla = document.getElementById("tablaReembolsos");
+        const vacio = document.getElementById("reembolsosVacio");
+
+        tbody.innerHTML = "";
+
+        if (!data || typeof data !== "object") {
+          tabla.classList.add("hidden");
+          vacio.classList.remove("hidden");
+          document.getElementById("totalReembolsos").textContent = "0";
+          return;
+        }
+
+        const keys = Object.keys(data)
+          .filter(id => data[id] && typeof data[id] === "object")
+          .sort((a, b) => Number(data[b].fechaSolicitud || 0) - Number(data[a].fechaSolicitud || 0));
+
+        let totalPendientes = 0;
+
+        keys.forEach((id) => {
+          const item = data[id] || {};
+          const estado = String(item.estado || "pendiente").toLowerCase().trim();
+          if (estado !== "aprobado" && estado !== "rechazado") {
+            totalPendientes++;
+          }
+        });
+
+        document.getElementById("totalReembolsos").textContent = totalPendientes;
+
+        if (keys.length === 0) {
+          tabla.classList.add("hidden");
+          vacio.classList.remove("hidden");
+          return;
+        }
+
+        keys.forEach((id) => {
+          const item = data[id] || {};
+          const estado = String(item.estado || "pendiente").toLowerCase().trim();
+          const usuarioMostrado = item.usuario ? "@" + item.usuario : (item.nombreComprador || item.uidUsuario || "-");
+
+          tbody.innerHTML += `
+            <tr>
+              <td>${id}</td>
+              <td>${textoSeguro(usuarioMostrado)}</td>
+              <td>${textoSeguro(item.uidUsuario)}</td>
+              <td>${textoSeguro(item.ordenId)}</td>
+              <td>${textoSeguro(item.servicio)}</td>
+              <td>${formatearDinero(item.monto || 0)}</td>
+              <td>${badgeEstado(estado)}</td>
+              <td>${textoSeguro(formatearFecha(item.fechaSolicitud))}</td>
+              <td>
+                ${estado !== "aprobado" && estado !== "rechazado" ? `
+                  <div class="actionGroup">
+                    <button class="smallBtn btnSave" onclick="aprobarReembolso('${id}')">Aprobar</button>
+                    <button class="smallBtn btnDelete" onclick="rechazarReembolso('${id}')">Rechazar</button>
+                  </div>
+                ` : "-"}
+              </td>
+            </tr>
+          `;
+        });
+
+        tabla.classList.remove("hidden");
+        vacio.classList.add("hidden");
+      }, (error) => {
+        console.error("Error leyendo reembolsos:", error);
+        document.getElementById("tablaReembolsos").classList.add("hidden");
+        document.getElementById("reembolsosVacio").classList.remove("hidden");
+        document.getElementById("totalReembolsos").textContent = "0";
+        mostrarMensajeReembolso("No se pudieron leer los reembolsos. Revisa tus rules.", true);
       });
     }
 
