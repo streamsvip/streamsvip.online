@@ -15,7 +15,7 @@ const firebaseConfig = {
   authDomain: "streamsvip-b7d91.firebaseapp.com",
   databaseURL: "https://streamsvip-b7d91-default-rtdb.firebaseio.com",
   projectId: "streamsvip-b7d91",
-  storageBucket: "streamsvip-b7d91.appspot.com",
+  storageBucket: "streamsvip-b7d91.firebasestorage.app",
   messagingSenderId: "440618225611",
   appId: "1:440618225611:web:eeb4230a10499e1dfff04e"
 };
@@ -43,6 +43,8 @@ let sliderInterval = null;
 let productoSeleccionadoId = "";
 let productoSeleccionadoData = null;
 let productosTiendaCache = {};
+let badgeComprasRef = null;
+let usuarioPerfilRef = null;
 
 /* =========================
 UTILIDADES
@@ -88,6 +90,7 @@ function normalizarProductoBase(nombre) {
   if (texto.includes("spotify")) return "Spotify";
   if (texto.includes("vix")) return "Vix";
   if (texto.includes("crunchy")) return "Crunchyroll";
+  if (texto.includes("chatgpt")) return "ChatGPT";
 
   return "";
 }
@@ -102,10 +105,12 @@ function obtenerImagenProducto(item, idProducto) {
     disney: "img/Disney.jpg",
     prime: "img/Primevideo.jpg",
     hbo: "img/Hbomax.jpg",
+    hboprime: "img/Hbomax.jpg",
     paramount: "img/Paramount.jpg",
     spotify: "img/Spotify.jpg",
     vix: "img/logo.jpg",
-    crunchyroll: "img/logo.jpg"
+    crunchyroll: "img/logo.jpg",
+    chatgpt: "img/logo.jpg"
   };
 
   const clave = String(idProducto || "").toLowerCase();
@@ -213,6 +218,225 @@ function obtenerReglasProducto(productoBase) {
   `;
 }
 
+function obtenerNombreSimpleDesdeCorreo(email) {
+  return String(email || "").split("@")[0] || "usuario";
+}
+
+function formatearFechaEntregaLocal() {
+  return new Date().toLocaleString("es-PE", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  });
+}
+
+function obtenerRutaCuentasPorProducto(productoId, itemProducto = {}) {
+  const id = String(productoId || "").toLowerCase().trim();
+  const nombre = String(itemProducto.nombre || productoActual || "").toLowerCase();
+
+  if (id === "netflix" || nombre.includes("netflix")) return "Netflix";
+  if (id === "disney" || nombre.includes("disney")) return "Disney";
+  if (id === "hboprime" || nombre.includes("hbo max + prime") || (nombre.includes("hbo") && nombre.includes("prime"))) return "hboprime";
+  if (id === "prime" || nombre.includes("prime video")) return "Prime";
+  if (id === "hbo" || nombre.includes("hbo")) return "HBO";
+  if (id === "paramount" || nombre.includes("paramount")) return "Paramount";
+  if (id === "spotify" || nombre.includes("spotify")) return "Spotify";
+  if (id === "vix" || nombre.includes("vix")) return "Vix";
+  if (id === "crunchyroll" || nombre.includes("crunchyroll")) return "Crunchyroll";
+  if (id === "chatgpt" || nombre.includes("chatgpt")) return "ChatGPT";
+
+  return productoId;
+}
+
+function mostrarToastCompraExitosa(producto, total) {
+  let toast = document.getElementById("toastCompraExitosa");
+
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "toastCompraExitosa";
+    toast.className = "toastCompraExitosa";
+    document.body.appendChild(toast);
+  }
+
+  toast.innerHTML = `
+    <div class="toastCompraIcon">✅</div>
+    <div class="toastCompraTexto">
+      <strong>Compra realizada con éxito</strong>
+      <span>${escaparHTML(producto)} - S/ ${Number(total).toFixed(2)}</span>
+    </div>
+  `;
+
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 3500);
+}
+
+function convertirVentasANumero(data) {
+  if (data == null) return 0;
+
+  if (typeof data === "number") {
+    return data;
+  }
+
+  if (typeof data === "object") {
+    let total = 0;
+
+    Object.keys(data).forEach((key) => {
+      const item = data[key];
+
+      if (typeof item === "number") {
+        total += Number(item || 0);
+      } else if (item && typeof item === "object") {
+        total += Number(item.cantidad || 1);
+      }
+    });
+
+    return total;
+  }
+
+  return 0;
+}
+
+/* =========================
+BADGE MIS COMPRAS
+========================= */
+
+function inyectarEstilosBadgeMisCompras() {
+  if (document.getElementById("estilosBadgeMisCompras")) return;
+
+  const style = document.createElement("style");
+  style.id = "estilosBadgeMisCompras";
+  style.textContent = `
+    .menuBadgeCompras{
+      margin-left:auto;
+      min-width:22px;
+      height:22px;
+      padding:0 7px;
+      border-radius:999px;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(180deg,#ff3b3b,#d91111);
+      color:#fff;
+      font-size:12px;
+      font-weight:800;
+      box-shadow:0 6px 14px rgba(255,0,0,0.28);
+      border:1px solid rgba(255,255,255,0.12);
+      line-height:1;
+    }
+
+    .menuLateral a[data-menu="mis-compras"]{
+      position:relative;
+    }
+
+    .menuLateral a.activo .menuBadgeCompras{
+      background:linear-gradient(180deg,#ffffff,#e9e9e9);
+      color:#111;
+      box-shadow:none;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function insertarBadgeMisComprasSiNoExiste() {
+  inyectarEstilosBadgeMisCompras();
+
+  const link = document.querySelector('#menuLateral a[data-menu="mis-compras"]');
+  if (!link) return null;
+
+  let badge = document.getElementById("badgeMisCompras");
+  if (badge) return badge;
+
+  badge = document.createElement("span");
+  badge.id = "badgeMisCompras";
+  badge.className = "menuBadgeCompras";
+  badge.textContent = "0";
+  link.appendChild(badge);
+
+  return badge;
+}
+
+function obtenerClaveComprasVistas(uid) {
+  return "misComprasVistas_" + uid;
+}
+
+function obtenerComprasVistas(uid) {
+  try {
+    return JSON.parse(localStorage.getItem(obtenerClaveComprasVistas(uid)) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function guardarComprasComoVistas(uid, ids) {
+  if (!uid) return;
+  localStorage.setItem(obtenerClaveComprasVistas(uid), JSON.stringify(ids || []));
+  actualizarBadgeMisCompras(0);
+}
+
+function actualizarBadgeMisCompras(total) {
+  const badge = insertarBadgeMisComprasSiNoExiste();
+  if (!badge) return;
+
+  const cantidad = Number(total || 0);
+
+  if (cantidad > 0) {
+    badge.style.display = "inline-flex";
+    badge.textContent = cantidad > 99 ? "99+" : String(cantidad);
+  } else {
+    badge.style.display = "none";
+    badge.textContent = "0";
+  }
+}
+
+function actualizarBadgeMisComprasDesdeIds(uid, idsActuales = []) {
+  if (!uid) return;
+
+  const vistas = obtenerComprasVistas(uid);
+  const nuevas = idsActuales.filter((id) => !vistas.includes(id));
+
+  if (obtenerPaginaActual() === "mis-compras.html") {
+    actualizarBadgeMisCompras(0);
+    return;
+  }
+
+  actualizarBadgeMisCompras(nuevas.length);
+}
+
+function escucharBadgeMisCompras(uid) {
+  insertarBadgeMisComprasSiNoExiste();
+
+  if (!uid) {
+    actualizarBadgeMisCompras(0);
+    return;
+  }
+
+  if (badgeComprasRef) {
+    badgeComprasRef.off();
+    badgeComprasRef = null;
+  }
+
+  badgeComprasRef = db.ref("ordenes/" + uid);
+
+  badgeComprasRef.on("value", (snapshot) => {
+    const data = snapshot.val() || {};
+    const ids = Object.keys(data);
+
+    if (obtenerPaginaActual() === "mis-compras.html") {
+      guardarComprasComoVistas(uid, ids);
+      return;
+    }
+
+    actualizarBadgeMisComprasDesdeIds(uid, ids);
+  });
+}
+
 /* =========================
 AUTH / SESION
 ========================= */
@@ -225,7 +449,8 @@ auth.onAuthStateChanged((user) => {
     "tienda.html",
     "ofertas.html",
     "recargas.html",
-    "como-comprar.html"
+    "como-comprar.html",
+    "mis-compras.html"
   ];
 
   if (!user && paginasProtegidas.includes(pagina)) {
@@ -235,6 +460,19 @@ auth.onAuthStateChanged((user) => {
 
   if (user && paginasProtegidas.includes(pagina)) {
     cargarPanelUsuario(user);
+    escucharBadgeMisCompras(user.uid);
+  } else {
+    if (badgeComprasRef) {
+      badgeComprasRef.off();
+      badgeComprasRef = null;
+    }
+
+    if (usuarioPerfilRef) {
+      usuarioPerfilRef.off();
+      usuarioPerfilRef = null;
+    }
+
+    actualizarBadgeMisCompras(0);
   }
 });
 
@@ -252,7 +490,14 @@ function cargarPanelUsuario(user) {
   if (handleBox) handleBox.innerText = "@" + usuarioCorreo;
   if (saldoBox) saldoBox.innerHTML = formatearSaldo(0);
 
-  db.ref("usuarios/" + user.uid).on("value", (snap) => {
+  if (usuarioPerfilRef) {
+    usuarioPerfilRef.off();
+    usuarioPerfilRef = null;
+  }
+
+  usuarioPerfilRef = db.ref("usuarios/" + user.uid);
+
+  usuarioPerfilRef.on("value", (snap) => {
     const data = snap.val() || {};
 
     const nombreCompleto =
@@ -381,6 +626,9 @@ db.ref("comprasHoy").on("value", (snap) => {
   const total = snap.val() || 0;
   const span = document.getElementById("clientesHoy");
   if (span) span.innerText = total;
+}, () => {
+  const span = document.getElementById("clientesHoy");
+  if (span) span.innerText = "0";
 });
 
 /* =========================
@@ -388,21 +636,42 @@ VENTAS POR PRODUCTO
 ========================= */
 
 const productosVentas = {
-  Netflix: "ventasNetflix",
-  Disney: "ventasDisney",
-  Prime: "ventasPrime",
-  HBO: "ventasHBO",
-  Paramount: "ventasParamount",
-  Spotify: "ventasSpotify"
+  netflix: "ventasNetflix",
+  disney: "ventasDisney",
+  prime: "ventasPrime",
+  hbo: "ventasHBO",
+  paramount: "ventasParamount",
+  spotify: "ventasSpotify"
 };
 
-for (let prod in productosVentas) {
-  db.ref("ventas/" + prod).on("value", (snap) => {
-    const total = snap.val() || 0;
-    const span = document.getElementById(productosVentas[prod]);
-    if (span) span.innerText = total;
+Object.keys(productosVentas).forEach((prod) => {
+  const spanId = productosVentas[prod];
+  const rutasCompatibles = [
+    "ventas/" + prod,
+    "ventas/" + prod.charAt(0).toUpperCase() + prod.slice(1)
+  ];
+
+  let totalRuta1 = 0;
+  let totalRuta2 = 0;
+
+  db.ref(rutasCompatibles[0]).on("value", (snap) => {
+    totalRuta1 = convertirVentasANumero(snap.val());
+    const span = document.getElementById(spanId);
+    if (span) span.innerText = totalRuta1 + totalRuta2;
+  }, () => {
+    const span = document.getElementById(spanId);
+    if (span) span.innerText = totalRuta1 + totalRuta2;
   });
-}
+
+  db.ref(rutasCompatibles[1]).on("value", (snap) => {
+    totalRuta2 = convertirVentasANumero(snap.val());
+    const span = document.getElementById(spanId);
+    if (span) span.innerText = totalRuta1 + totalRuta2;
+  }, () => {
+    const span = document.getElementById(spanId);
+    if (span) span.innerText = totalRuta1 + totalRuta2;
+  });
+});
 
 /* =========================
 NOTIFICACION COMPRA
@@ -417,7 +686,7 @@ db.ref("comprasLive").limitToLast(1).on("child_added", (snap) => {
 
   if (!box || !texto) return;
 
-  let productoMostrar = String(data.producto || "").replace(/ x\d+$/i, "");
+  const productoMostrar = String(data.producto || "").replace(/ x\d+$/i, "");
   texto.innerText = `${data.nombre || "Cliente"} compró ${productoMostrar}`;
 
   box.style.display = "block";
@@ -427,7 +696,7 @@ db.ref("comprasLive").limitToLast(1).on("child_added", (snap) => {
     box.classList.remove("show");
     box.style.display = "none";
   }, 5000);
-});
+}, () => {});
 
 /* =========================
 PRODUCTOS DINÁMICOS TIENDA
@@ -467,7 +736,6 @@ function renderizarProductosTienda(data) {
     const stock = Number(item.stock || 0);
     const proveedorNombre = item.proveedorNombre || "Josking";
     const imagen = obtenerImagenProducto(item, id);
-    const descripcion = item.descripcion || "Producto digital disponible.";
     const duracionTexto = obtenerDuracionTexto(item);
     const agotado = stock <= 0;
 
@@ -475,7 +743,10 @@ function renderizarProductosTienda(data) {
       <div class="producto" id="producto_${escaparHTML(id)}">
         <img src="${escaparHTML(imagen)}" alt="${escaparHTML(nombre)}">
         <h2>${escaparHTML(nombre)}</h2>
-        <p class="productoProveedor">🛡 ${escaparHTML(proveedorNombre)}</p>
+        <div class="productoProveedor">
+          <span class="productoProveedorTop">Proveedor</span>
+          <span class="productoProveedorNombre">🛡 ${escaparHTML(proveedorNombre)}</span>
+        </div>
         <p class="precio">${escaparHTML(formatearPrecioProducto(precio))}</p>
         <p class="stock">Stock: <span id="stock_${escaparHTML(id)}">${stock}</span></p>
         <p class="duracionServicio">${escaparHTML(duracionTexto)}</p>
@@ -558,7 +829,18 @@ function abrirProductoPorId(productoId) {
   const lista = document.getElementById("listaReglas");
 
   if (modalNombre) modalNombre.innerText = nombre;
-  if (modalProveedor) modalProveedor.innerText = "Proveedor: " + proveedorNombre;
+
+  if (modalProveedor) {
+    modalProveedor.innerHTML = `
+      <span class="proveedorLabel">Vendido por</span>
+      <span class="proveedorNombreWrap">
+        <span class="proveedorIcono">🛡</span>
+        <span class="proveedorNombreTexto">${escaparHTML(proveedorNombre)}</span>
+      </span>
+      <span class="proveedorEstado">Proveedor activo</span>
+    `;
+  }
+
   if (modalDescripcion) modalDescripcion.innerText = descripcion;
   if (modalImagen) modalImagen.src = imagen;
   if (cantidadEl) cantidadEl.innerText = "1";
@@ -572,7 +854,7 @@ function abrirProductoPorId(productoId) {
 MODAL PRODUCTO
 ========================= */
 
-function agregarCarrito(nombre, precio, descripcion, imagen) {
+function agregarCarrito(nombre) {
   const productoEncontradoId = Object.keys(productosTiendaCache).find((id) => {
     const item = productosTiendaCache[id] || {};
     return String(item.nombre || "").trim().toLowerCase() === String(nombre || "").trim().toLowerCase();
@@ -597,7 +879,7 @@ function cambiarCantidad(valor) {
   if (nuevaCantidad < 1) nuevaCantidad = 1;
 
   if (nuevaCantidad > stockDisponible) {
-    alert("Solo quedan " + stockDisponible + " perfiles disponibles");
+    alert("Solo quedan " + stockDisponible + " cuentas disponibles");
     return;
   }
 
@@ -611,30 +893,389 @@ function cambiarCantidad(valor) {
 }
 
 /* =========================
+CUENTAS / ORDENES / COMPRAS
+========================= */
+
+async function obtenerPerfilUsuario(uid) {
+  const snap = await db.ref("usuarios/" + uid).once("value");
+  return snap.val() || {};
+}
+
+function obtenerNombreComprador(user, perfil = {}) {
+  return (
+    perfil.nombreCompleto ||
+    [perfil.nombre, perfil.apellido].filter(Boolean).join(" ").trim() ||
+    perfil.nombre ||
+    user?.displayName ||
+    perfil.usuario ||
+    obtenerNombreSimpleDesdeCorreo(user?.email) ||
+    "Cliente"
+  );
+}
+
+function obtenerCuentaValor(data = {}) {
+  return (
+    data.cuenta ||
+    data.correo ||
+    data.email ||
+    data.usuario ||
+    ""
+  );
+}
+
+function obtenerClaveValor(data = {}) {
+  return (
+    data.clave ||
+    data.password ||
+    data.contrasena ||
+    data.contraseña ||
+    ""
+  );
+}
+
+function obtenerPerfilValor(data = {}) {
+  return data.perfil || "";
+}
+
+function obtenerPinValor(data = {}) {
+  return data.pin || "";
+}
+
+function obtenerObservacionValor(data = {}) {
+  return data.observacion || "";
+}
+
+function cuentaEstaDisponible(data = {}) {
+  const vendida = data.vendida === true || data.vendido === true || data.usada === true;
+  const disponibleFalse = data.disponible === false;
+  const estado = String(data.estado || "").toLowerCase();
+
+  if (vendida) return false;
+  if (disponibleFalse) return false;
+  if (["vendida", "usada", "ocupada", "inactiva"].includes(estado)) return false;
+
+  const cuenta = obtenerCuentaValor(data);
+  return String(cuenta || "").trim() !== "";
+}
+
+async function obtenerCuentasDisponibles(productoId, itemProducto, cantidadNecesaria) {
+  const rutaCuentas = obtenerRutaCuentasPorProducto(productoId, itemProducto);
+  const snap = await db.ref("cuentas/" + rutaCuentas).once("value");
+  const data = snap.val() || {};
+
+  const cuentas = [];
+
+  Object.keys(data).forEach((key) => {
+    const item = data[key] || {};
+
+    if (!cuentaEstaDisponible(item)) return;
+    if (cuentas.length >= cantidadNecesaria) return;
+
+    cuentas.push({
+      key,
+      ruta: rutaCuentas,
+      cuenta: obtenerCuentaValor(item),
+      clave: obtenerClaveValor(item),
+      perfil: obtenerPerfilValor(item),
+      pin: obtenerPinValor(item),
+      observacion: obtenerObservacionValor(item),
+      raw: item
+    });
+  });
+
+  return cuentas;
+}
+
+function descontarSaldoUsuario(uid, monto) {
+  return new Promise((resolve, reject) => {
+    const ref = db.ref("usuarios/" + uid + "/saldo");
+
+    ref.transaction((saldoActual) => {
+      const saldo = Number(saldoActual || 0);
+      if (saldo < monto) return;
+      return Number((saldo - monto).toFixed(2));
+    }, (error, committed, snapshot) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      if (!committed) {
+        reject(new Error("SALDO_INSUFICIENTE"));
+        return;
+      }
+
+      resolve(Number(snapshot.val() || 0));
+    });
+  });
+}
+
+function devolverSaldoUsuario(uid, monto) {
+  return new Promise((resolve, reject) => {
+    db.ref("usuarios/" + uid + "/saldo").transaction((saldoActual) => {
+      const saldo = Number(saldoActual || 0);
+      return Number((saldo + monto).toFixed(2));
+    }, (error) => {
+      if (error) reject(error);
+      else resolve();
+    });
+  });
+}
+
+function descontarStockProducto(productoId, cantidad) {
+  return new Promise((resolve, reject) => {
+    const ref = db.ref("productos/" + productoId + "/stock");
+
+    ref.transaction((stockActual) => {
+      const stock = Number(stockActual || 0);
+      if (stock < cantidad) return;
+      return stock - cantidad;
+    }, (error, committed, snapshot) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      if (!committed) {
+        reject(new Error("STOCK_INSUFICIENTE"));
+        return;
+      }
+
+      resolve(Number(snapshot.val() || 0));
+    });
+  });
+}
+
+function devolverStockProducto(productoId, cantidad) {
+  return new Promise((resolve, reject) => {
+    db.ref("productos/" + productoId + "/stock").transaction((stockActual) => {
+      const stock = Number(stockActual || 0);
+      return stock + cantidad;
+    }, (error) => {
+      if (error) reject(error);
+      else resolve();
+    });
+  });
+}
+
+async function marcarCuentasVendidas(cuentas, user, nombreComprador) {
+  const updates = {};
+  const fechaEntrega = formatearFechaEntregaLocal();
+
+  cuentas.forEach((cuentaObj) => {
+    const base = `cuentas/${cuentaObj.ruta}/${cuentaObj.key}`;
+    updates[`${base}/estado`] = "usada";
+    updates[`${base}/uidUsuario`] = user.uid;
+    updates[`${base}/comprador`] = nombreComprador;
+    updates[`${base}/fechaEntrega`] = fechaEntrega;
+
+    updates[`${base}/vendida`] = true;
+    updates[`${base}/vendido`] = true;
+    updates[`${base}/disponible`] = false;
+    updates[`${base}/uidComprador`] = user.uid;
+    updates[`${base}/compradorNombre`] = nombreComprador;
+    updates[`${base}/fechaVenta`] = Date.now();
+  });
+
+  return db.ref().update(updates);
+}
+
+async function revertirCuentasVendidas(cuentas) {
+  if (!Array.isArray(cuentas) || !cuentas.length) return;
+
+  const updates = {};
+
+  cuentas.forEach((cuentaObj) => {
+    const base = `cuentas/${cuentaObj.ruta}/${cuentaObj.key}`;
+    updates[`${base}/estado`] = "disponible";
+    updates[`${base}/uidUsuario`] = null;
+    updates[`${base}/comprador`] = null;
+    updates[`${base}/fechaEntrega`] = null;
+
+    updates[`${base}/vendida`] = false;
+    updates[`${base}/vendido`] = false;
+    updates[`${base}/disponible`] = true;
+    updates[`${base}/uidComprador`] = null;
+    updates[`${base}/compradorNombre`] = null;
+    updates[`${base}/fechaVenta`] = null;
+  });
+
+  return db.ref().update(updates);
+}
+
+async function guardarOrdenesUsuario(itemProducto, cuentasAsignadas, nombreComprador) {
+  const uid = usuarioActual?.uid;
+  if (!uid || !cuentasAsignadas.length) return;
+
+  const ahora = new Date();
+  const duracionDias = Number(itemProducto.duracionDias || 30);
+  const fechaExpira = new Date(ahora.getTime() + duracionDias * 24 * 60 * 60 * 1000).toISOString();
+  const precioUnitario = Number(itemProducto.precio || precioBase || 0);
+
+  const tareas = cuentasAsignadas.map((cuentaObj) => {
+    const nuevaOrdenRef = db.ref("ordenes/" + uid).push();
+
+    return nuevaOrdenRef.set({
+      servicio: itemProducto.nombre || productoActual || "",
+      producto: productoSeleccionadoId || "",
+      cuenta: cuentaObj.cuenta || "",
+      clave: cuentaObj.clave || "",
+      perfil: cuentaObj.perfil || "",
+      pin: cuentaObj.pin || "",
+      observacion: cuentaObj.observacion || "",
+      nombreCliente: "",
+      comprador: nombreComprador || "",
+      precio: Number(precioUnitario.toFixed(2)),
+      fechaCompra: ahora.toISOString(),
+      fechaExpira: fechaExpira,
+      estado: "activa",
+      uid: uid,
+      soporteNumero: numero
+    });
+  });
+
+  return Promise.all(tareas);
+}
+
+async function registrarCompraFinal(cuentasAsignadas, nombreComprador) {
+  const item = productoSeleccionadoData || {};
+  const productoId = productoSeleccionadoId;
+  const reparto = calcularRepartoVenta(precioBase, cantidadProducto, item);
+
+  db.ref("comprasHoy").transaction((total) => {
+    return (total || 0) + cantidadProducto;
+  });
+
+  await db.ref("ventas/" + productoId).push({
+    productoId: productoId,
+    producto: item.nombre || productoActual,
+    proveedorId: item.proveedorId || "",
+    proveedorNombre: item.proveedorNombre || "Josking",
+    porcentajeProveedor: reparto.porcentajeProveedor,
+    porcentajePlataforma: reparto.porcentajePlataforma,
+    montoProveedor: reparto.montoProveedor,
+    montoPlataforma: reparto.montoPlataforma,
+    montoTotal: reparto.total,
+    cantidad: cantidadProducto,
+    nombre: nombreComprador,
+    uidUsuario: usuarioActual?.uid || "",
+    fecha: Date.now(),
+    estado: "registrado"
+  });
+
+  await db.ref("comprasLive").push({
+    nombre: nombreComprador,
+    producto: item.nombre || productoActual,
+    time: Date.now()
+  });
+
+  await guardarOrdenesUsuario(item, cuentasAsignadas, nombreComprador);
+}
+
+/* =========================
 COMPRAR
 ========================= */
 
-function comprarAhora() {
+async function comprarAhora() {
+  if (!usuarioActual) {
+    alert("Debes iniciar sesión para comprar.");
+    return;
+  }
+
   if (!productoSeleccionadoData || !productoSeleccionadoId) {
     alert("Selecciona un producto válido.");
     return;
   }
 
-  if (cantidadProducto > stockDisponible) {
-    alert("No hay suficiente stock disponible");
+  if (cantidadProducto < 1) {
+    alert("Cantidad inválida.");
     return;
   }
 
-  const reparto = calcularRepartoVenta(precioBase, cantidadProducto, productoSeleccionadoData);
+  if (cantidadProducto > stockDisponible) {
+    alert("No hay suficiente stock disponible.");
+    return;
+  }
 
-  alert(
-    "Muy pronto esta compra se realizará con saldo automático.\n\n" +
-    "Producto: " + productoActual + "\n" +
-    "Cantidad: " + cantidadProducto + "\n" +
-    "Total: S/ " + reparto.total.toFixed(2) + "\n" +
-    "Proveedor: S/ " + reparto.montoProveedor.toFixed(2) + "\n" +
-    "Plataforma: S/ " + reparto.montoPlataforma.toFixed(2)
-  );
+  const item = productoSeleccionadoData || {};
+  const uid = usuarioActual.uid;
+  const totalCompra = Number((Number(precioBase || 0) * Number(cantidadProducto || 1)).toFixed(2));
+
+  let saldoDescontado = false;
+  let stockDescontado = false;
+  let cuentasMarcadas = false;
+  let cuentasDisponibles = [];
+
+  try {
+    const perfil = await obtenerPerfilUsuario(uid);
+    const nombreComprador = obtenerNombreComprador(usuarioActual, perfil);
+    const saldoActual = Number(perfil.saldo || 0);
+
+    if (saldoActual < totalCompra) {
+      alert("Saldo insuficiente para completar esta compra.");
+      return;
+    }
+
+    cuentasDisponibles = await obtenerCuentasDisponibles(productoSeleccionadoId, item, cantidadProducto);
+
+    if (cuentasDisponibles.length < cantidadProducto) {
+      alert("No hay suficientes cuentas configuradas para este producto.");
+      return;
+    }
+
+    await descontarSaldoUsuario(uid, totalCompra);
+    saldoDescontado = true;
+
+    await descontarStockProducto(productoSeleccionadoId, cantidadProducto);
+    stockDescontado = true;
+
+    await marcarCuentasVendidas(cuentasDisponibles, usuarioActual, nombreComprador);
+    cuentasMarcadas = true;
+
+    await registrarCompraFinal(cuentasDisponibles, nombreComprador);
+
+    cerrarModal();
+    mostrarToastCompraExitosa(item.nombre || productoActual, totalCompra);
+
+  } catch (error) {
+    console.error("Error al comprar:", error);
+
+    if (cuentasMarcadas) {
+      try {
+        await revertirCuentasVendidas(cuentasDisponibles);
+      } catch (e) {
+        console.error("No se pudieron revertir las cuentas:", e);
+      }
+    }
+
+    if (stockDescontado) {
+      try {
+        await devolverStockProducto(productoSeleccionadoId, cantidadProducto);
+      } catch (e) {
+        console.error("No se pudo devolver stock:", e);
+      }
+    }
+
+    if (saldoDescontado) {
+      try {
+        await devolverSaldoUsuario(uid, totalCompra);
+      } catch (e) {
+        console.error("No se pudo devolver saldo:", e);
+      }
+    }
+
+    if (String(error?.message || "").includes("SALDO_INSUFICIENTE")) {
+      alert("Saldo insuficiente para completar esta compra.");
+      return;
+    }
+
+    if (String(error?.message || "").includes("STOCK_INSUFICIENTE")) {
+      alert("El stock cambió y ya no alcanza para completar la compra.");
+      return;
+    }
+
+    alert("Ocurrió un error al procesar la compra. No se completó la operación.");
+  }
 }
 
 /* =========================
@@ -647,55 +1288,6 @@ function mostrarFormulario() {
 
   if (qr) qr.style.display = "none";
   if (form) form.style.display = "block";
-}
-
-/* =========================
-REGISTRAR COMPRA
-========================= */
-
-function registrarCompra(producto) {
-  const nombre = usuarioActual?.displayName || "Cliente";
-
-  db.ref("comprasHoy").transaction((total) => {
-    return (total || 0) + 1;
-  });
-
-  const productoId = productoSeleccionadoId;
-  const item = productoSeleccionadoData || {};
-  const reparto = calcularRepartoVenta(precioBase, cantidadProducto, item);
-
-  if (productoId) {
-    db.ref("productos/" + productoId + "/stock").transaction((stock) => {
-      stock = Number(stock || 0);
-      if (stock >= cantidadProducto) {
-        return stock - cantidadProducto;
-      }
-      return stock;
-    });
-
-    db.ref("ventas/" + productoId).push({
-      productoId: productoId,
-      producto: item.nombre || producto,
-      proveedorId: item.proveedorId || "",
-      proveedorNombre: item.proveedorNombre || "Josking",
-      porcentajeProveedor: reparto.porcentajeProveedor,
-      porcentajePlataforma: reparto.porcentajePlataforma,
-      montoProveedor: reparto.montoProveedor,
-      montoPlataforma: reparto.montoPlataforma,
-      montoTotal: reparto.total,
-      cantidad: cantidadProducto,
-      nombre: nombre,
-      uidUsuario: usuarioActual?.uid || "",
-      fecha: Date.now(),
-      estado: "registrado"
-    });
-  }
-
-  db.ref("comprasLive").push({
-    nombre: nombre,
-    producto: producto,
-    time: Date.now()
-  });
 }
 
 /* =========================
@@ -820,6 +1412,7 @@ document.addEventListener("DOMContentLoaded", function () {
   iniciarSlider();
   verificarUrgenciaOferta();
   cargarProductosTienda();
+  insertarBadgeMisComprasSiNoExiste();
 
   if (ofertaSigueActiva() && !localStorage.getItem("visitoOfertas")) {
     mostrarModalOfertaVigente();
