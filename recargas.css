@@ -562,3 +562,764 @@
 .comprobanteDisabled small{
   color: #ffcc66;
 }
+.btnMetodoPago{
+  margin-top:12px;
+  width:100%;
+  min-height:50px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(180deg,#1a1a1a,#0d0d0d);
+  color:#fff;
+  border:1px solid #2d2d2d;
+  font-size:0.95rem;
+  font-weight:700;
+  cursor:pointer;
+  transition:0.25s ease;
+}
+
+.btnMetodoPago:hover{
+  border-color:#ff1717;
+  color:#fff;
+  transform:translateY(-1px);
+  box-shadow:0 10px 24px rgba(255,23,23,0.12);
+}
+
+.modalPagoOverlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.72);
+  backdrop-filter:blur(6px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  z-index:9999;
+  opacity:0;
+  visibility:hidden;
+  transition:0.25s ease;
+}
+
+.modalPagoOverlay.show{
+  opacity:1;
+  visibility:visible;
+}
+
+.modalPagoBox{
+  width:100%;
+  max-width:760px;
+  background:linear-gradient(180deg,#111,#080808);
+  border:1px solid #232323;
+  border-radius:22px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.45);
+  position:relative;
+  overflow:hidden;
+  transform:translateY(10px) scale(0.98);
+  transition:0.25s ease;
+}
+
+.modalPagoOverlay.show .modalPagoBox{
+  transform:translateY(0) scale(1);
+}
+
+.modalPagoClose{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:42px;
+  height:42px;
+  border:none;
+  border-radius:50%;
+  background:rgba(255,255,255,0.06);
+  color:#fff;
+  font-size:1.4rem;
+  cursor:pointer;
+  transition:0.25s ease;
+  z-index:2;
+}
+
+.modalPagoClose:hover{
+  background:rgba(255,23,23,0.18);
+  color:#ff5c5c;
+}
+
+.modalPagoTop{
+  padding:26px 26px 18px;
+  border-bottom:1px solid #1d1d1d;
+  background:radial-gradient(circle at top left, rgba(255,23,23,0.10), transparent 42%);
+}
+
+.modalPagoBadge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:8px 14px;
+  border-radius:999px;
+  background:rgba(255,23,23,0.12);
+  border:1px solid rgba(255,23,23,0.18);
+  color:#ff7b7b;
+  font-size:0.88rem;
+  font-weight:800;
+  margin-bottom:12px;
+}
+
+.modalPagoTop h3{
+  margin:0 0 8px;
+  font-size:1.6rem;
+  line-height:1.2;
+  font-weight:800;
+  color:#fff;
+}
+
+.modalPagoTop p{
+  margin:0;
+  color:#bdbdbd;
+  line-height:1.6;
+  font-size:0.96rem;
+}
+
+.modalPagoBody{
+  display:grid;
+  grid-template-columns:1.2fr 0.9fr;
+  gap:20px;
+  padding:22px 26px;
+}
+
+.modalPagoInfo{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.modalInfoCard,
+.modalQRCard{
+  background:#0b0b0b;
+  border:1px solid #222;
+  border-radius:16px;
+  padding:16px;
+}
+
+.modalInfoLabel{
+  display:block;
+  color:#9f9f9f;
+  font-size:0.85rem;
+  font-weight:700;
+  margin-bottom:10px;
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+}
+
+.modalInfoRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.modalInfoRow strong{
+  font-size:1.05rem;
+  color:#fff;
+  word-break:break-word;
+}
+
+.btnCopyMini{
+  min-width:92px;
+  min-height:40px;
+  border:none;
+  border-radius:10px;
+  background:#ff1717;
+  color:#fff;
+  font-size:0.88rem;
+  font-weight:800;
+  cursor:pointer;
+  padding:10px 14px;
+  transition:0.25s ease;
+}
+
+.btnCopyMini:hover{
+  background:#df1111;
+}
+
+.modalActionGroup{
+  display:flex;
+}
+
+.btnAbrirMetodo{
+  width:100%;
+  min-height:52px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  border-radius:12px;
+  background:linear-gradient(180deg,#ff2424,#d80f0f);
+  color:#fff;
+  font-weight:800;
+  text-decoration:none;
+  padding:12px 16px;
+  transition:0.25s ease;
+}
+
+.btnAbrirMetodo:hover{
+  transform:translateY(-1px);
+  box-shadow:0 12px 28px rgba(255,23,23,0.22);
+}
+
+.modalPagoQRWrap{
+  display:flex;
+}
+
+.modalQRCard{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:100%;
+}
+
+.modalQRCard img{
+  width:100%;
+  max-width:240px;
+  aspect-ratio:1/1;
+  object-fit:contain;
+  border-radius:16px;
+  background:#fff;
+  padding:10px;
+  border:1px solid #2a2a2a;
+}
+
+.modalPagoFooter{
+  padding:0 26px 24px;
+}
+
+.modalPagoFooter p{
+  margin:0;
+  color:#a9a9a9;
+  line-height:1.6;
+  font-size:0.92rem;
+}
+
+body.modal-open{
+  overflow:hidden;
+}
+
+@media (max-width:768px){
+  .modalPagoBox{
+    max-width:100%;
+    border-radius:18px;
+  }
+
+  .modalPagoTop{
+    padding:22px 18px 16px;
+  }
+
+  .modalPagoBody{
+    grid-template-columns:1fr;
+    padding:18px;
+  }
+
+  .modalPagoFooter{
+    padding:0 18px 20px;
+  }
+
+  .modalPagoTop h3{
+    font-size:1.3rem;
+  }
+
+  .modalInfoRow strong{
+    font-size:0.98rem;
+  }
+
+  .modalQRCard img{
+    max-width:200px;
+  }
+}
+
+@media (max-width:480px){
+  .modalPagoOverlay{
+    padding:10px;
+  }
+
+  .modalPagoTop{
+    padding:20px 16px 14px;
+  }
+
+  .modalPagoBody{
+    padding:16px;
+  }
+
+  .modalPagoFooter{
+    padding:0 16px 18px;
+  }
+
+  .modalPagoClose{
+    width:38px;
+    height:38px;
+    top:10px;
+    right:10px;
+  }
+
+  .btnCopyMini{
+    width:100%;
+  }
+
+  .modalInfoRow{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+}
+.metodoPagoHint{
+  margin-top:12px;
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:14px 16px;
+  border-radius:14px;
+  border:1px solid rgba(255,23,23,0.18);
+  background:linear-gradient(180deg, rgba(255,23,23,0.07), rgba(255,255,255,0.02));
+  box-shadow:0 10px 28px rgba(0,0,0,0.18);
+}
+
+.metodoPagoHintLeft{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  min-width:0;
+  flex:1;
+}
+
+.metodoPagoDot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#ff2d2d;
+  box-shadow:0 0 14px rgba(255,45,45,0.65);
+  margin-top:6px;
+  flex-shrink:0;
+}
+
+.metodoPagoText{
+  min-width:0;
+}
+
+.metodoPagoText strong{
+  display:block;
+  color:#fff;
+  font-size:0.95rem;
+  margin-bottom:4px;
+  line-height:1.4;
+}
+
+.metodoPagoText span{
+  display:block;
+  color:#bbbbbb;
+  font-size:0.9rem;
+  line-height:1.5;
+}
+
+.btnInlinePago{
+  border:none;
+  background:transparent;
+  color:#ff6f6f;
+  font-weight:800;
+  font-size:0.92rem;
+  cursor:pointer;
+  padding:0;
+  white-space:nowrap;
+  transition:0.25s ease;
+}
+
+.btnInlinePago:hover{
+  color:#ff2f2f;
+  text-shadow:0 0 10px rgba(255,47,47,0.18);
+}
+
+.modalPagoOverlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.74);
+  backdrop-filter:blur(6px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  z-index:9999;
+  opacity:0;
+  visibility:hidden;
+  transition:0.25s ease;
+}
+
+.modalPagoOverlay.show{
+  opacity:1;
+  visibility:visible;
+}
+
+.modalPagoBox{
+  width:100%;
+  max-width:780px;
+  background:linear-gradient(180deg,#101010,#070707);
+  border:1px solid #232323;
+  border-radius:22px;
+  box-shadow:0 22px 60px rgba(0,0,0,0.48);
+  position:relative;
+  overflow:hidden;
+  transform:translateY(10px) scale(0.985);
+  transition:0.25s ease;
+}
+
+.modalPagoOverlay.show .modalPagoBox{
+  transform:translateY(0) scale(1);
+}
+
+.modalPagoClose{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:42px;
+  height:42px;
+  border:none;
+  border-radius:50%;
+  background:rgba(255,255,255,0.06);
+  color:#fff;
+  font-size:1.4rem;
+  cursor:pointer;
+  transition:0.25s ease;
+  z-index:3;
+}
+
+.modalPagoClose:hover{
+  background:rgba(255,23,23,0.16);
+  color:#ff6565;
+}
+
+.modalPagoTop{
+  padding:26px 26px 18px;
+  border-bottom:1px solid #1d1d1d;
+  background:
+    radial-gradient(circle at top left, rgba(255,23,23,0.13), transparent 42%),
+    linear-gradient(180deg,#111,#0a0a0a);
+}
+
+.modalPagoBadge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:8px 14px;
+  border-radius:999px;
+  background:rgba(255,23,23,0.12);
+  border:1px solid rgba(255,23,23,0.18);
+  color:#ff7878;
+  font-size:0.87rem;
+  font-weight:800;
+  margin-bottom:12px;
+}
+
+.modalPagoTop h3{
+  margin:0 0 8px;
+  font-size:1.55rem;
+  line-height:1.2;
+  font-weight:800;
+  color:#fff;
+}
+
+.modalPagoTop p{
+  margin:0;
+  color:#bbbbbb;
+  line-height:1.65;
+  font-size:0.96rem;
+}
+
+.modalPagoBody{
+  display:grid;
+  grid-template-columns:1.05fr 0.95fr;
+  gap:20px;
+  padding:22px 26px;
+}
+
+.modalPagoInfo{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.modalInfoCard,
+.modalQRCard{
+  background:#0b0b0b;
+  border:1px solid #222;
+  border-radius:16px;
+  padding:16px;
+}
+
+.modalInfoLabel{
+  display:block;
+  color:#9f9f9f;
+  font-size:0.83rem;
+  font-weight:800;
+  margin-bottom:10px;
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+}
+
+.modalInfoRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.modalInfoRow.simpleRow{
+  justify-content:flex-start;
+}
+
+.modalInfoRow strong{
+  font-size:1.04rem;
+  color:#fff;
+  word-break:break-word;
+}
+
+.btnCopyMini{
+  min-width:92px;
+  min-height:40px;
+  border:none;
+  border-radius:10px;
+  background:#ff1717;
+  color:#fff;
+  font-size:0.88rem;
+  font-weight:800;
+  cursor:pointer;
+  padding:10px 14px;
+  transition:0.25s ease;
+}
+
+.btnCopyMini:hover{
+  background:#df1111;
+}
+
+.modalActionGroup{
+  display:flex;
+}
+
+.btnAbrirMetodo{
+  width:100%;
+  min-height:52px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  border-radius:12px;
+  background:linear-gradient(180deg,#ff2626,#d91010);
+  color:#fff;
+  font-weight:800;
+  text-decoration:none;
+  padding:12px 16px;
+  transition:0.25s ease;
+}
+
+.btnAbrirMetodo:hover{
+  transform:translateY(-1px);
+  box-shadow:0 12px 28px rgba(255,23,23,0.22);
+}
+
+.modalPagoQRWrap{
+  display:flex;
+}
+
+.modalQRCard{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:100%;
+}
+
+.modalQRCard img{
+  width:100%;
+  max-width:250px;
+  aspect-ratio:1/1;
+  object-fit:contain;
+  border-radius:16px;
+  background:#fff;
+  padding:10px;
+  border:1px solid #2a2a2a;
+}
+
+.modalPagoFooter{
+  padding:0 26px 24px;
+}
+
+.modalPagoFooter p{
+  margin:0;
+  color:#a7a7a7;
+  line-height:1.6;
+  font-size:0.92rem;
+}
+
+body.modal-open{
+  overflow:hidden;
+}
+
+@media (max-width:768px){
+  .metodoPagoHint{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .modalPagoBox{
+    max-width:100%;
+    border-radius:18px;
+  }
+
+  .modalPagoTop{
+    padding:22px 18px 16px;
+  }
+
+  .modalPagoBody{
+    grid-template-columns:1fr;
+    padding:18px;
+  }
+
+  .modalPagoFooter{
+    padding:0 18px 20px;
+  }
+
+  .modalPagoTop h3{
+    font-size:1.3rem;
+  }
+
+  .modalInfoRow strong{
+    font-size:0.98rem;
+  }
+
+  .modalQRCard img{
+    max-width:210px;
+  }
+}
+
+@media (max-width:480px){
+  .modalPagoOverlay{
+    padding:10px;
+  }
+
+  .modalPagoTop{
+    padding:20px 16px 14px;
+  }
+
+  .modalPagoBody{
+    padding:16px;
+  }
+
+  .modalPagoFooter{
+    padding:0 16px 18px;
+  }
+
+  .modalPagoClose{
+    width:38px;
+    height:38px;
+    top:10px;
+    right:10px;
+  }
+
+  .btnCopyMini{
+    width:100%;
+  }
+
+  .modalInfoRow{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+}
+/* =========================================
+   AJUSTE RESPONSIVE REAL PARA RECARGAS
+   EVITA QUE EL MENÚ TAPE EL CONTENIDO
+========================================= */
+
+/* escritorio con menú lateral visible */
+@media (min-width: 1025px){
+  .recargasPage{
+    width: calc(100% - 230px);
+    max-width: calc(1450px - 230px);
+    margin-left: 230px;
+    padding: 30px 18px 40px;
+  }
+}
+
+/* laptops medianas donde aún puede molestar el menú */
+@media (max-width: 1200px) and (min-width: 1025px){
+  .recargasPage{
+    width: calc(100% - 230px);
+    max-width: none;
+    margin-left: 230px;
+    padding: 24px 16px 32px;
+  }
+
+  .recargasGrid{
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* cuando el menú ya debería comportarse como móvil/tablet */
+@media (max-width: 1024px){
+  .recargasPage{
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    padding: 22px 14px 30px;
+  }
+
+  .recargasGrid{
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .panelCard{
+    width: 100%;
+  }
+}
+
+/* seguridad extra para que nada se desborde */
+.recargasPage,
+.recargasGrid,
+.panelCard,
+.formRecarga,
+.formGroup,
+.currencyCard,
+.formInfo,
+.tableWrap{
+  min-width: 0;
+}
+
+/* evita que inputs o bloques largos empujen el layout */
+.formGroup input,
+.formGroup select,
+.btnPrimary,
+.metodoPagoHint{
+  max-width: 100%;
+}
+
+/* mejora visual en tablets horizontales */
+@media (min-width: 769px) and (max-width: 1024px){
+  .recargasHeroText,
+  .panelCard{
+    border-radius: 16px;
+  }
+
+  .panelCard{
+    padding: 18px;
+  }
+
+  .panelHead h2{
+    font-size: 1.35rem;
+  }
+
+  .recargasHeroText h1{
+    font-size: 1.7rem;
+  }
+}
