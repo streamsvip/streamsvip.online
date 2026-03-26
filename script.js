@@ -46,6 +46,7 @@ let productosTiendaCache = {};
 let badgeComprasRef = null;
 let usuarioPerfilRef = null;
 let redireccionPorBloqueoEnCurso = false;
+let compraEnProceso = false;
 
 /* =========================
 UTILIDADES
@@ -1751,7 +1752,7 @@ function obtenerFechaExpiraOrden(itemProducto, tipoEntrega, ahora) {
 }
 
 async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprador) {
-  const uid = usuarioActual?.uid;
+  const uid = usuarioActual && usuarioActual.uid ? usuarioActual.uid : "";
   if (!uid || !itemsAsignados.length) return;
 
   const ahora = new Date();
@@ -1798,7 +1799,7 @@ async function registrarCompraFinal(itemsAsignados, nombreComprador) {
   const productoId = productoSeleccionadoId;
   const reparto = calcularRepartoVenta(precioBase, cantidadProducto, item);
 
-  db.ref("comprasHoy").transaction((total) => {
+  await db.ref("comprasHoy").transaction((total) => {
     return (total || 0) + cantidadProducto;
   });
 
@@ -1833,40 +1834,45 @@ COMPRAR
 ========================= */
 
 async function comprarAhora() {
-  if (!usuarioActual) {
-    mostrarAvisoSistema("Acceso requerido", "Debes iniciar sesión para comprar.", "info");
-    return;
-  }
-
-  if (!productoSeleccionadoData || !productoSeleccionadoId) {
-    mostrarAvisoSistema("Producto no válido", "Selecciona un producto válido.", "error");
-    return;
-  }
-
-  if (cantidadProducto < 1) {
-    mostrarAvisoSistema("Cantidad inválida", "La cantidad seleccionada no es válida.", "warn");
-    return;
-  }
-
-  if (cantidadProducto > stockDisponible) {
-    cantidadProducto = Math.max(1, stockDisponible);
-    actualizarVisualCantidadYTotal();
-    mostrarAvisoStockPremium(stockDisponible);
-    return;
-  }
-
-  const item = productoSeleccionadoData || {};
-  const uid = usuarioActual.uid;
-  const totalCompra = Number((Number(precioBase || 0) * Number(cantidadProducto || 1)).toFixed(2));
-  const productoEsLicencia = esProductoLicencia(productoSeleccionadoId, item);
-  const productoEsCodigo = esProductoCodigo(productoSeleccionadoId, item);
+  if (compraEnProceso) return;
+  compraEnProceso = true;
 
   let saldoDescontado = false;
   let stockDescontado = false;
   let itemsMarcados = false;
   let itemsDisponibles = [];
+  let uid = "";
+  let totalCompra = 0;
 
   try {
+    if (!usuarioActual) {
+      mostrarAvisoSistema("Acceso requerido", "Debes iniciar sesión para comprar.", "info");
+      return;
+    }
+
+    if (!productoSeleccionadoData || !productoSeleccionadoId) {
+      mostrarAvisoSistema("Producto no válido", "Selecciona un producto válido.", "error");
+      return;
+    }
+
+    if (cantidadProducto < 1) {
+      mostrarAvisoSistema("Cantidad inválida", "La cantidad seleccionada no es válida.", "warn");
+      return;
+    }
+
+    if (cantidadProducto > stockDisponible) {
+      cantidadProducto = Math.max(1, stockDisponible);
+      actualizarVisualCantidadYTotal();
+      mostrarAvisoStockPremium(stockDisponible);
+      return;
+    }
+
+    const item = productoSeleccionadoData || {};
+    uid = usuarioActual.uid;
+    totalCompra = Number((Number(precioBase || 0) * Number(cantidadProducto || 1)).toFixed(2));
+    const productoEsLicencia = esProductoLicencia(productoSeleccionadoId, item);
+    const productoEsCodigo = esProductoCodigo(productoSeleccionadoId, item);
+
     const perfil = await obtenerPerfilUsuario(uid);
     const estadoUsuario = String(perfil.estado || "activo").toLowerCase();
 
@@ -1916,6 +1922,8 @@ async function comprarAhora() {
 
   } catch (error) {
     console.error("Error al comprar:", error);
+    console.error("Mensaje:", error?.message);
+    console.error("Código:", error?.code);
 
     if (itemsMarcados) {
       try {
@@ -1933,7 +1941,7 @@ async function comprarAhora() {
       }
     }
 
-    if (saldoDescontado) {
+    if (saldoDescontado && uid && totalCompra > 0) {
       try {
         await devolverSaldoUsuario(uid, totalCompra);
       } catch (e) {
@@ -1956,6 +1964,8 @@ async function comprarAhora() {
       "Ocurrió un error al procesar la compra. No se realizó ningún cobro definitivo.",
       "error"
     );
+  } finally {
+    compraEnProceso = false;
   }
 }
 
@@ -2030,10 +2040,24 @@ function iniciarSlider() {
 MENU
 ========================= */
 
-function toggleMenu() {
+function esModoMovilOTablet() {
+  return window.innerWidth <= 1024;
+}
+
+function toggleMenu(e) {
+  if (e) e.stopPropagation();
+
   const menu = document.getElementById("menuLateral");
   if (!menu) return;
+
   menu.classList.toggle("activo");
+}
+
+function cerrarMenu() {
+  const menu = document.getElementById("menuLateral");
+  if (!menu) return;
+
+  menu.classList.remove("activo");
 }
 
 /* =========================
@@ -2114,6 +2138,35 @@ document.addEventListener("DOMContentLoaded", function () {
       );
     });
   }
+
+  const menu = document.getElementById("menuLateral");
+  const menuIcon = document.querySelector(".menuIcon");
+
+  if (menu) {
+    menu.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+  }
+
+  if (menuIcon) {
+    menuIcon.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+  }
+
+  document.querySelectorAll("#menuLateral a").forEach((link) => {
+    link.addEventListener("click", function () {
+      if (esModoMovilOTablet()) {
+        cerrarMenu();
+      }
+    });
+  });
+
+  window.addEventListener("resize", function () {
+    if (!esModoMovilOTablet()) {
+      cerrarMenu();
+    }
+  });
 });
 
 /* =========================
@@ -2123,6 +2176,17 @@ CLICK GLOBAL
 document.addEventListener("click", function (e) {
   const modalCompra = document.getElementById("modalCompra");
   const modalOferta = document.getElementById("modalOfertaVigente");
+  const menu = document.getElementById("menuLateral");
+  const menuIcon = document.querySelector(".menuIcon");
+
+  if (menu && esModoMovilOTablet() && menu.classList.contains("activo")) {
+    const clicDentroMenu = menu.contains(e.target);
+    const clicEnIcono = menuIcon && menuIcon.contains(e.target);
+
+    if (!clicDentroMenu && !clicEnIcono) {
+      cerrarMenu();
+    }
+  }
 
   if (modalCompra && e.target === modalCompra) {
     cerrarModal();
@@ -2169,5 +2233,9 @@ document.addEventListener("keydown", function (e) {
 
     const aviso = document.getElementById("avisoSistemaOverlay");
     if (aviso) aviso.remove();
+
+    if (esModoMovilOTablet()) {
+      cerrarMenu();
+    }
   }
 });
