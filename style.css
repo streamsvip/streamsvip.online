@@ -1,6 +1,6 @@
 /* =========================================================
    STREAMSVIP - STYLE.CSS LIMPIO Y ORDENADO
-   Mantiene panel de usuario y saldo
+   Mantiene panel de usuario, saldo, chat y tarjetas
 ========================================================= */
 
 *{
@@ -11,7 +11,8 @@ html,
 body{
   margin:0;
   padding:0;
-  overflow-x:hidden;
+  max-width:100%;
+  overflow-x:hidden !important;
 }
 
 body{
@@ -124,12 +125,12 @@ input{
   object-fit:cover;
   border:3px solid #fff;
   box-shadow:0 4px 15px rgba(0,0,0,0.3);
-  transition:transform .3s ease, border-color .3s ease !important;
+  transition:transform .3s ease, border-color .3s ease;
 }
 
 .inicio .logo:hover{
-  transform:scale(1.05) !important;
-  border-color:#ff2a2a !important;
+  transform:scale(1.05);
+  border-color:#ff2a2a;
 }
 
 /* =========================================================
@@ -218,7 +219,7 @@ input{
   width:230px;
   height:100vh;
   background:#0b0b0b;
-  overflow-y:auto;
+  overflow:hidden;
   z-index:9998;
   display:flex;
   flex-direction:column;
@@ -254,6 +255,7 @@ input{
   padding:18px 12px;
   text-align:center;
   border-bottom:1px solid #222;
+  flex-shrink:0;
 }
 
 .menuLogo img{
@@ -296,9 +298,9 @@ input{
 ========================================================= */
 
 .panelUsuario{
-  margin:14px 12px 12px;
-  padding:14px 12px;
-  border-radius:16px;
+  margin:12px 10px 10px;
+  padding:12px 10px;
+  border-radius:14px;
   background:
     radial-gradient(circle at top left, rgba(255,215,90,0.10), transparent 35%),
     radial-gradient(circle at bottom right, rgba(255,170,0,0.08), transparent 30%),
@@ -309,7 +311,9 @@ input{
     inset 0 1px 0 rgba(255,255,255,0.03);
   text-align:left;
   position:relative;
-  overflow:hidden;
+  overflow:visible;
+  flex-shrink:0;
+  height:auto;
 }
 
 .panelUsuario::before{
@@ -324,29 +328,30 @@ input{
 }
 
 .panelUsuarioNombre{
-  font-size:14px;
+  font-size:13px;
   font-weight:900;
   color:#ffffff;
   line-height:1.2;
-  margin-bottom:4px;
+  margin-bottom:3px;
   word-break:break-word;
   text-transform:uppercase;
-  letter-spacing:.3px;
+  letter-spacing:.2px;
 }
 
 .panelUsuarioHandle{
-  font-size:12px;
+  font-size:11px;
   color:#b9b0a0;
-  margin-bottom:12px;
+  margin-bottom:10px;
   word-break:break-word;
 }
 
 .panelSaldoBox{
   position:relative;
   width:100%;
-  min-height:86px;
-  padding:11px 10px;
-  border-radius:14px;
+  min-height:70px;
+  height:auto;
+  padding:8px 10px;
+  border-radius:12px;
   text-align:center;
   overflow:hidden;
   border:1px solid rgba(255,215,120,0.38);
@@ -362,6 +367,7 @@ input{
   flex-direction:column;
   align-items:center;
   justify-content:center;
+  flex-shrink:0;
 }
 
 .panelSaldoBox::before{
@@ -389,9 +395,9 @@ input{
   font-size:11px;
   font-weight:800;
   color:#f6ddb0;
-  margin-bottom:6px;
+  margin-bottom:4px;
   text-transform:uppercase;
-  letter-spacing:.6px;
+  letter-spacing:.4px;
   text-shadow:0 0 8px rgba(255,204,0,0.10);
   line-height:1;
 }
@@ -404,11 +410,11 @@ input{
   align-items:center;
   justify-content:center;
   flex-wrap:wrap;
-  gap:3px;
+  gap:2px;
   font-size:15px;
   font-weight:900;
   color:#ffe8a3;
-  line-height:1.15;
+  line-height:1.1;
   text-align:center;
   text-shadow:
     0 0 8px rgba(255,210,90,0.18),
@@ -434,21 +440,25 @@ input{
 ========================================================= */
 
 .chatcbox{
-  width:calc(100% - 20px);
-  max-width:390px;
-  height:360px;
-  margin:14px auto 8px;
+  width:calc(100% - 16px);
+  max-width:calc(100% - 16px);
+  height:430px;
+  margin:8px auto 8px;
   display:block;
   flex-shrink:0;
+  overflow:hidden;
+  border-radius:12px;
 }
 
 .chatcbox iframe{
   width:100%;
-  height:100%;
+  height:340px;
+  max-width:100%;
   border:none;
   border-radius:12px;
   box-shadow:0 4px 15px rgba(0,0,0,0.25);
   background:#111;
+  display:block;
 }
 
 /* =========================================================
@@ -563,6 +573,7 @@ input{
   justify-content:center;
   gap:20px;
   padding:20px;
+  align-items:center;
 }
 
 .cargandoProductos{
@@ -586,6 +597,8 @@ input{
   text-align:center;
   box-shadow:0 4px 15px rgba(0,0,0,0.5);
   transition:transform .3s ease, box-shadow .3s ease;
+  padding-bottom:18px;
+  word-break:break-word;
 }
 
 .producto:hover{
@@ -595,15 +608,26 @@ input{
 
 .producto img{
   width:100%;
-  height:180px;
-  object-fit:contain;
-  background:#000;
-  border-bottom:2px solid #333;
+  height:190px;
+  display:block;
+  object-fit:cover;
+  object-position:center;
+  background:transparent;
+  border:none;
+  margin:0;
+  padding:0;
+  border-radius:0;
+  box-sizing:border-box;
 }
 
 .producto h2{
   font-size:1rem;
-  margin:12px 10px 6px;
+  margin:14px 12px 8px;
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
   color:#fff;
   line-height:1.35;
   word-break:break-word;
@@ -613,7 +637,7 @@ input{
   font-size:1.5rem;
   font-weight:bold;
   color:#ff0000;
-  margin:8px 0 12px;
+  margin:10px 0 12px;
   text-shadow:0 2px 5px rgba(0,0,0,0.6);
 }
 
@@ -629,13 +653,18 @@ input{
   background:#e50914;
   color:#fff;
   border:none;
+  width:calc(100% - 36px);
+  max-width:260px;
   padding:12px 0;
   font-size:1.05rem;
   font-weight:bold;
   cursor:pointer !important;
-  margin:15px 20px 20px;
+  margin:14px auto 0;
   border-radius:8px;
   transition:background .3s, transform .2s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 .producto button:hover{
@@ -699,6 +728,9 @@ input{
   border-radius:8px;
   letter-spacing:.3px;
   backdrop-filter:blur(4px);
+  width:calc(100% - 28px);
+  margin-left:auto;
+  margin-right:auto;
 }
 
 .duracionServicio{
@@ -711,6 +743,9 @@ input{
   padding:4px 10px;
   border-radius:8px;
   letter-spacing:.2px;
+  width:calc(100% - 28px);
+  margin-left:auto;
+  margin-right:auto;
 }
 
 .avisoStock{
@@ -750,7 +785,7 @@ input{
   gap:4px;
   width:100%;
   max-width:190px;
-  margin:10px auto 6px;
+  margin:10px auto 8px;
   padding:9px 12px;
   border-radius:12px;
   background:linear-gradient(180deg, rgba(20,24,32,0.95), rgba(12,16,24,0.98));
@@ -2510,6 +2545,8 @@ button:disabled{
   .menuLateral{
     left:-230px;
     transition:left .3s ease;
+    overflow-y:auto;
+    overflow-x:hidden;
   }
 
   .menuLateral.activo{
@@ -2696,20 +2733,37 @@ button:disabled{
 }
 
 @media (max-width:700px){
+  html,
+  body{
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden !important;
+  }
+
   .menuIcon{
     display:block;
   }
 
   .menuLateral{
     width:215px;
+    max-width:215px;
     left:-215px;
     transition:left .3s ease;
     height:100vh;
     overflow-y:auto;
+    overflow-x:hidden !important;
   }
 
   .menuLateral.activo{
     left:0;
+  }
+
+  .menuLogo,
+  .panelUsuario,
+  .chatcbox,
+  .menuLateral a{
+    max-width:100%;
+    box-sizing:border-box;
   }
 
   .menuLogo{
@@ -2765,67 +2819,60 @@ button:disabled{
   }
 
   .producto{
-  width:220px;
-  min-height:380px;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-  background:#1c1c1c;
-  border-radius:12px;
-  overflow:hidden;
-  text-align:center;
-  box-shadow:0 4px 15px rgba(0,0,0,0.5);
-  transition:transform .3s ease, box-shadow .3s ease;
-  padding-bottom:18px;
-}
+    width:100% !important;
+    max-width:360px !important;
+    min-height:auto !important;
+    border-radius:18px !important;
+    padding-bottom:14px !important;
+    overflow:hidden !important;
+    box-shadow:0 10px 28px rgba(0,0,0,0.42) !important;
+  }
 
-.producto img{
-  width:100%;
-  height:210px !important;
-  display:block;
-  object-fit:cover;
-  object-position:center;
-  background:transparent;
-  padding:0;
-  border:none;
-}
+  .producto img{
+    width:100% !important;
+    height:210px !important;
+    display:block !important;
+    object-fit:cover !important;
+    object-position:center !important;
+    background:transparent !important;
+    border:none !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
 
   .producto h2{
-    font-size:1.05rem;
-    line-height:1.35;
-    margin:14px 14px 8px;
+    font-size:1.05rem !important;
+    line-height:1.35 !important;
+    margin:14px 14px 8px !important;
+    min-height:auto !important;
   }
 
   .producto .precio{
-    font-size:2rem;
-    margin:12px 0;
+    font-size:2rem !important;
+    margin:12px 0 !important;
   }
 
   .productoProveedor{
-    width:calc(100% - 28px);
-    max-width:220px;
-    margin:10px auto 8px;
+    width:calc(100% - 28px) !important;
+    max-width:220px !important;
   }
 
   .stock,
   .duracionServicio,
   .avisoStock{
-    width:calc(100% - 28px);
-    margin-left:auto;
-    margin-right:auto;
+    width:calc(100% - 28px) !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
   }
 
   .producto button{
-    width:calc(100% - 36px);
-    max-width:260px;
-    min-height:48px;
+    width:calc(100% - 36px) !important;
+    max-width:260px !important;
+    min-height:48px !important;
     margin:14px auto 0 !important;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:1rem;
-    border-radius:12px;
-    padding:12px 16px;
+    border-radius:12px !important;
+    padding:12px 16px !important;
+    font-size:1rem !important;
   }
 
   .modalContenido{
@@ -3020,9 +3067,21 @@ button:disabled{
   }
 
   .chatcbox{
-    width:92%;
-    height:280px;
-    margin:10px auto 6px;
+    width:calc(100% - 16px) !important;
+    max-width:calc(100% - 16px) !important;
+    height:340px !important;
+    margin:10px auto 6px !important;
+    overflow:hidden !important;
+    border-radius:12px !important;
+  }
+
+  .chatcbox iframe{
+    width:100% !important;
+    height:100% !important;
+    max-width:100% !important;
+    display:block !important;
+    border:none !important;
+    border-radius:12px !important;
   }
 
   .toastCompraExitosa{
@@ -3133,499 +3192,6 @@ button:disabled{
 
   .producto{
     max-width:340px !important;
-    border-radius:16px;
-  }
-
-  .producto img{
-  height:190px !important;
-  padding:0;
-  object-fit:cover;
-  object-position:center;
-}
-  .producto h2{
-    font-size:.98rem;
-    margin:12px 12px 8px;
-  }
-
-  .producto .precio{
-    font-size:1.8rem;
-  }
-
-  .producto button{
-    width:calc(100% - 28px);
-    font-size:.96rem;
-  }
-
-  .modalOfertaBox{
-    padding:28px 18px 22px;
-  }
-
-  .modalOfertaBox h2{
-    font-size:24px;
-  }
-
-  .modalOfertaBox p{
-    font-size:14px;
-  }
-
-  .btnsOferta{
-    flex-direction:column;
-  }
-
-  .btnVerOferta,
-  .btnCerrarOferta{
-    width:100%;
-    min-width:100%;
-  }
-}
-
-/* seguridad extra */
-.productos,
-.producto,
-.producto img,
-.bannerFull,
-.slide img{
-  box-sizing:border-box;
-}
-
-.producto,
-.producto h2,
-.producto .precio,
-.producto button,
-.productoProveedor,
-.stock,
-.duracionServicio{
-  word-break:break-word;
-}
-/* =========================================
-   FIX PANEL USUARIO PC / TABLET
-========================================= */
-
-.menuLogo,
-.panelUsuario,
-.panelSaldoBox{
-  flex-shrink:0 !important;
-}
-
-.panelUsuario{
-  height:auto !important;
-  min-height:unset !important;
-  overflow:visible !important;
-}
-
-.panelSaldoBox{
-  min-height:72px !important;
-  height:auto !important;
-  overflow:visible !important;
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:center !important;
-  justify-content:center !important;
-  padding:9px 10px !important;
-}
-
-.panelSaldoValor{
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  flex-wrap:wrap !important;
-  width:100% !important;
-  white-space:normal !important;
-  overflow:visible !important;
-  text-overflow:unset !important;
-  font-size:16px !important;
-  line-height:1.1 !important;
-  gap:3px !important;
-}
-
-.panelSaldoMoneda{
-  font-size:10px !important;
-  margin-left:2px !important;
-}
-
-@media (min-width:701px){
-  .panelUsuario{
-    margin:12px 10px 10px !important;
-    padding:12px 10px !important;
-  }
-
-  .panelUsuarioNombre{
-    font-size:13px !important;
-    margin-bottom:3px !important;
-  }
-
-  .panelUsuarioHandle{
-    font-size:11px !important;
-    margin-bottom:10px !important;
-  }
-
-  .panelSaldoBox{
-    min-height:70px !important;
-    padding:8px 10px !important;
-    border-radius:12px !important;
-  }
-
-  .panelSaldoLabel{
-    font-size:11px !important;
-    margin-bottom:4px !important;
-  }
-
-  .panelSaldoValor{
-    font-size:15px !important;
-  }
-
-  .panelSaldoMoneda{
-    font-size:10px !important;
-  }
-}
-/* =========================================
-   FIX MÓVIL SIN SCROLL LATERAL + CHAT MÁS ALTO
-========================================= */
-@media (max-width:700px){
-
-  html,
-  body{
-    width:100%;
-    max-width:100%;
-    overflow-x:hidden !important;
-  }
-
-  .menuLateral{
-    width:215px;
-    max-width:215px;
-    left:-215px;
-    overflow-x:hidden !important;
-  }
-
-  .menuLateral.activo{
-    left:0;
-  }
-
-  .menuLogo,
-  .panelUsuario,
-  .chatcbox,
-  .menuLateral a{
-    max-width:100%;
-    box-sizing:border-box;
-  }
-
-  .panelUsuario{
-    margin:12px 10px 10px;
-    padding:12px 11px;
-  }
-
-  .panelUsuarioNombre{
-    font-size:13px !important;
-    line-height:1.2;
-  }
-
-  .panelUsuarioHandle{
-    font-size:11px !important;
-  }
-
-  .chatcbox{
-    width:calc(100% - 16px) !important;
-    max-width:calc(100% - 16px) !important;
-    height:340px !important;
-    margin:10px auto 6px !important;
-    overflow:hidden !important;
-    border-radius:12px;
-  }
-
-  .chatcbox iframe{
-    width:100% !important;
-    height:100% !important;
-    max-width:100% !important;
-    display:block;
-    border:none;
-    border-radius:12px;
-  }
-}
-/* =========================================
-   FIX FINAL MENU + CHAT PC / MÓVIL
-========================================= */
-
-html,
-body{
-  max-width:100%;
-  overflow-x:hidden !important;
-}
-
-/* ---------- PC ---------- */
-@media (min-width:1025px){
-
-  .menuLateral{
-    width:230px !important;
-    height:100vh !important;
-    display:flex !important;
-    flex-direction:column !important;
-    overflow:hidden !important;
-  }
-
-  .menuLogo{
-    padding:12px 10px !important;
-    flex-shrink:0 !important;
-  }
-
-  .menuLogo img{
-    width:84px !important;
-    height:84px !important;
-  }
-
-  .panelUsuario{
-    margin:10px 10px 8px !important;
-    padding:10px !important;
-    border-radius:14px !important;
-    flex-shrink:0 !important;
-  }
-
-  .panelUsuarioNombre{
-    font-size:14px !important;
-    line-height:1.18 !important;
-    margin-bottom:3px !important;
-  }
-
-  .panelUsuarioHandle{
-    font-size:11px !important;
-    margin-bottom:8px !important;
-  }
-
-  .panelSaldoBox{
-    min-height:66px !important;
-    padding:8px 8px !important;
-    border-radius:12px !important;
-    display:flex !important;
-    flex-direction:column !important;
-    align-items:center !important;
-    justify-content:center !important;
-    overflow:hidden !important;
-  }
-
-  .panelSaldoLabel{
-    font-size:10px !important;
-    margin-bottom:4px !important;
-  }
-
-  .panelSaldoValor{
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    flex-wrap:wrap !important;
-    width:100% !important;
-    font-size:15px !important;
-    line-height:1.08 !important;
-    gap:2px !important;
-    white-space:normal !important;
-    overflow:hidden !important;
-  }
-
-  .panelSaldoMoneda{
-    font-size:9px !important;
-    margin-left:2px !important;
-  }
-
-  .menuLateral a{
-    padding:11px 18px !important;
-    font-size:14px !important;
-    flex-shrink:0 !important;
-  }
-
-  .chatcbox{
-    width:calc(100% - 16px) !important;
-    max-width:calc(100% - 16px) !important;
-    height:430px !important;
-    margin:8px auto 8px !important;
-    margin-top:auto !important;
-    flex-shrink:0 !important;
-    overflow:hidden !important;
-    border-radius:12px !important;
-  }
-
-  .chatcbox iframe{
-    width:100% !important;
-    height:100% !important;
-    max-width:100% !important;
-    display:block !important;
-    border:none !important;
-    border-radius:12px !important;
-  }
-}
-
-/* ---------- TABLET / MÓVIL ---------- */
-@media (max-width:700px){
-
-  html,
-  body{
-    width:100%;
-    max-width:100%;
-    overflow-x:hidden !important;
-  }
-
-  .menuLateral{
-    width:215px !important;
-    max-width:215px !important;
-    left:-215px !important;
-    overflow-x:hidden !important;
-  }
-
-  .menuLateral.activo{
-    left:0 !important;
-  }
-
-  .menuLogo,
-  .panelUsuario,
-  .chatcbox,
-  .menuLateral a{
-    max-width:100% !important;
-    box-sizing:border-box !important;
-  }
-
-  .panelUsuarioNombre{
-    font-size:13px !important;
-  }
-
-  .panelUsuarioHandle{
-    font-size:11px !important;
-  }
-
-  .chatcbox{
-    width:calc(100% - 16px) !important;
-    max-width:calc(100% - 16px) !important;
-    height:340px !important;
-    margin:10px auto 6px !important;
-    overflow:hidden !important;
-    border-radius:12px !important;
-  }
-
-  .chatcbox iframe{
-    width:100% !important;
-    height:100% !important;
-    max-width:100% !important;
-    display:block !important;
-    border:none !important;
-    border-radius:12px !important;
-  }
-}
-/* =========================================
-   FIX FINAL TARJETAS PRODUCTO E IMAGENES
-   Pegar al final del style.css
-========================================= */
-
-.producto{
-  overflow:hidden !important;
-  padding-bottom:18px !important;
-}
-
-.producto img{
-  width:100% !important;
-  height:190px !important;
-  display:block !important;
-  object-fit:cover !important;
-  object-position:center !important;
-  background:transparent !important;
-  border:none !important;
-  margin:0 !important;
-  padding:0 !important;
-  border-radius:0 !important;
-}
-
-.producto h2{
-  margin:14px 12px 8px !important;
-  min-height:54px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-}
-
-.producto .precio{
-  margin:10px 0 12px !important;
-}
-
-.productoProveedor{
-  margin:10px auto 8px !important;
-}
-
-.stock,
-.duracionServicio{
-  width:calc(100% - 28px);
-  margin-left:auto !important;
-  margin-right:auto !important;
-}
-
-.producto button{
-  width:calc(100% - 36px) !important;
-  max-width:260px !important;
-  margin:14px auto 0 !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-}
-
-/* ---------- TABLET / MOVIL ---------- */
-@media (max-width:700px){
-  .producto{
-    width:100% !important;
-    max-width:360px !important;
-    min-height:auto !important;
-    border-radius:18px !important;
-    padding-bottom:14px !important;
-    overflow:hidden !important;
-    box-shadow:0 10px 28px rgba(0,0,0,0.42) !important;
-  }
-
-  .producto img{
-    width:100% !important;
-    height:210px !important;
-    display:block !important;
-    object-fit:cover !important;
-    object-position:center !important;
-    background:transparent !important;
-    border:none !important;
-    margin:0 !important;
-    padding:0 !important;
-  }
-
-  .producto h2{
-    font-size:1.05rem !important;
-    line-height:1.35 !important;
-    margin:14px 14px 8px !important;
-    min-height:auto !important;
-  }
-
-  .producto .precio{
-    font-size:2rem !important;
-    margin:12px 0 !important;
-  }
-
-  .productoProveedor{
-    width:calc(100% - 28px) !important;
-    max-width:220px !important;
-  }
-
-  .stock,
-  .duracionServicio,
-  .avisoStock{
-    width:calc(100% - 28px) !important;
-    margin-left:auto !important;
-    margin-right:auto !important;
-  }
-
-  .producto button{
-    width:calc(100% - 36px) !important;
-    max-width:260px !important;
-    min-height:48px !important;
-    margin:14px auto 0 !important;
-    border-radius:12px !important;
-    padding:12px 16px !important;
-    font-size:1rem !important;
-  }
-}
-
-/* ---------- MOVIL PEQUEÑO ---------- */
-@media (max-width:480px){
-  .producto{
-    max-width:340px !important;
     border-radius:16px !important;
   }
 
@@ -3648,5 +3214,27 @@ body{
   .producto button{
     width:calc(100% - 28px) !important;
     font-size:.96rem !important;
+  }
+
+  .modalOfertaBox{
+    padding:28px 18px 22px;
+  }
+
+  .modalOfertaBox h2{
+    font-size:24px;
+  }
+
+  .modalOfertaBox p{
+    font-size:14px;
+  }
+
+  .btnsOferta{
+    flex-direction:column;
+  }
+
+  .btnVerOferta,
+  .btnCerrarOferta{
+    width:100%;
+    min-width:100%;
   }
 }
