@@ -5,6 +5,170 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel Administrador</title>
   <link rel="stylesheet" href="admin.css">
+
+  <style>
+    .tableWrapAdminScroll{
+      max-height:620px;
+      overflow:auto;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,0.06);
+      background:#141414;
+    }
+
+    .tableWrapAdminScroll table{
+      min-width:1200px;
+    }
+
+    #tablaRecargas td,
+    #tablaRecargas th{
+      white-space:nowrap;
+    }
+
+    #tablaRecargas td:nth-child(1){
+      min-width:210px;
+    }
+
+    #tablaRecargas td:nth-child(3){
+      min-width:190px;
+    }
+
+    #tablaRecargas td:nth-child(9){
+      white-space:normal;
+      min-width:140px;
+    }
+
+    .codigoGrid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:10px;
+      margin-bottom:15px;
+    }
+
+    .codigoGrid .full{
+      grid-column:1 / -1;
+    }
+
+    .createGrid input,
+    .createGrid textarea,
+    .accountGrid input,
+    .accountGrid select,
+    .codigoGrid input,
+    .codigoGrid select,
+    .inputWrap input,
+    .tableInput,
+    .tableInputDesc,
+    .stockInput,
+    .selectDark,
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    textarea,
+    select{
+      background:#161616 !important;
+      color:#fff !important;
+      border:1px solid #2c2c2c !important;
+      box-shadow:none !important;
+    }
+
+    .createGrid input::placeholder,
+    .createGrid textarea::placeholder,
+    .accountGrid input::placeholder,
+    .codigoGrid input::placeholder,
+    .inputWrap input::placeholder,
+    .tableInput::placeholder,
+    .tableInputDesc::placeholder,
+    .stockInput::placeholder,
+    input::placeholder,
+    textarea::placeholder{
+      color:#9c9c9c !important;
+    }
+
+    .tableInput,
+    .stockInput,
+    .selectDark,
+    .inputWrap input,
+    .createGrid input,
+    .accountGrid input,
+    .codigoGrid input,
+    select{
+      min-height:40px;
+      border-radius:10px;
+      padding:10px 12px;
+    }
+
+    .tableInputDesc,
+    .createGrid textarea,
+    textarea{
+      min-height:90px;
+      border-radius:10px;
+      padding:10px 12px;
+      resize:vertical;
+    }
+
+    .tableInputReadonly{
+      background:#101010 !important;
+      color:#d6d6d6 !important;
+      cursor:not-allowed;
+    }
+
+    .btnMiniSoft{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      min-height:38px;
+      padding:10px 14px;
+      border:none;
+      border-radius:10px;
+      background:#262626;
+      color:#fff;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+    .btnMiniSoft:hover{
+      background:#323232;
+    }
+
+    .sectionTools{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .adminTopActions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .btnTiempoActivoOn{
+      background:#1f7a45 !important;
+      color:#fff !important;
+    }
+
+    .btnTiempoActivoOn:hover{
+      background:#259653 !important;
+    }
+
+    .btnTiempoActivoOff{
+      background:#444 !important;
+      color:#fff !important;
+    }
+
+    .btnTiempoActivoOff:hover{
+      background:#555 !important;
+    }
+
+    @media (max-width: 860px){
+      .tableWrapAdminScroll{
+        max-height:520px;
+      }
+    }
+  </style>
 </head>
 <body>
 
@@ -33,54 +197,25 @@
           <h2>Administrador conectado</h2>
           <p id="adminInfo">Cargando...</p>
         </div>
-        <button class="btn btnLogout" onclick="cerrarSesion()">Cerrar sesión</button>
+
+        <div class="adminTopActions">
+          <button id="toggleTiempoActivoBtn" class="btn btnMedium btnTiempoActivoOff" type="button" onclick="toggleTiempoActivoAdmin()">
+            Tiempo activo: Desactivado
+          </button>
+          <button class="btn btnLogout" onclick="cerrarSesion()">Cerrar sesión</button>
+        </div>
       </div>
 
       <div class="grid">
-        <div class="miniCard">
-          <h3>Total ventas</h3>
-          <p id="totalVentas">0</p>
-        </div>
-
-        <div class="miniCard">
-          <h3>Compras hoy</h3>
-          <p id="totalComprasHoy">0</p>
-        </div>
-
-        <div class="miniCard">
-          <h3>Productos en stock</h3>
-          <p id="totalStock">0</p>
-        </div>
-
-        <div class="miniCard">
-          <h3>Usuarios registrados</h3>
-          <p id="totalUsuarios">0</p>
-        </div>
-
-        <div class="miniCard">
-          <h3>Solicitudes recarga</h3>
-          <p id="totalRecargas">0</p>
-        </div>
-
-        <div class="miniCard">
-          <h3>Solicitudes reembolso</h3>
-          <p id="totalReembolsos">0</p>
-        </div>
-
-        <div class="miniCard">
-          <h3>Códigos creados</h3>
-          <p id="totalCodigos">0</p>
-        </div>
-
-        <div class="miniCard">
-          <h3>Ganancia total</h3>
-          <p id="gananciaTotal">S/ 0.00</p>
-        </div>
-
-        <div class="miniCard">
-          <h3>Ganancia hoy</h3>
-          <p id="gananciaHoy">S/ 0.00</p>
-        </div>
+        <div class="miniCard"><h3>Total ventas</h3><p id="totalVentas">0</p></div>
+        <div class="miniCard"><h3>Ganancia total</h3><p id="gananciaTotal">S/ 0.00</p></div>
+        <div class="miniCard"><h3>Compras hoy</h3><p id="totalComprasHoy">0</p></div>
+        <div class="miniCard"><h3>Ganancia hoy</h3><p id="gananciaHoy">S/ 0.00</p></div>
+        <div class="miniCard"><h3>Productos en stock</h3><p id="totalStock">0</p></div>
+        <div class="miniCard"><h3>Usuarios registrados</h3><p id="totalUsuarios">0</p></div>
+        <div class="miniCard"><h3>Solicitudes recarga</h3><p id="totalRecargas">0</p></div>
+        <div class="miniCard"><h3>Solicitudes reembolso</h3><p id="totalReembolsos">0</p></div>
+        <div class="miniCard"><h3>Códigos creados</h3><p id="totalCodigos">0</p></div>
       </div>
 
       <!-- RECARGAS -->
@@ -92,7 +227,14 @@
 
         <div class="collapseContent">
           <div id="recargaMsg" class="accountMsg"></div>
-          <div class="tableWrap">
+
+          <div class="sectionTools">
+            <button class="btnMiniDanger" onclick="vaciarNodoConfirmado('recargas', 'Se eliminarán todas las recargas del historial.')">
+              Vaciar historial recargas
+            </button>
+          </div>
+
+          <div class="tableWrap tableWrapAdminScroll">
             <table id="tablaRecargas" class="hidden">
               <thead>
                 <tr>
@@ -124,6 +266,13 @@
 
         <div class="collapseContent">
           <div id="reembolsoMsg" class="accountMsg"></div>
+
+          <div class="sectionTools">
+            <button class="btnMiniDanger" onclick="vaciarNodoConfirmado('reembolsos', 'Se eliminarán todas las solicitudes de reembolso.')">
+              Vaciar historial reembolsos
+            </button>
+          </div>
+
           <div class="tableWrap">
             <table id="tablaReembolsos" class="hidden">
               <thead>
@@ -154,6 +303,10 @@
         </button>
 
         <div class="collapseContent">
+          <div class="sectionTools">
+            <button class="btnMiniSoft" onclick="recalcularTodoElStock()">Recalcular stock automáticamente</button>
+          </div>
+
           <div class="tableWrap">
             <table id="tablaStock" class="hidden">
               <thead>
@@ -231,7 +384,7 @@
               <option value="">Selecciona producto</option>
             </select>
 
-            <input type="text" id="cuentaCorreo" placeholder="Correo de la cuenta">
+            <input type="text" id="cuentaCorreo" placeholder="Correo de la cuenta / Código">
 
             <div class="inputWrap noMargin">
               <input type="password" id="cuentaClave" class="passwordInput" placeholder="Contraseña de la cuenta">
@@ -278,6 +431,12 @@
         </button>
 
         <div class="collapseContent">
+          <div class="sectionTools">
+            <button class="btnMiniDanger" onclick="vaciarNodoConfirmado('ventas', 'Se eliminará todo el historial de ventas.')">
+              Vaciar historial ventas
+            </button>
+          </div>
+
           <div class="tableWrap">
             <table id="tablaVentas" class="hidden">
               <thead>
@@ -289,6 +448,7 @@
                   <th>Monto</th>
                   <th>Fecha</th>
                   <th>Estado</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -306,6 +466,12 @@
         </button>
 
         <div class="collapseContent">
+          <div class="sectionTools">
+            <button class="btnMiniDanger" onclick="vaciarComprasHoyConfirmado()">
+              Vaciar historial compras hoy
+            </button>
+          </div>
+
           <div class="tableWrap">
             <table id="tablaComprasHoy" class="hidden">
               <thead>
@@ -317,6 +483,7 @@
                   <th>Monto</th>
                   <th>Fecha</th>
                   <th>Estado</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -334,6 +501,12 @@
         </button>
 
         <div class="collapseContent">
+          <div class="sectionTools">
+            <button class="btnMiniDanger" onclick="vaciarCuentasUsadasConfirmado()">
+              Vaciar historial cuentas usadas
+            </button>
+          </div>
+
           <div class="tableWrap">
             <table id="tablaCuentasUsadas" class="hidden">
               <thead>
@@ -348,6 +521,7 @@
                   <th>Fecha entrega</th>
                   <th>Vence</th>
                   <th>Estado</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -386,22 +560,44 @@
       </div>
 
       <!-- CODIGOS -->
-      <div class="card collapsibleCard closed">
+      <div class="card collapsibleCard">
         <button class="collapseHeader" type="button" onclick="toggleSection(this)">
           <span>Códigos</span>
           <span class="collapseIcon">▼</span>
         </button>
 
         <div class="collapseContent">
+          <div class="codigoGrid">
+            <select id="codigoProducto" class="selectDark">
+              <option value="">Selecciona producto</option>
+            </select>
+            <input type="text" id="nuevoCodigoValor" placeholder="Código / clave digital">
+            <input type="text" id="nuevoCodigoObservacion" placeholder="Observación (opcional)">
+          </div>
+
+          <button class="btn btnMedium" onclick="crearCodigo()">Guardar código</button>
+          <div id="codigoMsg" class="productoMsg"></div>
+
+          <div class="sectionTools topSpacing">
+            <button class="btnMiniDanger" onclick="vaciarNodoConfirmado('codigos', 'Se eliminarán todos los códigos del historial.')">
+              Vaciar historial códigos
+            </button>
+          </div>
+
           <div class="tableWrap">
             <table id="tablaCodigos" class="hidden">
               <thead>
                 <tr>
-                  <th>Código</th>
+                  <th>ID</th>
                   <th>Producto</th>
+                  <th>Código</th>
+                  <th>Observación</th>
                   <th>Activo</th>
                   <th>Usado</th>
-                  <th>Fecha Uso</th>
+                  <th>Fecha creación</th>
+                  <th>Fecha uso</th>
+                  <th>Comprador</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -411,6 +607,44 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- MODAL RECARGA -->
+  <div id="modalRecarga" class="adminModal" onclick="cerrarModalRecargaFondo(event)">
+    <div class="adminModalCard">
+      <div class="adminModalTop">
+        <h3>Detalle de recarga</h3>
+        <button class="adminModalClose" type="button" onclick="cerrarModalRecarga()">✕</button>
+      </div>
+
+      <div class="adminModalGrid">
+        <div class="adminModalPreview" id="recargaPreviewWrap">
+          <img id="recargaPreviewImg" src="" alt="Comprobante">
+        </div>
+
+        <div class="adminModalInfo">
+          <div class="adminInfoList">
+            <div class="adminInfoRow"><small>ID</small><strong id="modalRecargaId">-</strong></div>
+            <div class="adminInfoRow"><small>Nombre</small><strong id="modalRecargaNombre">-</strong></div>
+            <div class="adminInfoRow"><small>Usuario</small><strong id="modalRecargaUsuario">-</strong></div>
+            <div class="adminInfoRow"><small>UID</small><strong id="modalRecargaUid">-</strong></div>
+            <div class="adminInfoRow"><small>Monto</small><strong id="modalRecargaMonto">-</strong></div>
+            <div class="adminInfoRow"><small>Método</small><strong id="modalRecargaMetodo">-</strong></div>
+            <div class="adminInfoRow"><small>Operación</small><strong id="modalRecargaOperacion">-</strong></div>
+            <div class="adminInfoRow"><small>Estado</small><strong id="modalRecargaEstado">-</strong></div>
+            <div class="adminInfoRow"><small>Fecha</small><strong id="modalRecargaFecha">-</strong></div>
+            <div class="adminInfoRow"><small>Email</small><strong id="modalRecargaEmail">-</strong></div>
+          </div>
+
+          <div class="adminModalActions">
+            <button id="modalBtnAbrirArchivo" class="btnMiniSoft" type="button">Abrir imagen</button>
+            <button id="modalBtnAprobar" class="smallBtn btnSave" type="button">Aprobar</button>
+            <button id="modalBtnRechazar" class="smallBtn btnDelete" type="button">Rechazar</button>
+            <button id="modalBtnEliminar" class="smallBtn btnDelete" type="button">Eliminar registro</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -428,7 +662,7 @@
       authDomain: "streamsvip-b7d91.firebaseapp.com",
       databaseURL: "https://streamsvip-b7d91-default-rtdb.firebaseio.com",
       projectId: "streamsvip-b7d91",
-      storageBucket: "streamsvip-b7d91.appspot.com",
+      storageBucket: "streamsvip-b7d91.firebasestorage.app",
       messagingSenderId: "440618225611",
       appId: "1:440618225611:web:eeb4230a10499e1dfff04e"
     };
@@ -450,10 +684,14 @@
     const toggleBtn = document.getElementById("toggleBtn");
     const stockMsg = document.getElementById("stockMsg");
     const productoMsg = document.getElementById("productoMsg");
+    const codigoMsg = document.getElementById("codigoMsg");
+    const toggleTiempoActivoBtn = document.getElementById("toggleTiempoActivoBtn");
 
     let stockCache = {};
     let productosCache = {};
     let panelAdminYaCargado = false;
+    let modalRecargaActual = null;
+    let recargasCacheAdmin = {};
 
     const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;
     const TIEMPO_AVISO_ADMIN = 1 * 60 * 1000;
@@ -467,16 +705,54 @@
     let recargasPendientesCache = {};
     let recargasListenerActivo = false;
 
-    function limpiarAdminInactividad() {
-      if (adminTimeoutLogout) {
-        clearTimeout(adminTimeoutLogout);
-        adminTimeoutLogout = null;
-      }
+    let stockRecalcTimeout = null;
+    let stockAutoSyncEscuchando = false;
 
-      if (adminTimeoutAviso) {
-        clearTimeout(adminTimeoutAviso);
-        adminTimeoutAviso = null;
+    let tiempoActivoAdmin = localStorage.getItem("streamsvip_admin_tiempo_activo") === "true";
+
+    function esProductoLicenciaAdmin(productoId, item = {}) {
+      const id = String(productoId || "").toLowerCase();
+      const categoria = String(item.categoria || "").toLowerCase();
+      const nombre = String(item.nombre || "").toLowerCase();
+
+      return (
+        categoria.includes("licencia") ||
+        id === "windows11pro" ||
+        nombre.includes("windows 11 pro")
+      );
+    }
+
+    function actualizarBotonTiempoActivoAdmin() {
+      if (!toggleTiempoActivoBtn) return;
+
+      if (tiempoActivoAdmin) {
+        toggleTiempoActivoBtn.textContent = "Tiempo activo: Activado";
+        toggleTiempoActivoBtn.classList.add("btnTiempoActivoOn");
+        toggleTiempoActivoBtn.classList.remove("btnTiempoActivoOff");
+      } else {
+        toggleTiempoActivoBtn.textContent = "Tiempo activo: Desactivado";
+        toggleTiempoActivoBtn.classList.add("btnTiempoActivoOff");
+        toggleTiempoActivoBtn.classList.remove("btnTiempoActivoOn");
       }
+    }
+
+    function toggleTiempoActivoAdmin() {
+      tiempoActivoAdmin = !tiempoActivoAdmin;
+      localStorage.setItem("streamsvip_admin_tiempo_activo", tiempoActivoAdmin ? "true" : "false");
+      actualizarBotonTiempoActivoAdmin();
+
+      if (tiempoActivoAdmin) {
+        limpiarAdminInactividad();
+      } else {
+        reiniciarAdminInactividad();
+      }
+    }
+
+    function limpiarAdminInactividad() {
+      if (adminTimeoutLogout) clearTimeout(adminTimeoutLogout);
+      if (adminTimeoutAviso) clearTimeout(adminTimeoutAviso);
+      adminTimeoutLogout = null;
+      adminTimeoutAviso = null;
     }
 
     function avisoAdminInactividad() {
@@ -504,6 +780,8 @@
       limpiarAdminInactividad();
       adminAvisoMostrado = false;
 
+      if (tiempoActivoAdmin) return;
+
       adminTimeoutAviso = setTimeout(() => {
         avisoAdminInactividad();
       }, TIEMPO_INACTIVIDAD_ADMIN - TIEMPO_AVISO_ADMIN);
@@ -519,16 +797,7 @@
         return;
       }
 
-      const eventos = [
-        "mousemove",
-        "mousedown",
-        "click",
-        "scroll",
-        "keypress",
-        "touchstart",
-        "touchmove",
-        "keydown"
-      ];
+      const eventos = ["mousemove","mousedown","click","scroll","keypress","touchstart","touchmove","keydown"];
 
       eventos.forEach((evento) => {
         document.addEventListener(evento, reiniciarAdminInactividad, true);
@@ -537,9 +806,7 @@
       window.addEventListener("focus", reiniciarAdminInactividad);
 
       document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) {
-          reiniciarAdminInactividad();
-        }
+        if (!document.hidden) reiniciarAdminInactividad();
       });
 
       adminControlIniciado = true;
@@ -549,11 +816,8 @@
     function reproducirSonidoRecarga() {
       const audio = document.getElementById("audioRecarga");
       if (!audio) return;
-
       audio.currentTime = 0;
-      audio.play().catch(() => {
-        console.log("El navegador bloqueó la reproducción automática del audio.");
-      });
+      audio.play().catch(() => {});
     }
 
     function togglePassword() {
@@ -565,7 +829,7 @@
       const input = document.getElementById(inputId);
       if (!input) return;
       input.type = input.type === "password" ? "text" : "password";
-      btn.textContent = input.type === "password" ? "👁️" : "🙈";
+      if (btn) btn.textContent = input.type === "password" ? "👁️" : "🙈";
     }
 
     function toggleSection(button) {
@@ -596,9 +860,7 @@
       setLoading(true);
 
       auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
-        .then(() => {
-          return auth.signInWithEmailAndPassword(email, password);
-        })
+        .then(() => auth.signInWithEmailAndPassword(email, password))
         .then((userCredential) => {
           const user = userCredential.user;
 
@@ -617,7 +879,7 @@
           return db.ref("usuarios/" + user.uid).once("value").then((snap) => {
             const data = snap.val() || {};
             const rol = data.rol || "";
-            const estado = (data.estado || "activo").toLowerCase();
+            const estado = String(data.estado || "activo").toLowerCase();
 
             if (rol !== "admin") {
               return auth.signOut().then(() => {
@@ -632,9 +894,7 @@
             }
           });
         })
-        .then(() => {
-          setLoading(false);
-        })
+        .then(() => setLoading(false))
         .catch((error) => {
           setLoading(false);
 
@@ -650,14 +910,9 @@
 
     function cerrarSesion() {
       limpiarAdminInactividad();
-
       auth.signOut()
-        .then(() => {
-          window.location.replace("admin.html");
-        })
-        .catch(() => {
-          window.location.replace("admin.html");
-        });
+        .then(() => window.location.replace("admin.html"))
+        .catch(() => window.location.replace("admin.html"));
     }
 
     auth.onAuthStateChanged(async (user) => {
@@ -666,7 +921,7 @@
           const snap = await db.ref("usuarios/" + user.uid).once("value");
           const data = snap.val() || {};
           const rol = data.rol || "";
-          const estado = (data.estado || "activo").toLowerCase();
+          const estado = String(data.estado || "activo").toLowerCase();
 
           if (rol !== "admin" || estado === "bloqueado") {
             await auth.signOut();
@@ -680,6 +935,7 @@
           loginSection.classList.add("hidden");
           panelSection.classList.remove("hidden");
           adminInfo.textContent = user.email;
+          actualizarBotonTiempoActivoAdmin();
 
           if (!panelAdminYaCargado) {
             cargarPanel();
@@ -701,6 +957,7 @@
         panelAdminYaCargado = false;
         recargasInicializadas = false;
         recargasPendientesCache = {};
+        recargasCacheAdmin = {};
         loginSection.classList.remove("hidden");
         panelSection.classList.add("hidden");
         setLoading(false);
@@ -719,23 +976,18 @@
       cargarReembolsos();
       cargarCodigos();
       escucharNuevasRecargasPendientes();
+      iniciarAutoSyncStock();
+      recalcularTodoElStockSilencioso();
     }
 
     function badgeEstado(texto) {
       texto = (texto || "").toString().toLowerCase();
 
-      if (texto.includes("desactiv")) {
-        return '<span class="badge off">desactivado</span>';
-      }
-
+      if (texto.includes("desactiv")) return '<span class="badge off">desactivado</span>';
       if (texto.includes("aprob") || texto.includes("activo") || texto.includes("complet") || texto === "true" || texto === "disponible") {
         return '<span class="badge ok">' + texto + '</span>';
       }
-
-      if (texto.includes("pend")) {
-        return '<span class="badge warn">' + texto + '</span>';
-      }
-
+      if (texto.includes("pend")) return '<span class="badge warn">' + texto + '</span>';
       return '<span class="badge bad">' + texto + '</span>';
     }
 
@@ -745,7 +997,7 @@
     }
 
     function formatearDinero(valor) {
-      return "S/ " + Number(valor).toFixed(2);
+      return "S/ " + Number(valor || 0).toFixed(2);
     }
 
     function formatearFecha(valor) {
@@ -754,11 +1006,11 @@
       if (typeof valor === "number") {
         const d = new Date(valor);
         if (isNaN(d.getTime())) return String(valor);
-        return d.toLocaleString();
+        return d.toLocaleString("es-PE");
       }
 
       const d = new Date(valor);
-      if (!isNaN(d.getTime())) return d.toLocaleString();
+      if (!isNaN(d.getTime())) return d.toLocaleString("es-PE");
 
       return String(valor);
     }
@@ -808,6 +1060,14 @@
       window.reembolsoMsgTimeout = setTimeout(() => reembolsoMsg.textContent = "", 3000);
     }
 
+    function mostrarMensajeCodigo(texto, error = false) {
+      if (!codigoMsg) return;
+      codigoMsg.textContent = texto;
+      codigoMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
+      clearTimeout(window.codigoMsgTimeout);
+      window.codigoMsgTimeout = setTimeout(() => codigoMsg.textContent = "", 3000);
+    }
+
     function cambiarCantidadInput(producto, cambio) {
       const input = document.getElementById("stockInput_" + producto);
       if (!input) return;
@@ -855,25 +1115,10 @@
       const categoria = document.getElementById("nuevaCategoriaProducto").value.trim();
       const descripcion = document.getElementById("nuevaDescripcionProducto").value.trim();
 
-      if (!id || !nombre) {
-        mostrarMensajeProducto("Completa el ID y nombre del producto.", true);
-        return;
-      }
-
-      if (isNaN(precio) || precio < 0) {
-        mostrarMensajeProducto("El precio no es válido.", true);
-        return;
-      }
-
-      if (isNaN(stock) || stock < 0) {
-        mostrarMensajeProducto("El stock no es válido.", true);
-        return;
-      }
-
-      if (isNaN(duracionDias) || duracionDias < 1) {
-        mostrarMensajeProducto("La duración en días no es válida.", true);
-        return;
-      }
+      if (!id || !nombre) return mostrarMensajeProducto("Completa el ID y nombre del producto.", true);
+      if (isNaN(precio) || precio < 0) return mostrarMensajeProducto("El precio no es válido.", true);
+      if (isNaN(stock) || stock < 0) return mostrarMensajeProducto("El stock no es válido.", true);
+      if (isNaN(duracionDias) || duracionDias < 1) return mostrarMensajeProducto("La duración en días no es válida.", true);
 
       const productoData = {
         nombre,
@@ -892,8 +1137,11 @@
         fechaCreacion: Date.now()
       };
 
-      db.ref("productos/" + id).set(productoData)
-        .then(() => db.ref("stock/" + id).set(stock))
+      const updates = {};
+      updates["productos/" + id] = productoData;
+      updates["stock/" + id] = stock;
+
+      db.ref().update(updates)
         .then(() => {
           mostrarMensajeProducto("Producto creado correctamente.");
           document.getElementById("nuevoIdProducto").value = "";
@@ -914,20 +1162,9 @@
       const categoria = document.getElementById("prodCategoria_" + id).value.trim();
       const descripcion = document.getElementById("prodDescripcion_" + id).value.trim();
 
-      if (!nombre) {
-        mostrarMensajeProducto("El nombre no puede estar vacío.", true);
-        return;
-      }
-
-      if (isNaN(precio) || precio < 0) {
-        mostrarMensajeProducto("Precio inválido en " + id, true);
-        return;
-      }
-
-      if (isNaN(duracionDias) || duracionDias < 1) {
-        mostrarMensajeProducto("Duración inválida en " + id, true);
-        return;
-      }
+      if (!nombre) return mostrarMensajeProducto("El nombre no puede estar vacío.", true);
+      if (isNaN(precio) || precio < 0) return mostrarMensajeProducto("Precio inválido en " + id, true);
+      if (isNaN(duracionDias) || duracionDias < 1) return mostrarMensajeProducto("Duración inválida en " + id, true);
 
       db.ref("productos/" + id).once("value")
         .then((snapshot) => {
@@ -976,37 +1213,29 @@
       tbody.innerHTML = "";
 
       const keys = Object.keys(stockCache || {});
-
-      if (keys.length === 0) {
+      if (!keys.length) {
         tabla.classList.add("hidden");
         vacio.classList.remove("hidden");
         document.getElementById("totalStock").textContent = "0";
         return;
       }
 
-      document.getElementById("totalStock").textContent = keys.length;
+      document.getElementById("totalStock").textContent = keys.reduce((acc, key) => acc + Number(stockCache[key] || 0), 0);
 
       keys.sort().forEach((producto) => {
         const valor = stockCache[producto];
         let stockNum = 0;
 
-        if (typeof valor === "number") {
-          stockNum = valor;
-        } else if (typeof valor === "object" && valor !== null) {
-          stockNum = Number(valor.stock || valor.cantidad || 0);
-        } else {
-          stockNum = Number(valor || 0);
-        }
+        if (typeof valor === "number") stockNum = valor;
+        else if (typeof valor === "object" && valor !== null) stockNum = Number(valor.stock || valor.cantidad || 0);
+        else stockNum = Number(valor || 0);
 
         const productoInfo = productosCache[producto] || {};
         const activo = productoInfo.activo !== false;
 
         let estado = "agotado";
-        if (!activo) {
-          estado = "desactivado";
-        } else if (stockNum > 0) {
-          estado = "activo";
-        }
+        if (!activo) estado = "desactivado";
+        else if (stockNum > 0) estado = "activo";
 
         tbody.innerHTML += `
           <tr>
@@ -1046,6 +1275,85 @@
       }, () => {
         productosCache = {};
         renderStock();
+      });
+    }
+
+    function recalcularTodoElStock(mostrarMensaje = true) {
+      Promise.all([
+        db.ref("productos").once("value"),
+        db.ref("cuentas").once("value"),
+        db.ref("codigos").once("value")
+      ])
+      .then(([productosSnap, cuentasSnap, codigosSnap]) => {
+        const productos = productosSnap.val() || {};
+        const cuentas = cuentasSnap.val() || {};
+        const codigos = codigosSnap.val() || {};
+
+        const updates = {};
+
+        Object.keys(productos).forEach((productoId) => {
+          const productoData = productos[productoId] || {};
+          const esLicencia = esProductoLicenciaAdmin(productoId, productoData);
+
+          let stockReal = 0;
+
+          if (esLicencia) {
+            Object.keys(codigos).forEach((codigoId) => {
+              const item = codigos[codigoId] || {};
+              const mismoProducto = String(item.producto || "") === productoId;
+              const disponible = item.activo !== false && item.usado !== true;
+
+              if (mismoProducto && disponible) stockReal++;
+            });
+          } else {
+            const cuentasProducto = cuentas[productoId] || {};
+            Object.keys(cuentasProducto).forEach((cuentaId) => {
+              const item = cuentasProducto[cuentaId] || {};
+              if (String(item.estado || "").toLowerCase() === "disponible") {
+                stockReal++;
+              }
+            });
+          }
+
+          updates["stock/" + productoId] = stockReal;
+          updates["productos/" + productoId + "/stock"] = stockReal;
+        });
+
+        return db.ref().update(updates);
+      })
+      .then(() => {
+        if (mostrarMensaje) mostrarMensajeStock("Stock recalculado correctamente.");
+      })
+      .catch((error) => {
+        if (mostrarMensaje) mostrarMensajeStock("Error al recalcular stock: " + error.message, true);
+      });
+    }
+
+    function recalcularTodoElStockSilencioso() {
+      recalcularTodoElStock(false);
+    }
+
+    function programarRecalculoStockSilencioso() {
+      clearTimeout(stockRecalcTimeout);
+      stockRecalcTimeout = setTimeout(() => {
+        recalcularTodoElStockSilencioso();
+      }, 700);
+    }
+
+    function iniciarAutoSyncStock() {
+      if (stockAutoSyncEscuchando) return;
+      stockAutoSyncEscuchando = true;
+
+      db.ref("cuentas").on("value", () => {
+        programarRecalculoStockSilencioso();
+      });
+
+      db.ref("codigos").on("value", () => {
+        programarRecalculoStockSilencioso();
+      });
+
+      db.ref("productos").on("value", () => {
+        programarRecalculoStockSilencioso();
       });
     }
 
@@ -1106,25 +1414,33 @@
     }
 
     function cargarProductosEnSelectCuentas() {
-      const select = document.getElementById("cuentaProducto");
+      const selectCuenta = document.getElementById("cuentaProducto");
+      const selectCodigo = document.getElementById("codigoProducto");
+
       db.ref("productos").on("value", (snapshot) => {
         const data = snapshot.val();
-        select.innerHTML = '<option value="">Selecciona producto</option>';
+
+        selectCuenta.innerHTML = '<option value="">Selecciona producto</option>';
+        selectCodigo.innerHTML = '<option value="">Selecciona producto</option>';
 
         if (!data || typeof data !== "object") {
-          select.innerHTML = '<option value="">Primero crea un producto</option>';
+          selectCuenta.innerHTML = '<option value="">Primero crea un producto</option>';
+          selectCodigo.innerHTML = '<option value="">Primero crea un producto</option>';
           return;
         }
 
         const keys = Object.keys(data);
-        if (keys.length === 0) {
-          select.innerHTML = '<option value="">Primero crea un producto</option>';
+        if (!keys.length) {
+          selectCuenta.innerHTML = '<option value="">Primero crea un producto</option>';
+          selectCodigo.innerHTML = '<option value="">Primero crea un producto</option>';
           return;
         }
 
         keys.sort().forEach((id) => {
           const item = data[id] || {};
-          select.innerHTML += `<option value="${id}">${item.nombre || id} (${id})</option>`;
+          const label = `${item.nombre || id} (${id})`;
+          selectCuenta.innerHTML += `<option value="${id}">${label}</option>`;
+          selectCodigo.innerHTML += `<option value="${id}">${label}</option>`;
         });
       });
     }
@@ -1137,23 +1453,40 @@
       const pin = document.getElementById("cuentaPin").value.trim();
       const observacion = document.getElementById("cuentaObservacion").value.trim();
 
-      if (!producto) {
-        mostrarMensajeCuenta("Primero crea o selecciona un producto válido.", true);
-        return;
-      }
-
-      if (!correo || !clave) {
-        mostrarMensajeCuenta("Completa correo y contraseña de la cuenta.", true);
-        return;
-      }
+      if (!producto) return mostrarMensajeCuenta("Primero crea o selecciona un producto válido.", true);
 
       db.ref("productos/" + producto).once("value")
       .then((productoSnap) => {
         const productoData = productoSnap.val() || {};
+        const esLicencia = esProductoLicenciaAdmin(producto, productoData);
+
+        if (esLicencia) {
+          if (!correo) {
+            throw new Error("Para licencias debes ingresar el código en el primer campo.");
+          }
+
+          const codigoRef = db.ref("codigos").push();
+
+          return codigoRef.set({
+            producto: producto,
+            codigo: correo,
+            observacion: observacion || "",
+            activo: true,
+            usado: false,
+            fechaCreacion: Date.now(),
+            fechaUso: "",
+            uidUsuario: "",
+            comprador: ""
+          });
+        }
+
+        if (!correo || !clave) {
+          throw new Error("Completa correo y contraseña de la cuenta.");
+        }
+
         const duracionDias = Number(productoData.duracionDias || 30);
         const fechaCreacionISO = new Date().toISOString();
         const fechaVencimientoISO = sumarDias(fechaCreacionISO, duracionDias);
-
         const cuentaRef = db.ref("cuentas/" + producto).push();
 
         return cuentaRef.set({
@@ -1169,21 +1502,11 @@
           comprador: "",
           uidUsuario: "",
           fechaEntrega: ""
-        })
-        .then(() => db.ref("stock/" + producto).once("value"))
-        .then((snapshot) => {
-          const stockActual = Number(snapshot.val() || 0);
-          const nuevoStock = stockActual + 1;
-
-          const updates = {};
-          updates["stock/" + producto] = nuevoStock;
-          updates["productos/" + producto + "/stock"] = nuevoStock;
-
-          return db.ref().update(updates);
         });
       })
       .then(() => {
-        mostrarMensajeCuenta("Cuenta guardada correctamente y stock actualizado.");
+        programarRecalculoStockSilencioso();
+        mostrarMensajeCuenta("Registro guardado correctamente y stock actualizado.");
         document.getElementById("cuentaProducto").value = "";
         document.getElementById("cuentaCorreo").value = "";
         document.getElementById("cuentaClave").value = "";
@@ -1194,62 +1517,77 @@
       .catch((error) => mostrarMensajeCuenta("Error: " + error.message, true));
     }
 
+    function crearCodigo() {
+      const producto = document.getElementById("codigoProducto").value.trim();
+      const codigo = document.getElementById("nuevoCodigoValor").value.trim();
+      const observacion = document.getElementById("nuevoCodigoObservacion").value.trim();
+
+      if (!producto) return mostrarMensajeCodigo("Selecciona un producto.", true);
+      if (!codigo) return mostrarMensajeCodigo("Ingresa el código.", true);
+
+      const codigoRef = db.ref("codigos").push();
+
+      codigoRef.set({
+        producto: producto,
+        codigo: codigo,
+        observacion: observacion || "",
+        activo: true,
+        usado: false,
+        fechaCreacion: Date.now(),
+        fechaUso: "",
+        uidUsuario: "",
+        comprador: ""
+      })
+      .then(() => {
+        programarRecalculoStockSilencioso();
+        mostrarMensajeCodigo("Código guardado correctamente.");
+        document.getElementById("codigoProducto").value = "";
+        document.getElementById("nuevoCodigoValor").value = "";
+        document.getElementById("nuevoCodigoObservacion").value = "";
+      })
+      .catch((error) => mostrarMensajeCodigo("Error: " + error.message, true));
+    }
+
     function eliminarCuenta(producto, cuentaId) {
       if (!confirm("¿Seguro que quieres eliminar esta cuenta?")) return;
 
-      db.ref("cuentas/" + producto + "/" + cuentaId).once("value")
-      .then((snapshot) => {
-        const cuenta = snapshot.val();
-        const eraDisponible = cuenta && (cuenta.estado || "").toLowerCase() === "disponible";
-
-        return db.ref("cuentas/" + producto + "/" + cuentaId).remove()
-        .then(() => {
-          if (!eraDisponible) return;
-
-          return db.ref("stock/" + producto).once("value")
-          .then((stockSnap) => {
-            const stockActual = Number(stockSnap.val() || 0);
-            const nuevoStock = Math.max(0, stockActual - 1);
-
-            const updates = {};
-            updates["stock/" + producto] = nuevoStock;
-            updates["productos/" + producto + "/stock"] = nuevoStock;
-
-            return db.ref().update(updates);
-          });
-        });
+      db.ref("cuentas/" + producto + "/" + cuentaId).remove()
+      .then(() => {
+        programarRecalculoStockSilencioso();
+        mostrarMensajeCuenta("Cuenta eliminada correctamente.");
       })
-      .then(() => mostrarMensajeCuenta("Cuenta eliminada correctamente."))
       .catch((error) => mostrarMensajeCuenta("Error: " + error.message, true));
     }
 
-    function marcarCuentaUsadaManual(producto, cuentaId) {
-      db.ref("cuentas/" + producto + "/" + cuentaId).once("value")
-      .then((snapshot) => {
-        const cuenta = snapshot.val();
-        const yaDisponible = cuenta && (cuenta.estado || "").toLowerCase() === "disponible";
+    function eliminarCodigo(codigoId) {
+      if (!confirm("¿Seguro que quieres eliminar este código?")) return;
 
-        return db.ref("cuentas/" + producto + "/" + cuentaId).update({
-          estado: "usada",
-          fechaEntrega: new Date().toISOString()
-        })
-        .then(() => {
-          if (!yaDisponible) return;
-
-          return db.ref("stock/" + producto).once("value")
-          .then((stockSnap) => {
-            const stockActual = Number(stockSnap.val() || 0);
-            const nuevoStock = Math.max(0, stockActual - 1);
-
-            const updates = {};
-            updates["stock/" + producto] = nuevoStock;
-            updates["productos/" + producto + "/stock"] = nuevoStock;
-
-            return db.ref().update(updates);
-          });
-        });
+      db.ref("codigos/" + codigoId).remove()
+      .then(() => {
+        programarRecalculoStockSilencioso();
+        mostrarMensajeCodigo("Código eliminado correctamente.");
       })
-      .then(() => mostrarMensajeCuenta("Cuenta marcada como usada y stock actualizado."))
+      .catch((error) => mostrarMensajeCodigo("Error: " + error.message, true));
+    }
+
+    function toggleCodigoActivo(codigoId, nuevoEstado) {
+      db.ref("codigos/" + codigoId + "/activo").set(nuevoEstado)
+        .then(() => {
+          programarRecalculoStockSilencioso();
+          mostrarMensajeCodigo("Estado del código actualizado.");
+        })
+        .catch((error) => mostrarMensajeCodigo("Error: " + error.message, true));
+    }
+
+    function marcarCuentaUsadaManual(producto, cuentaId) {
+      db.ref("cuentas/" + producto + "/" + cuentaId).update({
+        estado: "usada",
+        fechaEntrega: new Date().toISOString()
+      })
+      .then(() => {
+        programarRecalculoStockSilencioso();
+        mostrarMensajeCuenta("Cuenta marcada como usada y stock actualizado.");
+      })
       .catch((error) => mostrarMensajeCuenta("Error: " + error.message, true));
     }
 
@@ -1284,7 +1622,7 @@
 
           Object.keys(cuentasProducto).forEach((cuentaId) => {
             const item = cuentasProducto[cuentaId] || {};
-            const estado = (item.estado || "").toLowerCase();
+            const estado = String(item.estado || "").toLowerCase();
 
             if (estado === "disponible") {
               hayDisponibles = true;
@@ -1327,6 +1665,9 @@
                   <td>${formatearFecha(item.fechaEntrega)}</td>
                   <td>${formatearFecha(item.fechaVencimiento)}</td>
                   <td>${badgeEstado(item.estado || "usada")}</td>
+                  <td>
+                    <button class="smallBtn btnDelete" onclick="eliminarCuenta('${producto}', '${cuentaId}')">Eliminar</button>
+                  </td>
                 </tr>
               `;
             }
@@ -1355,45 +1696,30 @@
 
     function toggleUsuarioEstado(uid, nuevoEstado) {
       db.ref("usuarios/" + uid + "/estado").set(nuevoEstado)
-      .then(() => {})
-      .catch(() => {});
+      .catch((error) => {
+        alert("No se pudo cambiar estado: " + error.message);
+      });
     }
 
     function aprobarRecarga(id) {
       db.ref("recargas/" + id).once("value")
       .then((snap) => {
         const item = snap.val();
-
-        if (!item || typeof item !== "object") {
-          throw new Error("La recarga no existe.");
-        }
+        if (!item || typeof item !== "object") throw new Error("La recarga no existe.");
 
         const uid = item.uidUsuario || item.uid || "";
         const monto = Number(item.monto || 0);
         const estadoActual = String(item.estado || "").toLowerCase();
 
-        if (!uid) {
-          throw new Error("La recarga no tiene uidUsuario o uid.");
-        }
-
-        if (isNaN(monto) || monto <= 0) {
-          throw new Error("El monto de la recarga no es válido.");
-        }
-
-        if (estadoActual === "aprobada") {
-          throw new Error("Esta recarga ya fue aprobada.");
-        }
-
-        if (estadoActual === "rechazada") {
-          throw new Error("Esta recarga ya fue rechazada.");
-        }
+        if (!uid) throw new Error("La recarga no tiene uidUsuario o uid.");
+        if (isNaN(monto) || monto <= 0) throw new Error("El monto de la recarga no es válido.");
+        if (estadoActual === "aprobada") throw new Error("Esta recarga ya fue aprobada.");
+        if (estadoActual === "rechazada") throw new Error("Esta recarga ya fue rechazada.");
 
         return db.ref("usuarios/" + uid).once("value")
         .then((snapshot) => {
           const usuario = snapshot.val();
-          if (!usuario) {
-            throw new Error("No existe el usuario en /usuarios/" + uid);
-          }
+          if (!usuario) throw new Error("No existe el usuario en /usuarios/" + uid);
 
           const saldoActual = Number(usuario.saldo || 0);
           const nuevoSaldo = saldoActual + monto;
@@ -1409,30 +1735,21 @@
       })
       .then(() => {
         mostrarMensajeRecarga("Recarga aprobada y saldo sumado correctamente.");
+        if (modalRecargaActual && modalRecargaActual.id === id) cerrarModalRecarga();
       })
-      .catch((error) => {
-        mostrarMensajeRecarga("Error al aprobar recarga: " + error.message, true);
-      });
+      .catch((error) => mostrarMensajeRecarga("Error al aprobar recarga: " + error.message, true));
     }
 
     function rechazarRecarga(id) {
       db.ref("recargas/" + id).once("value")
       .then((snap) => {
         const item = snap.val();
-
-        if (!item || typeof item !== "object") {
-          throw new Error("La recarga no existe.");
-        }
+        if (!item || typeof item !== "object") throw new Error("La recarga no existe.");
 
         const estadoActual = String(item.estado || "").toLowerCase();
 
-        if (estadoActual === "aprobada") {
-          throw new Error("No puedes rechazar una recarga ya aprobada.");
-        }
-
-        if (estadoActual === "rechazada") {
-          throw new Error("Esta recarga ya fue rechazada.");
-        }
+        if (estadoActual === "aprobada") throw new Error("No puedes rechazar una recarga ya aprobada.");
+        if (estadoActual === "rechazada") throw new Error("Esta recarga ya fue rechazada.");
 
         return db.ref("recargas/" + id).update({
           estado: "rechazada",
@@ -1442,20 +1759,16 @@
       })
       .then(() => {
         mostrarMensajeRecarga("Recarga rechazada correctamente.");
+        if (modalRecargaActual && modalRecargaActual.id === id) cerrarModalRecarga();
       })
-      .catch((error) => {
-        mostrarMensajeRecarga("Error al rechazar recarga: " + error.message, true);
-      });
+      .catch((error) => mostrarMensajeRecarga("Error al rechazar recarga: " + error.message, true));
     }
 
     function aprobarReembolso(id) {
       db.ref("reembolsos/" + id).once("value")
       .then((snap) => {
         const item = snap.val();
-
-        if (!item || typeof item !== "object") {
-          throw new Error("La solicitud no existe.");
-        }
+        if (!item || typeof item !== "object") throw new Error("La solicitud no existe.");
 
         const uid = item.uidUsuario || "";
         const ordenId = item.ordenId || "";
@@ -1465,7 +1778,6 @@
         if (!uid) throw new Error("La solicitud no tiene uidUsuario.");
         if (!ordenId) throw new Error("La solicitud no tiene ordenId.");
         if (isNaN(monto) || monto <= 0) throw new Error("Monto inválido.");
-
         if (estadoActual === "aprobado") throw new Error("Este reembolso ya fue aprobado.");
         if (estadoActual === "rechazado") throw new Error("Este reembolso ya fue rechazado.");
 
@@ -1481,9 +1793,7 @@
           if (!orden) throw new Error("No existe la orden vinculada.");
 
           const ordenEstado = String(orden.estado || "").toLowerCase();
-          if (ordenEstado === "reembolsado") {
-            throw new Error("La orden ya figura como reembolsada.");
-          }
+          if (ordenEstado === "reembolsado") throw new Error("La orden ya figura como reembolsada.");
 
           const saldoActual = Number(usuario.saldo || 0);
           const nuevoSaldo = Number((saldoActual + monto).toFixed(2));
@@ -1492,51 +1802,34 @@
           updates["usuarios/" + uid + "/saldo"] = nuevoSaldo;
           updates["ordenes/" + uid + "/" + ordenId + "/estado"] = "reembolsado";
           updates["ordenes/" + uid + "/" + ordenId + "/fechaReembolso"] = Date.now();
-
           updates["reembolsos/" + id + "/estado"] = "aprobado";
           updates["reembolsos/" + id + "/fechaAprobacion"] = Date.now();
 
           return db.ref().update(updates);
         });
       })
-      .then(() => {
-        mostrarMensajeReembolso("Reembolso aprobado y saldo devuelto correctamente.");
-      })
-      .catch((error) => {
-        mostrarMensajeReembolso("Error al aprobar reembolso: " + error.message, true);
-      });
+      .then(() => mostrarMensajeReembolso("Reembolso aprobado y saldo devuelto correctamente."))
+      .catch((error) => mostrarMensajeReembolso("Error al aprobar reembolso: " + error.message, true));
     }
 
     function rechazarReembolso(id) {
       db.ref("reembolsos/" + id).once("value")
       .then((snap) => {
         const item = snap.val();
-
-        if (!item || typeof item !== "object") {
-          throw new Error("La solicitud no existe.");
-        }
+        if (!item || typeof item !== "object") throw new Error("La solicitud no existe.");
 
         const estadoActual = String(item.estado || "").toLowerCase();
 
-        if (estadoActual === "aprobado") {
-          throw new Error("No puedes rechazar un reembolso ya aprobado.");
-        }
-
-        if (estadoActual === "rechazado") {
-          throw new Error("Este reembolso ya fue rechazado.");
-        }
+        if (estadoActual === "aprobado") throw new Error("No puedes rechazar un reembolso ya aprobado.");
+        if (estadoActual === "rechazado") throw new Error("Este reembolso ya fue rechazado.");
 
         return db.ref("reembolsos/" + id).update({
           estado: "rechazado",
           fechaRechazo: Date.now()
         });
       })
-      .then(() => {
-        mostrarMensajeReembolso("Reembolso rechazado correctamente.");
-      })
-      .catch((error) => {
-        mostrarMensajeReembolso("Error al rechazar reembolso: " + error.message, true);
-      });
+      .then(() => mostrarMensajeReembolso("Reembolso rechazado correctamente."))
+      .catch((error) => mostrarMensajeReembolso("Error al rechazar reembolso: " + error.message, true));
     }
 
     function escucharNuevasRecargasPendientes() {
@@ -1550,10 +1843,7 @@
         Object.keys(data).forEach((id) => {
           const item = data[id] || {};
           const estado = String(item.estado || "").toLowerCase().trim();
-
-          if (estado === "pendiente") {
-            nuevasPendientes[id] = true;
-          }
+          if (estado === "pendiente") nuevasPendientes[id] = true;
         });
 
         if (!recargasInicializadas) {
@@ -1564,7 +1854,6 @@
 
         const idsActuales = Object.keys(nuevasPendientes);
         const idsAnteriores = Object.keys(recargasPendientesCache);
-
         const hayNueva = idsActuales.some(id => !idsAnteriores.includes(id));
 
         if (hayNueva) {
@@ -1574,6 +1863,140 @@
 
         recargasPendientesCache = nuevasPendientes;
       });
+    }
+
+    function abrirModalRecarga(id) {
+      const item = recargasCacheAdmin[id];
+      if (!item) {
+        mostrarMensajeRecarga("No se encontró la recarga seleccionada.", true);
+        return;
+      }
+
+      modalRecargaActual = { id, ...item };
+
+      document.getElementById("modalRecargaId").textContent = id;
+      document.getElementById("modalRecargaNombre").textContent = textoSeguro(item.nombre, "-");
+      document.getElementById("modalRecargaUsuario").textContent = item.usuario ? "@" + item.usuario : textoSeguro(item.nombre, "-");
+      document.getElementById("modalRecargaUid").textContent = textoSeguro(item.uidUsuario || item.uid, "-");
+      document.getElementById("modalRecargaMonto").textContent = formatearDinero(item.monto || 0);
+      document.getElementById("modalRecargaMetodo").textContent = textoSeguro(item.metodoPago, "-");
+      document.getElementById("modalRecargaOperacion").textContent = textoSeguro(item.operacion || item.numeroOperacion, "-");
+      document.getElementById("modalRecargaEstado").textContent = textoSeguro(item.estado, "-");
+      document.getElementById("modalRecargaFecha").textContent = formatearFecha(item.fecha || item.fechaHora);
+      document.getElementById("modalRecargaEmail").textContent = textoSeguro(item.email, "-");
+
+      const wrap = document.getElementById("recargaPreviewWrap");
+      if (item.comprobanteURL) {
+        wrap.innerHTML = `<img id="recargaPreviewImg" src="${item.comprobanteURL}" alt="Comprobante">`;
+      } else {
+        wrap.innerHTML = `<div class="adminModalEmpty">Esta recarga no tiene comprobante adjunto.</div>`;
+      }
+
+      const estado = String(item.estado || "").toLowerCase().trim();
+
+      const btnAbrir = document.getElementById("modalBtnAbrirArchivo");
+      const btnAprobar = document.getElementById("modalBtnAprobar");
+      const btnRechazar = document.getElementById("modalBtnRechazar");
+      const btnEliminar = document.getElementById("modalBtnEliminar");
+
+      btnAbrir.textContent = item.comprobanteURL ? "Abrir imagen" : "Sin archivo";
+      btnAbrir.disabled = !item.comprobanteURL;
+      btnAbrir.onclick = () => {
+        if (item.comprobanteURL) window.open(item.comprobanteURL, "_blank");
+      };
+
+      btnAprobar.onclick = () => aprobarRecarga(id);
+      btnRechazar.onclick = () => rechazarRecarga(id);
+      btnEliminar.onclick = () => eliminarRegistroConfirmado("recargas/" + id, "Recarga eliminada del historial.", mostrarMensajeRecarga);
+
+      btnAprobar.style.display = estado === "pendiente" ? "inline-flex" : "none";
+      btnRechazar.style.display = estado === "pendiente" ? "inline-flex" : "none";
+
+      document.getElementById("modalRecarga").classList.add("show");
+    }
+
+    function cerrarModalRecarga() {
+      modalRecargaActual = null;
+      document.getElementById("modalRecarga").classList.remove("show");
+    }
+
+    function cerrarModalRecargaFondo(event) {
+      if (event.target && event.target.id === "modalRecarga") cerrarModalRecarga();
+    }
+
+    function eliminarRegistroConfirmado(path, exitoTexto, callbackMsg) {
+      if (!confirm("¿Seguro que quieres eliminar este registro del historial?")) return;
+
+      db.ref(path).remove()
+        .then(() => {
+          if (typeof callbackMsg === "function") callbackMsg(exitoTexto, false);
+        })
+        .catch((error) => {
+          if (typeof callbackMsg === "function") callbackMsg("Error: " + error.message, true);
+        });
+    }
+
+    function vaciarNodoConfirmado(path, aviso) {
+      if (!confirm(aviso + " Esta acción no se puede deshacer.")) return;
+
+      db.ref(path).set(null)
+        .then(() => {
+          if (path === "recargas") {
+            recargasCacheAdmin = {};
+            cerrarModalRecarga();
+            mostrarMensajeRecarga("Historial de recargas eliminado.");
+          } else if (path === "reembolsos") {
+            mostrarMensajeReembolso("Historial de reembolsos eliminado.");
+          } else if (path === "ventas") {
+            mostrarMensajeProducto("Historial de ventas eliminado.");
+          } else if (path === "codigos") {
+            mostrarMensajeCodigo("Historial de códigos eliminado.");
+          }
+
+          if (path === "codigos") programarRecalculoStockSilencioso();
+        })
+        .catch((error) => {
+          if (path === "recargas") mostrarMensajeRecarga("Error: " + error.message, true);
+          if (path === "reembolsos") mostrarMensajeReembolso("Error: " + error.message, true);
+          if (path === "ventas") mostrarMensajeProducto("Error: " + error.message, true);
+          if (path === "codigos") mostrarMensajeCodigo("Error: " + error.message, true);
+        });
+    }
+
+    function vaciarComprasHoyConfirmado() {
+      if (!confirm("Se vaciará el historial de compras hoy. Esta acción no se puede deshacer.")) return;
+
+      db.ref("comprasHoy").set(0)
+        .then(() => mostrarMensajeProducto("Compras hoy reiniciado correctamente."))
+        .catch((error) => mostrarMensajeProducto("Error: " + error.message, true));
+    }
+
+    function vaciarCuentasUsadasConfirmado() {
+      if (!confirm("Se eliminarán del historial todas las cuentas marcadas como usadas. Esta acción no se puede deshacer.")) return;
+
+      db.ref("cuentas").once("value")
+        .then((snapshot) => {
+          const data = snapshot.val() || {};
+          const updates = {};
+
+          Object.keys(data).forEach((producto) => {
+            const cuentasProducto = data[producto] || {};
+            Object.keys(cuentasProducto).forEach((cuentaId) => {
+              const item = cuentasProducto[cuentaId] || {};
+              const estado = String(item.estado || "").toLowerCase();
+              if (estado !== "disponible") {
+                updates["cuentas/" + producto + "/" + cuentaId] = null;
+              }
+            });
+          });
+
+          return db.ref().update(updates);
+        })
+        .then(() => {
+          programarRecalculoStockSilencioso();
+          mostrarMensajeCuenta("Historial de cuentas usadas eliminado.");
+        })
+        .catch((error) => mostrarMensajeCuenta("Error: " + error.message, true));
     }
 
     function cargarVentas() {
@@ -1598,34 +2021,20 @@
 
         Object.keys(data).forEach((clavePadre) => {
           const bloque = data[clavePadre];
-
           if (!bloque || typeof bloque !== "object") return;
 
           const esVentaDirecta =
-            bloque.producto ||
-            bloque.plan ||
-            bloque.nombreProducto ||
-            bloque.monto ||
-            bloque.precio ||
-            bloque.total ||
-            bloque.precioTotal;
+            bloque.producto || bloque.plan || bloque.nombreProducto || bloque.monto || bloque.precio || bloque.total || bloque.precioTotal;
 
           if (esVentaDirecta) {
-            ventasLista.push({
-              id: clavePadre,
-              ...bloque
-            });
+            ventasLista.push({ id: clavePadre, __path: "ventas/" + clavePadre, ...bloque });
             return;
           }
 
           Object.keys(bloque).forEach((ventaId) => {
             const item = bloque[ventaId];
             if (!item || typeof item !== "object") return;
-
-            ventasLista.push({
-              id: ventaId,
-              ...item
-            });
+            ventasLista.push({ id: ventaId, __path: "ventas/" + clavePadre + "/" + ventaId, ...item });
           });
         });
 
@@ -1634,7 +2043,7 @@
         totalVentas = ventasLista.length;
         document.getElementById("totalVentas").textContent = totalVentas;
 
-        if (totalVentas === 0) {
+        if (!totalVentas) {
           tabla.classList.add("hidden");
           vacio.classList.remove("hidden");
           document.getElementById("gananciaTotal").textContent = formatearDinero(0);
@@ -1654,6 +2063,9 @@
               <td>${formatearDinero(monto)}</td>
               <td>${textoSeguro(formatearFecha(item.fecha || item.fechaHora || item.hora))}</td>
               <td>${badgeEstado(item.estado || "registrado")}</td>
+              <td>
+                <button class="smallBtn btnDelete" onclick="eliminarRegistroConfirmado('${item.__path}', 'Venta eliminada del historial.', mostrarMensajeProducto)">Eliminar</button>
+              </td>
             </tr>
           `;
         });
@@ -1695,14 +2107,13 @@
         Object.keys(data).forEach((id) => {
           const item = data[id];
           if (!item || typeof item !== "object") return;
-          comprasLista.push({ id, ...item });
+          comprasLista.push({ id, __path: "comprasHoy/" + id, ...item });
         });
 
         comprasLista.sort((a, b) => Number(b.fecha || b.fechaHora || 0) - Number(a.fecha || a.fechaHora || 0));
-
         document.getElementById("totalComprasHoy").textContent = comprasLista.length;
 
-        if (comprasLista.length === 0) {
+        if (!comprasLista.length) {
           tabla.classList.add("hidden");
           vacio.classList.remove("hidden");
           document.getElementById("gananciaHoy").textContent = formatearDinero(0);
@@ -1722,6 +2133,9 @@
               <td>${formatearDinero(monto)}</td>
               <td>${textoSeguro(formatearFecha(item.fecha || item.fechaHora || item.hora))}</td>
               <td>${badgeEstado(item.estado || "registrado")}</td>
+              <td>
+                <button class="smallBtn btnDelete" onclick="eliminarRegistroConfirmado('${item.__path}', 'Registro eliminado de compras hoy.', mostrarMensajeProducto)">Eliminar</button>
+              </td>
             </tr>
           `;
         });
@@ -1793,6 +2207,7 @@
         const vacio = document.getElementById("recargasVacio");
 
         tbody.innerHTML = "";
+        recargasCacheAdmin = {};
 
         if (!data || typeof data !== "object") {
           tabla.classList.add("hidden");
@@ -1809,16 +2224,14 @@
 
         keys.forEach((id) => {
           const item = data[id] || {};
-          const estado = String(item.estado || "").toLowerCase().trim();
-
-          if (estado !== "aprobada" && estado !== "rechazada") {
-            totalPendientes++;
-          }
+          recargasCacheAdmin[id] = item;
+          const estado = String(item.estado || "pendiente").toLowerCase().trim();
+          if (estado === "pendiente") totalPendientes++;
         });
 
         document.getElementById("totalRecargas").textContent = totalPendientes;
 
-        if (keys.length === 0) {
+        if (!keys.length) {
           tabla.classList.add("hidden");
           vacio.classList.remove("hidden");
           return;
@@ -1829,10 +2242,6 @@
           const estado = String(item.estado || "pendiente").toLowerCase().trim();
           const usuarioMostrado = item.usuario ? "@" + item.usuario : (item.nombre || item.uid || "-");
 
-          const comprobanteHtml = item.comprobanteURL
-  ? `<a href="${item.comprobanteURL}" target="_blank" rel="noopener noreferrer" class="smallBtn btnSave">📄 Ver comprobante</a>`
-  : `<span class="badge bad">sin archivo</span>`;
-
           tbody.innerHTML += `
             <tr>
               <td>${id}</td>
@@ -1841,16 +2250,15 @@
               <td>${formatearDinero(item.monto || 0)}</td>
               <td>${textoSeguro(item.metodoPago)}</td>
               <td>${textoSeguro(item.operacion || item.numeroOperacion)}</td>
-              <td>${comprobanteHtml}</td>
+              <td>
+                <button class="smallBtn btnSave" onclick="abrirModalRecarga('${id}')">Ver Info</button>
+              </td>
               <td>${badgeEstado(estado)}</td>
               <td>${textoSeguro(formatearFecha(item.fecha || item.fechaHora))}</td>
               <td>
-                ${estado !== "aprobada" && estado !== "rechazada" ? `
-                  <div class="actionGroup">
-                    <button class="smallBtn btnSave" onclick="aprobarRecarga('${id}')">Aprobar</button>
-                    <button class="smallBtn btnDelete" onclick="rechazarRecarga('${id}')">Rechazar</button>
-                  </div>
-                ` : "-"}
+                <div class="actionGroup">
+                  <button class="smallBtn btnDelete" onclick="eliminarRegistroConfirmado('recargas/${id}', 'Recarga eliminada del historial.', mostrarMensajeRecarga)">Eliminar</button>
+                </div>
               </td>
             </tr>
           `;
@@ -1892,14 +2300,12 @@
         keys.forEach((id) => {
           const item = data[id] || {};
           const estado = String(item.estado || "pendiente").toLowerCase().trim();
-          if (estado !== "aprobado" && estado !== "rechazado") {
-            totalPendientes++;
-          }
+          if (estado !== "aprobado" && estado !== "rechazado") totalPendientes++;
         });
 
         document.getElementById("totalReembolsos").textContent = totalPendientes;
 
-        if (keys.length === 0) {
+        if (!keys.length) {
           tabla.classList.add("hidden");
           vacio.classList.remove("hidden");
           return;
@@ -1921,12 +2327,13 @@
               <td>${badgeEstado(estado)}</td>
               <td>${textoSeguro(formatearFecha(item.fechaSolicitud))}</td>
               <td>
-                ${estado !== "aprobado" && estado !== "rechazado" ? `
-                  <div class="actionGroup">
+                <div class="actionGroup">
+                  ${estado !== "aprobado" && estado !== "rechazado" ? `
                     <button class="smallBtn btnSave" onclick="aprobarReembolso('${id}')">Aprobar</button>
                     <button class="smallBtn btnDelete" onclick="rechazarReembolso('${id}')">Rechazar</button>
-                  </div>
-                ` : "-"}
+                  ` : ``}
+                  <button class="smallBtn btnDelete" onclick="eliminarRegistroConfirmado('reembolsos/${id}', 'Reembolso eliminado del historial.', mostrarMensajeReembolso)">Eliminar</button>
+                </div>
               </td>
             </tr>
           `;
@@ -1962,15 +2369,28 @@
         const keys = Object.keys(data).reverse();
         document.getElementById("totalCodigos").textContent = keys.length;
 
-        keys.forEach((codigo) => {
-          const item = data[codigo] || {};
+        keys.forEach((codigoId) => {
+          const item = data[codigoId] || {};
+          const activo = item.activo !== false;
+          const usado = item.usado === true;
+
           tbody.innerHTML += `
             <tr>
-              <td>${codigo}</td>
+              <td>${codigoId}</td>
               <td>${textoSeguro(item.producto)}</td>
-              <td>${badgeEstado(String(item.activo))}</td>
-              <td>${badgeEstado(item.usado ? "usado" : "no usado")}</td>
+              <td>${textoSeguro(item.codigo)}</td>
+              <td>${textoSeguro(item.observacion)}</td>
+              <td>${badgeEstado(String(activo))}</td>
+              <td>${badgeEstado(usado ? "usado" : "no usado")}</td>
+              <td>${textoSeguro(formatearFecha(item.fechaCreacion))}</td>
               <td>${textoSeguro(formatearFecha(item.fechaUso))}</td>
+              <td>${textoSeguro(item.comprador)}</td>
+              <td>
+                <div class="actionGroup">
+                  <button class="smallBtn btnToggle" onclick="toggleCodigoActivo('${codigoId}', ${!activo})">${activo ? "Desactivar" : "Activar"}</button>
+                  <button class="smallBtn btnDelete" onclick="eliminarCodigo('${codigoId}')">Eliminar</button>
+                </div>
+              </td>
             </tr>
           `;
         });
@@ -1979,6 +2399,10 @@
         vacio.classList.add("hidden");
       });
     }
+
+    document.addEventListener("keydown", function(e){
+      if (e.key === "Escape") cerrarModalRecarga();
+    });
   </script>
 </body>
 </html>
