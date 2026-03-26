@@ -148,12 +148,35 @@
       background:linear-gradient(180deg,#0b0b0b,#060606);
     }
 
+    .misCompraItem.codigoItem{
+      border-color:rgba(80,170,255,0.16);
+      background:
+        radial-gradient(circle at top right, rgba(60,140,255,0.08), transparent 28%),
+        linear-gradient(180deg,#0b0f16,#06080d);
+    }
+
     .misCompraServicio{
       font-size:15px;
       color:#fff;
       line-height:1.4;
       word-break:break-word;
       font-weight:700;
+    }
+
+    .misCompraServicioBadge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      margin-top:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.4px;
+      text-transform:uppercase;
+      background:linear-gradient(180deg,#1b2c49,#101928);
+      color:#beddff;
+      border:1px solid rgba(120,180,255,0.20);
     }
 
     .misCompraCuentaWrap{
@@ -184,6 +207,19 @@
       box-shadow:0 10px 20px rgba(72,20,140,0.28);
     }
 
+    .btnVerCuenta.codigo{
+      background:linear-gradient(180deg,#14365f,#0e2745);
+      color:#d8ecff;
+      border:1px solid rgba(117,184,255,0.30);
+      box-shadow:0 8px 18px rgba(20,70,120,0.24);
+    }
+
+    .btnVerCuenta.codigo:hover{
+      background:linear-gradient(180deg,#184272,#113257);
+      border-color:rgba(140,198,255,0.44);
+      box-shadow:0 10px 20px rgba(20,70,120,0.30);
+    }
+
     .misCompraDato{
       font-size:15px;
       color:#fff;
@@ -212,6 +248,12 @@
 
     .misCompraTiempo.expirada{
       color:#ff7070;
+    }
+
+    .misCompraTiempo.permanente{
+      color:#76c8ff;
+      font-family:inherit;
+      font-weight:800;
     }
 
     .misCompraAcciones{
@@ -368,6 +410,14 @@
         inset 0 1px 0 rgba(255,255,255,0.03);
       position:relative;
       overflow:hidden;
+    }
+
+    .modalCuentaBox.codigo{
+      background:
+        radial-gradient(circle at top right, rgba(60,140,255,0.10), transparent 24%),
+        radial-gradient(circle at bottom left, rgba(90,170,255,0.08), transparent 26%),
+        linear-gradient(180deg,#101723,#09111b);
+      border:1px solid rgba(120,180,255,0.12);
     }
 
     .modalCuentaHeader{
@@ -577,6 +627,10 @@
       transform:translateY(0);
     }
 
+    .oculto{
+      display:none !important;
+    }
+
     @media (max-width:1024px){
       .misComprasPage{
         margin-left:0;
@@ -598,6 +652,7 @@
     }
 
     @media (max-width:700px){
+
       .misComprasPage{
         padding:78px 12px 24px;
       }
@@ -758,6 +813,11 @@
         border:1px solid rgba(255,112,112,0.12);
       }
 
+      .misCompraTiempo.permanente{
+        background:linear-gradient(180deg,#0d1621,#0a121a);
+        border:1px solid rgba(118,200,255,0.12);
+      }
+
       .misCompraAcciones{
         grid-column:1 / -1;
         display:grid;
@@ -863,6 +923,7 @@
   <div class="menuIcon" onclick="toggleMenu()">☰</div>
 
   <nav id="menuLateral" class="menuLateral">
+
     <div class="menuLogo">
       <img src="img/logo.jpg" alt="StreamsVip">
     </div>
@@ -899,6 +960,7 @@
         scrolling="auto">
       </iframe>
     </div>
+
   </nav>
 
   <div class="misComprasPage">
@@ -945,13 +1007,13 @@
   </div>
 
   <div id="modalCuenta" class="modalCuenta">
-    <div class="modalCuentaBox">
+    <div id="modalCuentaBox" class="modalCuentaBox">
       <div class="modalCuentaHeader">
         <div class="modalCuentaHeaderLeft">
-          <div class="modalCuentaIcono">🔐</div>
+          <div id="modalIconoPrincipal" class="modalCuentaIcono">🔐</div>
           <div class="modalCuentaTituloWrap">
-            <h2>Datos de la cuenta</h2>
-            <div class="modalCuentaSub">Acceso seguro y detalles de uso</div>
+            <h2 id="modalTituloPrincipal">Datos de la cuenta</h2>
+            <div id="modalSubPrincipal" class="modalCuentaSub">Acceso seguro y detalles de uso</div>
           </div>
         </div>
         <div class="cerrarModalCuenta" onclick="cerrarModalCuenta()">&times;</div>
@@ -964,39 +1026,39 @@
         </div>
 
         <div class="modalCuentaHeroCard">
-          <span class="modalMiniLabel">Expiración</span>
+          <span id="modalHeroExpiraLabel" class="modalMiniLabel">Expiración</span>
           <div id="modalExpira" class="modalHeroFecha">-</div>
         </div>
       </div>
 
       <div class="modalCuentaGrid">
         <div class="modalCuentaDato full">
-          <span class="modalCuentaLabel">Correo / Usuario</span>
+          <span id="labelModalCorreo" class="modalCuentaLabel">Correo / Usuario</span>
           <div class="campoCopiable">
             <div id="modalCorreo" class="modalCuentaValor campoCopiableTexto">-</div>
-            <button class="btnCopiar" onclick="copiarDato('modalCorreo', 'Correo / usuario copiado')">Copiar</button>
+            <button class="btnCopiar" onclick="copiarDato('modalCorreo', 'Dato copiado')">Copiar</button>
           </div>
         </div>
 
-        <div class="modalCuentaDato full">
-          <span class="modalCuentaLabel">Clave</span>
+        <div id="bloqueClave" class="modalCuentaDato full">
+          <span id="labelModalClave" class="modalCuentaLabel">Clave</span>
           <div class="campoCopiable">
             <div id="modalClave" class="modalCuentaValor campoCopiableTexto">-</div>
             <button class="btnCopiar" onclick="copiarDato('modalClave', 'Clave copiada')">Copiar</button>
           </div>
         </div>
 
-        <div class="modalCuentaDato">
+        <div id="bloquePerfil" class="modalCuentaDato">
           <span class="modalCuentaLabel">Perfil</span>
           <div id="modalPerfil" class="modalCuentaValor">-</div>
         </div>
 
-        <div class="modalCuentaDato">
+        <div id="bloquePin" class="modalCuentaDato">
           <span class="modalCuentaLabel">PIN</span>
           <div id="modalPin" class="modalCuentaValor">-</div>
         </div>
 
-        <div class="modalCuentaDato full">
+        <div id="bloqueObservacion" class="modalCuentaDato full">
           <span class="modalCuentaLabel">Observación</span>
           <div id="modalObservacion" class="modalCuentaValor">-</div>
         </div>
@@ -1055,6 +1117,15 @@
     let compraPendienteNombre = null;
     let uidActual = null;
 
+    function esCompraCodigo(compra) {
+      return (
+        compra?.tipoEntrega === "codigo" ||
+        compra?.esCodigo === true ||
+        compra?.esLicencia === true ||
+        compra?.entregaVisual === "codigo"
+      );
+    }
+
     function formatearFecha(fecha) {
       if (!fecha) return "-";
       const f = new Date(fecha);
@@ -1062,8 +1133,16 @@
       return f.toLocaleDateString("es-PE");
     }
 
-    function calcularTiempoRestante(fechaExpira, estado) {
+    function obtenerTextoExpiracion(compra) {
+      if (esCompraCodigo(compra)) {
+        return compra.fechaExpiraTexto || compra.duracionTexto || "Permanente";
+      }
+      return formatearFecha(compra.fechaExpira);
+    }
+
+    function calcularTiempoRestante(fechaExpira, estado, compra = null) {
       if (estado === "reembolsado") return "Reembolsado";
+      if (esCompraCodigo(compra)) return "Permanente";
       if (!fechaExpira) return "Sin fecha";
 
       const ahora = new Date().getTime();
@@ -1082,6 +1161,7 @@
 
     function obtenerEstadoReal(compra) {
       if (compra.estado === "reembolsado") return "reembolsado";
+      if (esCompraCodigo(compra)) return compra.estado || "activa";
       if (!compra.fechaExpira) return compra.estado || "activa";
 
       const ahora = new Date().getTime();
@@ -1091,8 +1171,9 @@
       return compra.estado || "activa";
     }
 
-    function puedeRenovar(fechaExpira, estado) {
+    function puedeRenovar(fechaExpira, estado, compra = null) {
       if (estado === "reembolsado") return false;
+      if (esCompraCodigo(compra)) return false;
       if (!fechaExpira) return false;
 
       const ahora = new Date().getTime();
@@ -1137,7 +1218,10 @@
     }
 
     function abrirModalCuenta(compra) {
-      if (!compra) return;
+      const esCodigo = esCompraCodigo(compra);
+      const box = document.getElementById("modalCuentaBox");
+
+      box.classList.toggle("codigo", esCodigo);
 
       document.getElementById("modalServicio").innerText = compra.servicio || "-";
       document.getElementById("modalCorreo").innerText = compra.cuenta || "-";
@@ -1145,7 +1229,23 @@
       document.getElementById("modalPerfil").innerText = compra.perfil || "-";
       document.getElementById("modalPin").innerText = compra.pin || "-";
       document.getElementById("modalObservacion").innerText = compra.observacion || "-";
-      document.getElementById("modalExpira").innerText = formatearFecha(compra.fechaExpira);
+
+      document.getElementById("modalExpira").innerText = esCodigo
+        ? (compra.fechaExpiraTexto || compra.duracionTexto || "Permanente")
+        : formatearFecha(compra.fechaExpira);
+
+      document.getElementById("modalTituloPrincipal").innerText = esCodigo ? "Datos de la licencia" : "Datos de la cuenta";
+      document.getElementById("modalSubPrincipal").innerText = esCodigo ? "Código digital entregado" : "Acceso seguro y detalles de uso";
+      document.getElementById("modalIconoPrincipal").innerText = esCodigo ? "🔑" : "🔐";
+      document.getElementById("modalHeroExpiraLabel").innerText = esCodigo ? "Vigencia" : "Expiración";
+      document.getElementById("labelModalCorreo").innerText = esCodigo ? "Código / licencia" : "Correo / Usuario";
+      document.getElementById("labelModalClave").innerText = esCodigo ? "Detalle adicional" : "Clave";
+
+      document.getElementById("bloquePerfil").classList.toggle("oculto", esCodigo);
+      document.getElementById("bloquePin").classList.toggle("oculto", esCodigo);
+      document.getElementById("bloqueClave").classList.toggle("oculto", !compra.clave && esCodigo);
+      document.getElementById("bloqueObservacion").classList.toggle("oculto", !compra.observacion);
+
       document.getElementById("modalCuenta").style.display = "flex";
     }
 
@@ -1155,13 +1255,7 @@
 
     function abrirModalNombreCliente(compra) {
       compraPendienteNombre = compra;
-
-      const input = document.getElementById("inputNombreCliente");
-      if (input) {
-        input.value = compra?.nombreCliente || compra?.perfil || "";
-        setTimeout(() => input.focus(), 50);
-      }
-
+      document.getElementById("inputNombreCliente").value = "";
       document.getElementById("modalNombreCliente").style.display = "flex";
     }
 
@@ -1170,11 +1264,10 @@
       compraPendienteNombre = null;
     }
 
-    async function guardarNombreClienteYVerCuenta() {
+    function guardarNombreClienteYVerCuenta() {
       if (!compraPendienteNombre || !uidActual) return;
 
       const input = document.getElementById("inputNombreCliente");
-      const btn = document.getElementById("btnGuardarNombreCliente");
       const nombre = (input.value || "").trim();
 
       if (!nombre) {
@@ -1189,57 +1282,46 @@
         return;
       }
 
-      try {
-        if (btn) {
-          btn.disabled = true;
-          btn.textContent = "Guardando...";
-          btn.style.opacity = "0.7";
-          btn.style.pointerEvents = "none";
-        }
-
-        await db.ref(`ordenes/${uidActual}/${compraId}/nombreCliente`).set(nombre);
-
+      db.ref(`ordenes/${uidActual}/${compraId}`).update({
+        nombreCliente: nombre
+      })
+      .then(() => {
         compraPendienteNombre.nombreCliente = nombre;
-
-        const indice = comprasOriginales.findIndex(c => c.id === compraId);
-        if (indice !== -1) {
-          comprasOriginales[indice].nombreCliente = nombre;
-        }
-
-        const compraParaAbrir = { ...compraPendienteNombre };
-
-        renderCompras();
         cerrarModalNombreCliente();
-        abrirModalCuenta(compraParaAbrir);
-
-      } catch (error) {
-        console.error("Error real al guardar nombreCliente:", error);
+        abrirModalCuenta(compraPendienteNombre);
+      })
+      .catch((error) => {
+        console.error(error);
         alert("No se pudo guardar el nombre del cliente.");
-      } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = "Guardar y ver cuenta";
-          btn.style.opacity = "1";
-          btn.style.pointerEvents = "auto";
-        }
-      }
+      });
     }
 
     function crearFilaCompra(compra) {
       const estadoReal = obtenerEstadoReal(compra);
-      const tiempo = calcularTiempoRestante(compra.fechaExpira, estadoReal);
-      const renovarActivo = puedeRenovar(compra.fechaExpira, estadoReal);
+      const tiempo = calcularTiempoRestante(compra.fechaExpira, estadoReal, compra);
+      const renovarActivo = puedeRenovar(compra.fechaExpira, estadoReal, compra);
       const numeroSoporte = compra.soporteNumero || "51916252754";
       const tieneNombreCliente = !!(compra.nombreCliente && String(compra.nombreCliente).trim());
+      const esCodigo = esCompraCodigo(compra);
+      const expiraTexto = obtenerTextoExpiracion(compra);
 
       const div = document.createElement("div");
-      div.className = "misCompraItem";
+      div.className = `misCompraItem ${esCodigo ? "codigoItem" : ""}`;
 
       div.innerHTML = `
-        <div class="misCompraServicio">${compra.servicio || "-"}</div>
+        <div class="misCompraServicio">
+          ${compra.servicio || "-"}
+          ${esCodigo ? `<div class="misCompraServicioBadge">🔑 Licencia / código</div>` : ``}
+        </div>
 
         <div class="misCompraCuentaWrap">
-          <button class="btnVerCuenta">${tieneNombreCliente ? "👁 Ver Cuenta" : "🔒 Registrar cliente"}</button>
+          <button class="btnVerCuenta ${esCodigo ? "codigo" : ""}">
+            ${
+              tieneNombreCliente
+                ? (esCodigo ? "🔑 Ver código" : "👁 Ver Cuenta")
+                : "🔒 Registrar cliente"
+            }
+          </button>
         </div>
 
         <div class="misCompraDato nombreCliente">
@@ -1252,9 +1334,9 @@
 
         <div class="misCompraDato precio">S/ ${Number(compra.precio || 0).toFixed(2)}</div>
 
-        <div class="misCompraDato expira">${formatearFecha(compra.fechaExpira)}</div>
+        <div class="misCompraDato expira">${expiraTexto}</div>
 
-        <div class="misCompraTiempo ${estadoReal === "expirada" ? "expirada" : ""}">${tiempo}</div>
+        <div class="misCompraTiempo ${estadoReal === "expirada" ? "expirada" : ""} ${esCodigo ? "permanente" : ""}">${tiempo}</div>
 
         <div class="misCompraAcciones">
           ${
@@ -1268,7 +1350,7 @@
           </button>
 
           ${
-            estadoReal !== "reembolsado"
+            !esCodigo && estadoReal !== "reembolsado"
               ? `<button class="btnRenovar ${renovarActivo ? "activo" : ""}">🔄 Renovar</button>`
               : ``
           }
@@ -1351,7 +1433,10 @@
               nombreCliente: compra.nombreCliente || "",
               cuenta: compra.cuenta || "",
               usuario: document.getElementById("panelUsuarioHandle")?.innerText?.replace("@", "") || "",
-              nombreComprador: document.getElementById("panelUsuarioNombre")?.innerText || ""
+              nombreComprador: document.getElementById("panelUsuarioNombre")?.innerText || "",
+              tipoEntrega: compra.tipoEntrega || "",
+              esCodigo: compra.esCodigo === true,
+              esLicencia: compra.esLicencia === true
             });
 
             alert("Solicitud de reembolso enviada correctamente.");
@@ -1370,7 +1455,7 @@
       const estado = filtroEstado.value;
       const texto = buscadorCompras.value.trim().toLowerCase();
 
-      const filtradas = comprasOriginales.filter(compra => {
+      let filtradas = comprasOriginales.filter(compra => {
         const estadoReal = obtenerEstadoReal(compra);
         const coincideServicio = servicio === "todos" || (compra.servicio || "") === servicio;
         const coincideEstado = estado === "todos" || estadoReal === estado;
@@ -1381,6 +1466,9 @@
           ${compra.cuenta || ""}
           ${compra.perfil || ""}
           ${compra.observacion || ""}
+          ${compra.tipoEntrega || ""}
+          ${compra.entregaVisual || ""}
+          ${compra.duracionTexto || ""}
         `.toLowerCase();
 
         const coincideTexto = textoBase.includes(texto);
@@ -1445,11 +1533,7 @@
     filtroServicio.addEventListener("change", renderCompras);
     filtroEstado.addEventListener("change", renderCompras);
     buscadorCompras.addEventListener("input", renderCompras);
-
-    const btnGuardarNombreCliente = document.getElementById("btnGuardarNombreCliente");
-    if (btnGuardarNombreCliente) {
-      btnGuardarNombreCliente.onclick = guardarNombreClienteYVerCuenta;
-    }
+    document.getElementById("btnGuardarNombreCliente").addEventListener("click", guardarNombreClienteYVerCuenta);
 
     auth.onAuthStateChanged(user => {
       if (!user) {
