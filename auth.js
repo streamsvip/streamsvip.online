@@ -15,14 +15,17 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const db = firebase.database();
 
-const TIEMPO_INACTIVIDAD_USUARIO = 15 * 60 * 1000;
-const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;
-const TIEMPO_AVISO = 1 * 60 * 1000;
+const TIEMPO_INACTIVIDAD_USUARIO = 5 * 60 * 1000;  // 5 minutos
+const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;    // 7 minutos
+const TIEMPO_AVISO = 1 * 60 * 1000;                // aviso 1 minuto antes
 
 let temporizadorInactividad = null;
 let temporizadorAviso = null;
 let controlInactividadIniciado = false;
 let avisoMostrado = false;
+let usuarioActualAuth = null;
+let onlineRefActual = null;
+let cierrePorPestanaRegistrado = false;
 
 /* =========================
 FUNCIONES GENERALES
@@ -69,6 +72,72 @@ function esPaginaPrivada(pagina) {
 }
 
 /* =========================
+PRESENCIA / ONLINE
+========================= */
+
+function limpiarReferenciaOnline() {
+  if (onlineRefActual) {
+    try {
+      onlineRefActual.onDisconnect().cancel();
+    } catch (e) {}
+    onlineRefActual = null;
+  }
+}
+
+function registrarPresenciaUsuario(user) {
+  if (!user || !user.uid) return;
+
+  limpiarReferenciaOnline();
+
+  onlineRefActual = db.ref("online/" + user.uid);
+  const connectedRef = db.ref(".info/connected");
+
+  connectedRef.on("value", (snap) => {
+    if (snap.val() === true) {
+      onlineRefActual.onDisconnect().set(false).catch(() => {});
+      onlineRefActual.set(true).catch(() => {});
+    }
+  });
+}
+
+function marcarOfflineSiExiste() {
+  if (!usuarioActualAuth || !usuarioActualAuth.uid) return;
+
+  db.ref("online/" + usuarioActualAuth.uid).set(false).catch(() => {});
+}
+
+/* =========================
+CIERRE POR PESTAÑA / NAVEGADOR
+========================= */
+
+function registrarCierrePorPestana() {
+  if (cierrePorPestanaRegistrado) return;
+  cierrePorPestanaRegistrado = true;
+
+  const cerrarSesionSilenciosa = () => {
+    marcarOfflineSiExiste();
+
+    try {
+      auth.signOut();
+    } catch (e) {}
+  };
+
+  window.addEventListener("beforeunload", () => {
+    cerrarSesionSilenciosa();
+  });
+
+  window.addEventListener("pagehide", () => {
+    cerrarSesionSilenciosa();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      marcarOfflineSiExiste();
+    }
+  });
+}
+
+/* =========================
 INACTIVIDAD / AUTO LOGOUT
 ========================= */
 
@@ -87,6 +156,7 @@ function limpiarTemporizadoresInactividad() {
 function cerrarSesionPorInactividad() {
   limpiarTemporizadoresInactividad();
   avisoMostrado = false;
+  marcarOfflineSiExiste();
 
   auth.signOut()
     .then(() => {
@@ -197,6 +267,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  registrarCierrePorPestana();
 });
 
 /* =========================
@@ -205,9 +277,11 @@ CONTROL DE SESIÓN
 
 auth.onAuthStateChanged(async (user) => {
   const pagina = obtenerPaginaActual();
+  usuarioActualAuth = user || null;
 
   if (!user) {
     limpiarTemporizadoresInactividad();
+    limpiarReferenciaOnline();
 
     if (esPaginaPrivada(pagina)) {
       window.location.replace("index.html");
@@ -223,11 +297,14 @@ auth.onAuthStateChanged(async (user) => {
 
     if (estado === "bloqueado") {
       limpiarTemporizadoresInactividad();
+      marcarOfflineSiExiste();
       await auth.signOut();
       alert("Tu cuenta ha sido bloqueada. Contacta con soporte.");
       window.location.replace("index.html");
       return;
     }
+
+    registrarPresenciaUsuario(user);
 
     if (esPaginaPrivada(pagina)) {
       iniciarControlInactividad();
@@ -486,6 +563,7 @@ async function crearCuenta() {
 
     await db.ref("usuarios/" + user.uid).set(datosUsuario);
     await db.ref("usernames/" + usuarioNormalizado).set(datosUsername);
+    await db.ref("online/" + user.uid).set(true).catch(() => {});
 
     mostrarMensajeAuth("Cuenta creada correctamente.", "#00e676");
 
@@ -568,6 +646,7 @@ CERRAR SESIÓN MANUAL
 
 function salir() {
   limpiarTemporizadoresInactividad();
+  marcarOfflineSiExiste();
 
   auth.signOut()
     .then(() => {
