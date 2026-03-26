@@ -21,19 +21,27 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const db = firebase.database();
 
-const TIEMPO_INACTIVIDAD_USUARIO = 5 * 60 * 1000; // 5 minutos
-const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;   // 7 minutos
-const TIEMPO_AVISO = 1 * 60 * 1000;               // aviso 1 minuto antes
+const TIEMPO_INACTIVIDAD_USUARIO = 5 * 60 * 1000;
+const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;
+const TIEMPO_AVISO = 1 * 60 * 1000;
+
+/*
+  Pequeño margen para no parpadear offline/online
+  cuando el usuario cambia entre páginas internas.
+*/
+const TIEMPO_ESPERA_OFFLINE = 2500;
 
 let temporizadorInactividad = null;
 let temporizadorAviso = null;
 let controlInactividadIniciado = false;
 let avisoMostrado = false;
+
 let usuarioActualAuth = null;
 let onlineRefActual = null;
 let connectedRefActual = null;
 let connectedCallbackActual = null;
 let cierrePorPestanaRegistrado = false;
+let timeoutOfflinePendiente = null;
 
 /* =========================
 FUNCIONES GENERALES
@@ -101,9 +109,31 @@ function limpiarReferenciaOnline() {
   connectedCallbackActual = null;
 }
 
+function cancelarOfflinePendiente() {
+  if (timeoutOfflinePendiente) {
+    clearTimeout(timeoutOfflinePendiente);
+    timeoutOfflinePendiente = null;
+  }
+}
+
+function marcarOfflineSiExiste() {
+  if (!usuarioActualAuth || !usuarioActualAuth.uid) return;
+  db.ref("online/" + usuarioActualAuth.uid).set(false).catch(() => {});
+}
+
+function programarOfflineConEspera() {
+  cancelarOfflinePendiente();
+
+  timeoutOfflinePendiente = setTimeout(() => {
+    marcarOfflineSiExiste();
+    timeoutOfflinePendiente = null;
+  }, TIEMPO_ESPERA_OFFLINE);
+}
+
 function registrarPresenciaUsuario(user) {
   if (!user || !user.uid) return;
 
+  cancelarOfflinePendiente();
   limpiarReferenciaOnline();
 
   onlineRefActual = db.ref("online/" + user.uid);
@@ -111,17 +141,15 @@ function registrarPresenciaUsuario(user) {
 
   connectedCallbackActual = (snap) => {
     if (snap.val() === true && onlineRefActual) {
+      cancelarOfflinePendiente();
       onlineRefActual.onDisconnect().set(false).catch(() => {});
       onlineRefActual.set(true).catch(() => {});
     }
   };
 
   connectedRefActual.on("value", connectedCallbackActual);
-}
 
-function marcarOfflineSiExiste() {
-  if (!usuarioActualAuth || !usuarioActualAuth.uid) return;
-  db.ref("online/" + usuarioActualAuth.uid).set(false).catch(() => {});
+  onlineRefActual.set(true).catch(() => {});
 }
 
 /* =========================
@@ -133,11 +161,11 @@ function registrarCierrePorPestana() {
   cierrePorPestanaRegistrado = true;
 
   window.addEventListener("beforeunload", () => {
-    marcarOfflineSiExiste();
+    programarOfflineConEspera();
   });
 
   window.addEventListener("pagehide", () => {
-    marcarOfflineSiExiste();
+    programarOfflineConEspera();
   });
 }
 
@@ -160,6 +188,7 @@ function limpiarTemporizadoresInactividad() {
 function cerrarSesionPorInactividad() {
   limpiarTemporizadoresInactividad();
   avisoMostrado = false;
+  cancelarOfflinePendiente();
   marcarOfflineSiExiste();
 
   auth.signOut()
@@ -289,6 +318,7 @@ auth.onAuthStateChanged(async (user) => {
 
   if (!user) {
     limpiarTemporizadoresInactividad();
+    cancelarOfflinePendiente();
     limpiarReferenciaOnline();
 
     if (esPaginaPrivada(pagina)) {
@@ -305,6 +335,7 @@ auth.onAuthStateChanged(async (user) => {
 
     if (estado === "bloqueado") {
       limpiarTemporizadoresInactividad();
+      cancelarOfflinePendiente();
       marcarOfflineSiExiste();
       await auth.signOut();
       alert("Tu cuenta ha sido bloqueada. Contacta con soporte.");
@@ -658,6 +689,7 @@ CERRAR SESIÓN MANUAL
 
 function salir() {
   limpiarTemporizadoresInactividad();
+  cancelarOfflinePendiente();
   marcarOfflineSiExiste();
   limpiarReferenciaOnline();
 
