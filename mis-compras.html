@@ -598,7 +598,6 @@
     }
 
     @media (max-width:700px){
-
       .misComprasPage{
         padding:78px 12px 24px;
       }
@@ -864,7 +863,6 @@
   <div class="menuIcon" onclick="toggleMenu()">☰</div>
 
   <nav id="menuLateral" class="menuLateral">
-
     <div class="menuLogo">
       <img src="img/logo.jpg" alt="StreamsVip">
     </div>
@@ -901,7 +899,6 @@
         scrolling="auto">
       </iframe>
     </div>
-
   </nav>
 
   <div class="misComprasPage">
@@ -1140,6 +1137,8 @@
     }
 
     function abrirModalCuenta(compra) {
+      if (!compra) return;
+
       document.getElementById("modalServicio").innerText = compra.servicio || "-";
       document.getElementById("modalCorreo").innerText = compra.cuenta || "-";
       document.getElementById("modalClave").innerText = compra.clave || "-";
@@ -1156,7 +1155,13 @@
 
     function abrirModalNombreCliente(compra) {
       compraPendienteNombre = compra;
-      document.getElementById("inputNombreCliente").value = "";
+
+      const input = document.getElementById("inputNombreCliente");
+      if (input) {
+        input.value = compra?.nombreCliente || compra?.perfil || "";
+        setTimeout(() => input.focus(), 50);
+      }
+
       document.getElementById("modalNombreCliente").style.display = "flex";
     }
 
@@ -1165,10 +1170,11 @@
       compraPendienteNombre = null;
     }
 
-    function guardarNombreClienteYVerCuenta() {
+    async function guardarNombreClienteYVerCuenta() {
       if (!compraPendienteNombre || !uidActual) return;
 
       const input = document.getElementById("inputNombreCliente");
+      const btn = document.getElementById("btnGuardarNombreCliente");
       const nombre = (input.value || "").trim();
 
       if (!nombre) {
@@ -1183,18 +1189,40 @@
         return;
       }
 
-      db.ref(`ordenes/${uidActual}/${compraId}`).update({
-        nombreCliente: nombre
-      })
-      .then(() => {
+      try {
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = "Guardando...";
+          btn.style.opacity = "0.7";
+          btn.style.pointerEvents = "none";
+        }
+
+        await db.ref(`ordenes/${uidActual}/${compraId}/nombreCliente`).set(nombre);
+
         compraPendienteNombre.nombreCliente = nombre;
+
+        const indice = comprasOriginales.findIndex(c => c.id === compraId);
+        if (indice !== -1) {
+          comprasOriginales[indice].nombreCliente = nombre;
+        }
+
+        const compraParaAbrir = { ...compraPendienteNombre };
+
+        renderCompras();
         cerrarModalNombreCliente();
-        abrirModalCuenta(compraPendienteNombre);
-      })
-      .catch((error) => {
-        console.error(error);
+        abrirModalCuenta(compraParaAbrir);
+
+      } catch (error) {
+        console.error("Error real al guardar nombreCliente:", error);
         alert("No se pudo guardar el nombre del cliente.");
-      });
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "Guardar y ver cuenta";
+          btn.style.opacity = "1";
+          btn.style.pointerEvents = "auto";
+        }
+      }
     }
 
     function crearFilaCompra(compra) {
@@ -1286,53 +1314,53 @@
       }
 
       const btnReembolso = div.querySelector(".btnReembolso");
-if (btnReembolso) {
-  btnReembolso.addEventListener("click", async () => {
-    if (!uidActual || !compra.id) {
-      alert("No se pudo identificar la compra.");
-      return;
-    }
+      if (btnReembolso) {
+        btnReembolso.addEventListener("click", async () => {
+          if (!uidActual || !compra.id) {
+            alert("No se pudo identificar la compra.");
+            return;
+          }
 
-    const confirmar = confirm(`¿Deseas solicitar el reembolso de ${compra.servicio || "esta compra"}?`);
-    if (!confirmar) return;
+          const confirmar = confirm(`¿Deseas solicitar el reembolso de ${compra.servicio || "esta compra"}?`);
+          if (!confirmar) return;
 
-    try {
-      const snap = await db.ref("reembolsos").orderByChild("ordenId").equalTo(compra.id).once("value");
-      const existentes = snap.val() || {};
+          try {
+            const snap = await db.ref("reembolsos").orderByChild("ordenId").equalTo(compra.id).once("value");
+            const existentes = snap.val() || {};
 
-      const yaExiste = Object.values(existentes).some(item => {
-        return item && item.uidUsuario === uidActual && item.estado !== "rechazado";
-      });
+            const yaExiste = Object.values(existentes).some(item => {
+              return item && item.uidUsuario === uidActual && item.estado !== "rechazado";
+            });
 
-      if (yaExiste) {
-        alert("Ya existe una solicitud de reembolso para esta compra.");
-        return;
+            if (yaExiste) {
+              alert("Ya existe una solicitud de reembolso para esta compra.");
+              return;
+            }
+
+            const nuevaSolicitudRef = db.ref("reembolsos").push();
+
+            await nuevaSolicitudRef.set({
+              uidUsuario: uidActual,
+              ordenId: compra.id,
+              servicio: compra.servicio || "",
+              monto: Number(compra.precio || 0),
+              estado: "pendiente",
+              fechaSolicitud: Date.now(),
+              fechaCompra: compra.fechaCompra || "",
+              fechaExpira: compra.fechaExpira || "",
+              nombreCliente: compra.nombreCliente || "",
+              cuenta: compra.cuenta || "",
+              usuario: document.getElementById("panelUsuarioHandle")?.innerText?.replace("@", "") || "",
+              nombreComprador: document.getElementById("panelUsuarioNombre")?.innerText || ""
+            });
+
+            alert("Solicitud de reembolso enviada correctamente.");
+          } catch (error) {
+            console.error(error);
+            alert("No se pudo enviar la solicitud de reembolso.");
+          }
+        });
       }
-
-      const nuevaSolicitudRef = db.ref("reembolsos").push();
-
-      await nuevaSolicitudRef.set({
-        uidUsuario: uidActual,
-        ordenId: compra.id,
-        servicio: compra.servicio || "",
-        monto: Number(compra.precio || 0),
-        estado: "pendiente",
-        fechaSolicitud: Date.now(),
-        fechaCompra: compra.fechaCompra || "",
-        fechaExpira: compra.fechaExpira || "",
-        nombreCliente: compra.nombreCliente || "",
-        cuenta: compra.cuenta || "",
-        usuario: document.getElementById("panelUsuarioHandle")?.innerText?.replace("@", "") || "",
-        nombreComprador: document.getElementById("panelUsuarioNombre")?.innerText || ""
-      });
-
-      alert("Solicitud de reembolso enviada correctamente.");
-    } catch (error) {
-      console.error(error);
-      alert("No se pudo enviar la solicitud de reembolso.");
-    }
-  });
-}
 
       return div;
     }
@@ -1342,7 +1370,7 @@ if (btnReembolso) {
       const estado = filtroEstado.value;
       const texto = buscadorCompras.value.trim().toLowerCase();
 
-      let filtradas = comprasOriginales.filter(compra => {
+      const filtradas = comprasOriginales.filter(compra => {
         const estadoReal = obtenerEstadoReal(compra);
         const coincideServicio = servicio === "todos" || (compra.servicio || "") === servicio;
         const coincideEstado = estado === "todos" || estadoReal === estado;
@@ -1417,7 +1445,11 @@ if (btnReembolso) {
     filtroServicio.addEventListener("change", renderCompras);
     filtroEstado.addEventListener("change", renderCompras);
     buscadorCompras.addEventListener("input", renderCompras);
-    document.getElementById("btnGuardarNombreCliente").addEventListener("click", guardarNombreClienteYVerCuenta);
+
+    const btnGuardarNombreCliente = document.getElementById("btnGuardarNombreCliente");
+    if (btnGuardarNombreCliente) {
+      btnGuardarNombreCliente.onclick = guardarNombreClienteYVerCuenta;
+    }
 
     auth.onAuthStateChanged(user => {
       if (!user) {
