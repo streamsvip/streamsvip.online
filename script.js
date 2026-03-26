@@ -45,6 +45,7 @@ let productoSeleccionadoData = null;
 let productosTiendaCache = {};
 let badgeComprasRef = null;
 let usuarioPerfilRef = null;
+let redireccionPorBloqueoEnCurso = false;
 
 /* =========================
 UTILIDADES
@@ -55,8 +56,13 @@ function obtenerPaginaActual() {
 }
 
 function formatearSaldo(saldo) {
-  const monto = Number(saldo || 0).toFixed(2);
-  return `S/ ${monto} <span class="panelSaldoMoneda">PEN</span>`;
+  const monto = Number(saldo || 0);
+  const montoFormateado = monto.toLocaleString("es-PE", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  return `S/ ${montoFormateado} <span class="panelSaldoMoneda">PEN</span>`;
 }
 
 function mostrarMensajeAuth(texto, color = "#fff") {
@@ -85,14 +91,54 @@ function normalizarProductoBase(nombre) {
   if (texto.includes("netflix")) return "Netflix";
   if (texto.includes("disney")) return "Disney";
   if (texto.includes("prime")) return "Prime";
+  if (texto.includes("hbo max platinium")) return "HBOPlatinium";
+  if (texto.includes("hbomax platinium")) return "HBOPlatinium";
+  if (texto.includes("hbo platinium")) return "HBOPlatinium";
   if (texto.includes("hbo")) return "HBO";
   if (texto.includes("paramount")) return "Paramount";
   if (texto.includes("spotify")) return "Spotify";
   if (texto.includes("vix")) return "Vix";
   if (texto.includes("crunchy")) return "Crunchyroll";
+  if (texto.includes("canva")) return "Canva";
+  if (texto.includes("youtube premium")) return "YouTubePremium";
+  if (texto.includes("youtube")) return "YouTubePremium";
   if (texto.includes("chatgpt")) return "ChatGPT";
+  if (
+    texto.includes("windows 11 pro") ||
+    texto.includes("win11pro") ||
+    texto.includes("windows11pro")
+  ) return "Windows11Pro";
 
   return "";
+}
+
+function esProductoLicencia(productoId = "", itemProducto = {}) {
+  const id = String(productoId || "").toLowerCase();
+  const nombre = String(itemProducto.nombre || "").toLowerCase();
+  const categoria = String(itemProducto.categoria || "").toLowerCase();
+
+  return (
+    categoria.includes("licencia") ||
+    id === "windows11pro" ||
+    nombre.includes("windows 11 pro") ||
+    nombre.includes("licencia")
+  );
+}
+
+function esProductoCodigo(productoId = "", itemProducto = {}) {
+  const id = String(productoId || "").toLowerCase();
+  const nombre = String(itemProducto.nombre || "").toLowerCase();
+  const categoria = String(itemProducto.categoria || "").toLowerCase();
+
+  return (
+    esProductoLicencia(productoId, itemProducto) ||
+    categoria.includes("codigo") ||
+    categoria.includes("clave") ||
+    categoria.includes("key") ||
+    nombre.includes("licencia") ||
+    nombre.includes("clave") ||
+    nombre.includes("key")
+  );
 }
 
 function obtenerImagenProducto(item, idProducto) {
@@ -106,11 +152,15 @@ function obtenerImagenProducto(item, idProducto) {
     prime: "img/Primevideo.jpg",
     hbo: "img/Hbomax.jpg",
     hboprime: "img/Hbomax.jpg",
+    hboplatinium: "img/hbop.png",
     paramount: "img/Paramount.jpg",
     spotify: "img/Spotify.jpg",
     vix: "img/logo.jpg",
-    crunchyroll: "img/logo.jpg",
-    chatgpt: "img/logo.jpg"
+    crunchyroll: "img/cr.png",
+    canva: "img/cv.jpg",
+    youtubepremium: "img/yt.png",
+    chatgpt: "img/logo.jpg",
+    windows11pro: "img/win11pro.png"
   };
 
   const clave = String(idProducto || "").toLowerCase();
@@ -118,8 +168,20 @@ function obtenerImagenProducto(item, idProducto) {
 }
 
 function obtenerDuracionTexto(item) {
+  const nombre = String(item?.nombre || "").toLowerCase();
+  const categoria = String(item?.categoria || "").toLowerCase();
+
+  if (
+    nombre.includes("windows 11 pro") ||
+    nombre.includes("win11pro") ||
+    categoria.includes("licencia")
+  ) {
+    return "Activación: permanente";
+  }
+
   const dias = Number(item.duracionDias || 30);
 
+  if (dias === 365) return "Duración: 1 año";
   if (dias === 30) return "Duración: 1 mes";
   if (dias === 1) return "Duración: 1 día";
 
@@ -177,13 +239,13 @@ function obtenerReglasProducto(productoBase) {
     `;
   }
 
-  if (productoBase === "HBO") {
+  if (productoBase === "HBO" || productoBase === "HBOPlatinium") {
     return `
-      <li>Perfil para uso personal.</li>
-      <li>No cambiar correo ni contraseña.</li>
-      <li>No eliminar perfiles existentes.</li>
-      <li>No modificar configuraciones de la cuenta.</li>
-      <li>Uso exclusivo para ver contenido.</li>
+      <li>Perfil de uso exclusivamente personal e individual.</li>
+      <li>No cambiar correo, contraseña ni parámetros de seguridad.</li>
+      <li>No modificar, renombrar o eliminar perfiles existentes.</li>
+      <li>No alterar configuraciones internas de reproducción o cuenta.</li>
+      <li>No compartir el acceso con terceros ajenos a la compra.</li>
       <li>El incumplimiento de estas condiciones anula la garantía.</li>
     `;
   }
@@ -204,9 +266,53 @@ function obtenerReglasProducto(productoBase) {
       <li>Cuenta para uso personal.</li>
       <li>No cambiar correo ni contraseña.</li>
       <li>No modificar el plan de la cuenta.</li>
-      <li>No compartir acceso con terceros.</li>
+      <li>No compartir el acceso con terceros.</li>
       <li>No cambiar país o región de la cuenta.</li>
       <li>El incumplimiento de estas condiciones anula la garantía.</li>
+    `;
+  }
+
+  if (productoBase === "Crunchyroll") {
+    return `
+      <li>Acceso destinado exclusivamente a consumo personal de contenido.</li>
+      <li>No modificar correo, contraseña ni configuraciones maestras.</li>
+      <li>No compartir el acceso con terceros no autorizados.</li>
+      <li>No alterar perfiles ni parámetros internos del servicio.</li>
+      <li>No vincular métodos de pago propios en la cuenta entregada.</li>
+      <li>El incumplimiento de estas condiciones anula la garantía.</li>
+    `;
+  }
+
+  if (productoBase === "Canva") {
+    return `
+      <li>Acceso digital orientado a uso personal o profesional individual.</li>
+      <li>No cambiar correo principal, contraseña ni configuración administrativa.</li>
+      <li>No eliminar miembros, recursos compartidos ni configuraciones base.</li>
+      <li>No revender, compartir o transferir el acceso a terceros.</li>
+      <li>No realizar acciones que comprometan la estabilidad operativa de la cuenta.</li>
+      <li>El incumplimiento de estas condiciones anula la garantía.</li>
+    `;
+  }
+
+  if (productoBase === "YouTubePremium") {
+    return `
+      <li>Servicio destinado a uso personal dentro del periodo contratado.</li>
+      <li>No modificar credenciales ni información principal de la cuenta.</li>
+      <li>No cambiar país, región o configuraciones sensibles del servicio.</li>
+      <li>No compartir acceso con terceros fuera del uso autorizado.</li>
+      <li>No asociar compras, suscripciones o métodos de pago adicionales.</li>
+      <li>El incumplimiento de estas condiciones anula la garantía.</li>
+    `;
+  }
+
+  if (productoBase === "Windows11Pro") {
+    return `
+      <li>Licencia digital OEM para activación de Windows 11 Pro.</li>
+      <li>Abre Configuración &gt; Sistema &gt; Activación.</li>
+      <li>Selecciona “Cambiar clave de producto”.</li>
+      <li>Ingresa la clave recibida y confirma la activación.</li>
+      <li>Se recomienda usar la licencia en un solo equipo compatible.</li>
+      <li>No se realizan cambios manuales en BIOS o hardware desde la tienda.</li>
     `;
   }
 
@@ -216,6 +322,46 @@ function obtenerReglasProducto(productoBase) {
     <li>No compartir el acceso con terceros.</li>
     <li>El incumplimiento de estas condiciones anula la garantía.</li>
   `;
+}
+
+function obtenerDescripcionProductoFallback(productoBase) {
+  if (productoBase === "Crunchyroll") {
+    return "Suscripción digital Crunchyroll Premium con vigencia de 12 meses. Acceso a catálogo anime en alta definición, simulcast, reproducción sin interrupciones publicitarias y compatibilidad multidispositivo según las condiciones operativas del servicio asignado.";
+  }
+
+  if (productoBase === "Canva") {
+    return "Acceso digital a Canva Pro con vigencia de 12 meses. Incluye herramientas avanzadas de diseño, exportación premium, biblioteca extendida de recursos gráficos, plantillas profesionales y funciones orientadas a productividad visual y branding.";
+  }
+
+  if (productoBase === "HBOPlatinium") {
+    return "Perfil digital HBO Max Platinium con duración de 30 días. Acceso a contenido premium en streaming, series, películas y catálogo exclusivo, con uso destinado a reproducción personal bajo las condiciones del perfil entregado.";
+  }
+
+  if (productoBase === "YouTubePremium") {
+    return "Suscripción digital YouTube Premium con vigencia de 30 días. Incluye reproducción sin anuncios, reproducción en segundo plano, acceso optimizado desde múltiples dispositivos compatibles y funciones premium asociadas al servicio.";
+  }
+
+  if (productoBase === "Netflix") {
+    return "Acceso digital a Netflix mediante perfil asignado, con reproducción orientada a consumo personal y disponibilidad durante el periodo contratado.";
+  }
+
+  if (productoBase === "Disney") {
+    return "Acceso digital a Disney+ mediante perfil asignado, habilitado para visualización de contenido premium durante el periodo contratado.";
+  }
+
+  if (productoBase === "Prime") {
+    return "Acceso digital a Prime Video mediante perfil asignado, con visualización de series y películas durante la vigencia del servicio.";
+  }
+
+  if (productoBase === "HBO") {
+    return "Perfil digital HBO Max con acceso a catálogo premium de series y películas durante el tiempo de servicio contratado.";
+  }
+
+  if (productoBase === "Spotify") {
+    return "Cuenta digital Spotify Premium para reproducción musical sin anuncios y acceso a funciones avanzadas durante el periodo contratado.";
+  }
+
+  return "Producto digital disponible.";
 }
 
 function obtenerNombreSimpleDesdeCorreo(email) {
@@ -242,12 +388,16 @@ function obtenerRutaCuentasPorProducto(productoId, itemProducto = {}) {
   if (id === "disney" || nombre.includes("disney")) return "Disney";
   if (id === "hboprime" || nombre.includes("hbo max + prime") || (nombre.includes("hbo") && nombre.includes("prime"))) return "hboprime";
   if (id === "prime" || nombre.includes("prime video")) return "Prime";
+  if (id === "hboplatinium" || nombre.includes("hbo max platinium") || nombre.includes("hbomax platinium") || nombre.includes("hbo platinium")) return "HBOPlatinium";
   if (id === "hbo" || nombre.includes("hbo")) return "HBO";
   if (id === "paramount" || nombre.includes("paramount")) return "Paramount";
   if (id === "spotify" || nombre.includes("spotify")) return "Spotify";
   if (id === "vix" || nombre.includes("vix")) return "Vix";
   if (id === "crunchyroll" || nombre.includes("crunchyroll")) return "Crunchyroll";
+  if (id === "canva" || nombre.includes("canva")) return "Canva";
+  if (id === "youtubepremium" || nombre.includes("youtube premium")) return "YouTubePremium";
   if (id === "chatgpt" || nombre.includes("chatgpt")) return "ChatGPT";
+  if (id === "windows11pro" || nombre.includes("windows 11 pro")) return "windows11pro";
 
   return productoId;
 }
@@ -301,6 +451,36 @@ function convertirVentasANumero(data) {
   }
 
   return 0;
+}
+
+function limpiarListenersSesion() {
+  if (badgeComprasRef) {
+    badgeComprasRef.off();
+    badgeComprasRef = null;
+  }
+
+  if (usuarioPerfilRef) {
+    usuarioPerfilRef.off();
+    usuarioPerfilRef = null;
+  }
+}
+
+function cerrarSesionPorBloqueo() {
+  if (redireccionPorBloqueoEnCurso) return;
+  redireccionPorBloqueoEnCurso = true;
+
+  limpiarListenersSesion();
+  actualizarBadgeMisCompras(0);
+
+  alert("Tu cuenta ha sido bloqueada. Contacta con soporte.");
+
+  auth.signOut()
+    .then(() => {
+      window.location.href = "index.html";
+    })
+    .catch(() => {
+      window.location.href = "index.html";
+    });
 }
 
 /* =========================
@@ -443,6 +623,7 @@ AUTH / SESION
 
 auth.onAuthStateChanged((user) => {
   usuarioActual = user || null;
+  redireccionPorBloqueoEnCurso = false;
 
   const pagina = obtenerPaginaActual();
   const paginasProtegidas = [
@@ -453,30 +634,46 @@ auth.onAuthStateChanged((user) => {
     "mis-compras.html"
   ];
 
-  if (!user && paginasProtegidas.includes(pagina)) {
-    window.location.href = "index.html";
-    return;
-  }
+  if (!user) {
+    limpiarListenersSesion();
 
-  if (user && paginasProtegidas.includes(pagina)) {
-    cargarPanelUsuario(user);
-    escucharBadgeMisCompras(user.uid);
-  } else {
-    if (badgeComprasRef) {
-      badgeComprasRef.off();
-      badgeComprasRef = null;
-    }
-
-    if (usuarioPerfilRef) {
-      usuarioPerfilRef.off();
-      usuarioPerfilRef = null;
+    if (paginasProtegidas.includes(pagina)) {
+      window.location.href = "index.html";
+      return;
     }
 
     actualizarBadgeMisCompras(0);
+    return;
   }
+
+  if (!paginasProtegidas.includes(pagina)) {
+    limpiarListenersSesion();
+    actualizarBadgeMisCompras(0);
+    return;
+  }
+
+  limpiarListenersSesion();
+
+  usuarioPerfilRef = db.ref("usuarios/" + user.uid);
+
+  usuarioPerfilRef.on("value", (snap) => {
+    const data = snap.val() || {};
+    const estado = String(data.estado || "activo").toLowerCase();
+
+    if (estado === "bloqueado") {
+      cerrarSesionPorBloqueo();
+      return;
+    }
+
+    cargarPanelUsuario(user, data);
+    escucharBadgeMisCompras(user.uid);
+  }, () => {
+    cargarPanelUsuario(user, {});
+    escucharBadgeMisCompras(user.uid);
+  });
 });
 
-function cargarPanelUsuario(user) {
+function cargarPanelUsuario(user, dataPerfil = null) {
   if (!user) return;
 
   const nombreBox = document.getElementById("panelUsuarioNombre");
@@ -490,16 +687,7 @@ function cargarPanelUsuario(user) {
   if (handleBox) handleBox.innerText = "@" + usuarioCorreo;
   if (saldoBox) saldoBox.innerHTML = formatearSaldo(0);
 
-  if (usuarioPerfilRef) {
-    usuarioPerfilRef.off();
-    usuarioPerfilRef = null;
-  }
-
-  usuarioPerfilRef = db.ref("usuarios/" + user.uid);
-
-  usuarioPerfilRef.on("value", (snap) => {
-    const data = snap.val() || {};
-
+  const aplicarDatos = (data = {}) => {
     const nombreCompleto =
       data.nombreCompleto ||
       [data.nombre, data.apellido].filter(Boolean).join(" ").trim() ||
@@ -518,11 +706,22 @@ function cargarPanelUsuario(user) {
     if (nombreBox) nombreBox.innerText = String(nombreCompleto).toUpperCase();
     if (handleBox) handleBox.innerText = "@" + String(usuario);
     if (saldoBox) saldoBox.innerHTML = formatearSaldo(saldo);
-  }, () => {
-    if (nombreBox) nombreBox.innerText = "USUARIO";
-    if (handleBox) handleBox.innerText = "@" + usuarioCorreo;
-    if (saldoBox) saldoBox.innerHTML = formatearSaldo(0);
-  });
+  };
+
+  if (dataPerfil && typeof dataPerfil === "object") {
+    aplicarDatos(dataPerfil);
+    return;
+  }
+
+  db.ref("usuarios/" + user.uid).once("value")
+    .then((snap) => {
+      aplicarDatos(snap.val() || {});
+    })
+    .catch(() => {
+      if (nombreBox) nombreBox.innerText = "USUARIO";
+      if (handleBox) handleBox.innerText = "@" + usuarioCorreo;
+      if (saldoBox) saldoBox.innerHTML = formatearSaldo(0);
+    });
 }
 
 function salir() {
@@ -533,6 +732,8 @@ function salir() {
   }
 
   setTimeout(() => {
+    limpiarListenersSesion();
+
     auth.signOut()
       .then(() => {
         window.location.href = "index.html";
@@ -641,7 +842,11 @@ const productosVentas = {
   prime: "ventasPrime",
   hbo: "ventasHBO",
   paramount: "ventasParamount",
-  spotify: "ventasSpotify"
+  spotify: "ventasSpotify",
+  crunchyroll: "ventasCrunchyroll",
+  canva: "ventasCanva",
+  hboplatinium: "ventasHBOPlatinium",
+  youtubepremium: "ventasYouTubePremium"
 };
 
 Object.keys(productosVentas).forEach((prod) => {
@@ -801,7 +1006,8 @@ function abrirProductoPorId(productoId) {
 
   const nombre = item.nombre || productoId;
   const precio = Number(item.precio || 0);
-  const descripcion = item.descripcion || "Producto digital disponible.";
+  const productoBaseNormalizado = normalizarProductoBase(nombre);
+  const descripcion = item.descripcion || obtenerDescripcionProductoFallback(productoBaseNormalizado);
   const imagen = obtenerImagenProducto(item, productoId);
   const stock = Number(item.stock || 0);
   const proveedorNombre = item.proveedorNombre || "Josking";
@@ -817,7 +1023,7 @@ function abrirProductoPorId(productoId) {
   precioBase = precio;
   cantidadProducto = 1;
   stockDisponible = stock;
-  productoBaseActual = normalizarProductoBase(nombre);
+  productoBaseActual = productoBaseNormalizado;
 
   const modal = document.getElementById("modalCompra");
   const modalNombre = document.getElementById("modalNombre");
@@ -845,7 +1051,7 @@ function abrirProductoPorId(productoId) {
   if (modalImagen) modalImagen.src = imagen;
   if (cantidadEl) cantidadEl.innerText = "1";
   if (totalEl) totalEl.innerText = precio.toFixed(2);
-  if (lista) lista.innerHTML = obtenerReglasProducto(normalizarProductoBase(nombre));
+  if (lista) lista.innerHTML = obtenerReglasProducto(productoBaseNormalizado);
 
   if (modal) modal.style.display = "flex";
 }
@@ -893,7 +1099,7 @@ function cambiarCantidad(valor) {
 }
 
 /* =========================
-CUENTAS / ORDENES / COMPRAS
+CUENTAS / CODIGOS / ORDENES
 ========================= */
 
 async function obtenerPerfilUsuario(uid) {
@@ -919,6 +1125,7 @@ function obtenerCuentaValor(data = {}) {
     data.correo ||
     data.email ||
     data.usuario ||
+    data.codigo ||
     ""
   );
 }
@@ -958,6 +1165,14 @@ function cuentaEstaDisponible(data = {}) {
   return String(cuenta || "").trim() !== "";
 }
 
+function codigoEstaDisponible(data = {}) {
+  const activo = data.activo !== false;
+  const usado = data.usado === true;
+  const codigo = String(data.codigo || "").trim();
+
+  return activo && !usado && codigo !== "";
+}
+
 async function obtenerCuentasDisponibles(productoId, itemProducto, cantidadNecesaria) {
   const rutaCuentas = obtenerRutaCuentasPorProducto(productoId, itemProducto);
   const snap = await db.ref("cuentas/" + rutaCuentas).once("value");
@@ -972,6 +1187,7 @@ async function obtenerCuentasDisponibles(productoId, itemProducto, cantidadNeces
     if (cuentas.length >= cantidadNecesaria) return;
 
     cuentas.push({
+      tipo: "cuenta",
       key,
       ruta: rutaCuentas,
       cuenta: obtenerCuentaValor(item),
@@ -984,6 +1200,35 @@ async function obtenerCuentasDisponibles(productoId, itemProducto, cantidadNeces
   });
 
   return cuentas;
+}
+
+async function obtenerCodigosDisponibles(productoId, cantidadNecesaria) {
+  const snap = await db.ref("codigos").once("value");
+  const data = snap.val() || {};
+  const codigos = [];
+
+  Object.keys(data).forEach((key) => {
+    const item = data[key] || {};
+    const productoCodigo = String(item.producto || "").trim();
+
+    if (productoCodigo !== productoId) return;
+    if (!codigoEstaDisponible(item)) return;
+    if (codigos.length >= cantidadNecesaria) return;
+
+    codigos.push({
+      tipo: "codigo",
+      key,
+      ruta: "codigos",
+      cuenta: String(item.codigo || ""),
+      clave: "",
+      perfil: "",
+      pin: "",
+      observacion: String(item.observacion || ""),
+      raw: item
+    });
+  });
+
+  return codigos;
 }
 
 function descontarSaldoUsuario(uid, monto) {
@@ -1058,17 +1303,26 @@ function devolverStockProducto(productoId, cantidad) {
   });
 }
 
-async function marcarCuentasVendidas(cuentas, user, nombreComprador) {
+async function marcarItemsVendidos(items, user, nombreComprador) {
   const updates = {};
   const fechaEntrega = formatearFechaEntregaLocal();
 
-  cuentas.forEach((cuentaObj) => {
-    const base = `cuentas/${cuentaObj.ruta}/${cuentaObj.key}`;
+  items.forEach((itemObj) => {
+    if (itemObj.tipo === "codigo") {
+      const base = `codigos/${itemObj.key}`;
+      updates[`${base}/usado`] = true;
+      updates[`${base}/activo`] = false;
+      updates[`${base}/uidUsuario`] = user.uid;
+      updates[`${base}/comprador`] = nombreComprador;
+      updates[`${base}/fechaUso`] = Date.now();
+      return;
+    }
+
+    const base = `cuentas/${itemObj.ruta}/${itemObj.key}`;
     updates[`${base}/estado`] = "usada";
     updates[`${base}/uidUsuario`] = user.uid;
     updates[`${base}/comprador`] = nombreComprador;
     updates[`${base}/fechaEntrega`] = fechaEntrega;
-
     updates[`${base}/vendida`] = true;
     updates[`${base}/vendido`] = true;
     updates[`${base}/disponible`] = false;
@@ -1080,18 +1334,27 @@ async function marcarCuentasVendidas(cuentas, user, nombreComprador) {
   return db.ref().update(updates);
 }
 
-async function revertirCuentasVendidas(cuentas) {
-  if (!Array.isArray(cuentas) || !cuentas.length) return;
+async function revertirItemsVendidos(items) {
+  if (!Array.isArray(items) || !items.length) return;
 
   const updates = {};
 
-  cuentas.forEach((cuentaObj) => {
-    const base = `cuentas/${cuentaObj.ruta}/${cuentaObj.key}`;
+  items.forEach((itemObj) => {
+    if (itemObj.tipo === "codigo") {
+      const base = `codigos/${itemObj.key}`;
+      updates[`${base}/usado`] = false;
+      updates[`${base}/activo`] = true;
+      updates[`${base}/uidUsuario`] = "";
+      updates[`${base}/comprador`] = "";
+      updates[`${base}/fechaUso`] = "";
+      return;
+    }
+
+    const base = `cuentas/${itemObj.ruta}/${itemObj.key}`;
     updates[`${base}/estado`] = "disponible";
     updates[`${base}/uidUsuario`] = null;
     updates[`${base}/comprador`] = null;
     updates[`${base}/fechaEntrega`] = null;
-
     updates[`${base}/vendida`] = false;
     updates[`${base}/vendido`] = false;
     updates[`${base}/disponible`] = true;
@@ -1103,41 +1366,61 @@ async function revertirCuentasVendidas(cuentas) {
   return db.ref().update(updates);
 }
 
-async function guardarOrdenesUsuario(itemProducto, cuentasAsignadas, nombreComprador) {
+function obtenerDuracionTextoOrden(itemProducto, tipoEntrega) {
+  if (tipoEntrega === "codigo") return "Permanente";
+  return obtenerDuracionTexto(itemProducto);
+}
+
+function obtenerFechaExpiraOrden(itemProducto, tipoEntrega, ahora) {
+  if (tipoEntrega === "codigo") return "";
+  const duracionDias = Number(itemProducto.duracionDias || 30);
+  return new Date(ahora.getTime() + duracionDias * 24 * 60 * 60 * 1000).toISOString();
+}
+
+async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprador) {
   const uid = usuarioActual?.uid;
-  if (!uid || !cuentasAsignadas.length) return;
+  if (!uid || !itemsAsignados.length) return;
 
   const ahora = new Date();
-  const duracionDias = Number(itemProducto.duracionDias || 30);
-  const fechaExpira = new Date(ahora.getTime() + duracionDias * 24 * 60 * 60 * 1000).toISOString();
   const precioUnitario = Number(itemProducto.precio || precioBase || 0);
 
-  const tareas = cuentasAsignadas.map((cuentaObj) => {
+  const tareas = itemsAsignados.map((itemObj) => {
     const nuevaOrdenRef = db.ref("ordenes/" + uid).push();
+    const tipoEntrega = itemObj.tipo === "codigo" ? "codigo" : "cuenta";
+    const esCodigo = tipoEntrega === "codigo";
+    const esLicencia = esCodigo || esProductoLicencia(productoSeleccionadoId, itemProducto);
+    const fechaExpira = obtenerFechaExpiraOrden(itemProducto, tipoEntrega, ahora);
+    const duracionTexto = obtenerDuracionTextoOrden(itemProducto, tipoEntrega);
 
     return nuevaOrdenRef.set({
       servicio: itemProducto.nombre || productoActual || "",
       producto: productoSeleccionadoId || "",
-      cuenta: cuentaObj.cuenta || "",
-      clave: cuentaObj.clave || "",
-      perfil: cuentaObj.perfil || "",
-      pin: cuentaObj.pin || "",
-      observacion: cuentaObj.observacion || "",
+      cuenta: itemObj.cuenta || "",
+      clave: itemObj.clave || "",
+      perfil: itemObj.perfil || "",
+      pin: itemObj.pin || "",
+      observacion: itemObj.observacion || "",
       nombreCliente: "",
       comprador: nombreComprador || "",
       precio: Number(precioUnitario.toFixed(2)),
       fechaCompra: ahora.toISOString(),
       fechaExpira: fechaExpira,
+      fechaExpiraTexto: esCodigo ? "Permanente" : "",
       estado: "activa",
       uid: uid,
-      soporteNumero: numero
+      soporteNumero: numero,
+      tipoEntrega: tipoEntrega,
+      esCodigo: esCodigo,
+      esLicencia: esLicencia,
+      entregaVisual: esCodigo ? "codigo" : "cuenta",
+      duracionTexto: duracionTexto
     });
   });
 
   return Promise.all(tareas);
 }
 
-async function registrarCompraFinal(cuentasAsignadas, nombreComprador) {
+async function registrarCompraFinal(itemsAsignados, nombreComprador) {
   const item = productoSeleccionadoData || {};
   const productoId = productoSeleccionadoId;
   const reparto = calcularRepartoVenta(precioBase, cantidadProducto, item);
@@ -1169,7 +1452,7 @@ async function registrarCompraFinal(cuentasAsignadas, nombreComprador) {
     time: Date.now()
   });
 
-  await guardarOrdenesUsuario(item, cuentasAsignadas, nombreComprador);
+  await guardarOrdenesUsuario(item, itemsAsignados, nombreComprador);
 }
 
 /* =========================
@@ -1200,14 +1483,22 @@ async function comprarAhora() {
   const item = productoSeleccionadoData || {};
   const uid = usuarioActual.uid;
   const totalCompra = Number((Number(precioBase || 0) * Number(cantidadProducto || 1)).toFixed(2));
+  const productoEsLicencia = esProductoLicencia(productoSeleccionadoId, item);
 
   let saldoDescontado = false;
   let stockDescontado = false;
-  let cuentasMarcadas = false;
-  let cuentasDisponibles = [];
+  let itemsMarcados = false;
+  let itemsDisponibles = [];
 
   try {
     const perfil = await obtenerPerfilUsuario(uid);
+    const estadoUsuario = String(perfil.estado || "activo").toLowerCase();
+
+    if (estadoUsuario === "bloqueado") {
+      cerrarSesionPorBloqueo();
+      return;
+    }
+
     const nombreComprador = obtenerNombreComprador(usuarioActual, perfil);
     const saldoActual = Number(perfil.saldo || 0);
 
@@ -1216,10 +1507,18 @@ async function comprarAhora() {
       return;
     }
 
-    cuentasDisponibles = await obtenerCuentasDisponibles(productoSeleccionadoId, item, cantidadProducto);
+    if (productoEsLicencia || esProductoCodigo(productoSeleccionadoId, item)) {
+      itemsDisponibles = await obtenerCodigosDisponibles(productoSeleccionadoId, cantidadProducto);
+    } else {
+      itemsDisponibles = await obtenerCuentasDisponibles(productoSeleccionadoId, item, cantidadProducto);
+    }
 
-    if (cuentasDisponibles.length < cantidadProducto) {
-      alert("No hay suficientes cuentas configuradas para este producto.");
+    if (itemsDisponibles.length < cantidadProducto) {
+      alert(
+        (productoEsLicencia || esProductoCodigo(productoSeleccionadoId, item))
+          ? "No hay suficientes códigos configurados para este producto."
+          : "No hay suficientes cuentas configuradas para este producto."
+      );
       return;
     }
 
@@ -1229,10 +1528,10 @@ async function comprarAhora() {
     await descontarStockProducto(productoSeleccionadoId, cantidadProducto);
     stockDescontado = true;
 
-    await marcarCuentasVendidas(cuentasDisponibles, usuarioActual, nombreComprador);
-    cuentasMarcadas = true;
+    await marcarItemsVendidos(itemsDisponibles, usuarioActual, nombreComprador);
+    itemsMarcados = true;
 
-    await registrarCompraFinal(cuentasDisponibles, nombreComprador);
+    await registrarCompraFinal(itemsDisponibles, nombreComprador);
 
     cerrarModal();
     mostrarToastCompraExitosa(item.nombre || productoActual, totalCompra);
@@ -1240,11 +1539,11 @@ async function comprarAhora() {
   } catch (error) {
     console.error("Error al comprar:", error);
 
-    if (cuentasMarcadas) {
+    if (itemsMarcados) {
       try {
-        await revertirCuentasVendidas(cuentasDisponibles);
+        await revertirItemsVendidos(itemsDisponibles);
       } catch (e) {
-        console.error("No se pudieron revertir las cuentas:", e);
+        console.error("No se pudieron revertir los items:", e);
       }
     }
 
