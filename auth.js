@@ -1,3 +1,9 @@
+/*
+StreamsVip Sistema Oficial
+Mejorado
+2026
+*/
+
 const firebaseConfig = {
   apiKey: "AIzaSyC3rYEe4akJ0w8zcNM4q-25yG7q6CaUHhY",
   authDomain: "streamsvip-b7d91.firebaseapp.com",
@@ -15,9 +21,9 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const db = firebase.database();
 
-const TIEMPO_INACTIVIDAD_USUARIO = 5 * 60 * 1000;  // 5 minutos
-const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;    // 7 minutos
-const TIEMPO_AVISO = 1 * 60 * 1000;                // aviso 1 minuto antes
+const TIEMPO_INACTIVIDAD_USUARIO = 5 * 60 * 1000; // 5 minutos
+const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;   // 7 minutos
+const TIEMPO_AVISO = 1 * 60 * 1000;               // aviso 1 minuto antes
 
 let temporizadorInactividad = null;
 let temporizadorAviso = null;
@@ -25,6 +31,8 @@ let controlInactividadIniciado = false;
 let avisoMostrado = false;
 let usuarioActualAuth = null;
 let onlineRefActual = null;
+let connectedRefActual = null;
+let connectedCallbackActual = null;
 let cierrePorPestanaRegistrado = false;
 
 /* =========================
@@ -80,8 +88,17 @@ function limpiarReferenciaOnline() {
     try {
       onlineRefActual.onDisconnect().cancel();
     } catch (e) {}
-    onlineRefActual = null;
   }
+
+  if (connectedRefActual && connectedCallbackActual) {
+    try {
+      connectedRefActual.off("value", connectedCallbackActual);
+    } catch (e) {}
+  }
+
+  onlineRefActual = null;
+  connectedRefActual = null;
+  connectedCallbackActual = null;
 }
 
 function registrarPresenciaUsuario(user) {
@@ -90,19 +107,20 @@ function registrarPresenciaUsuario(user) {
   limpiarReferenciaOnline();
 
   onlineRefActual = db.ref("online/" + user.uid);
-  const connectedRef = db.ref(".info/connected");
+  connectedRefActual = db.ref(".info/connected");
 
-  connectedRef.on("value", (snap) => {
-    if (snap.val() === true) {
+  connectedCallbackActual = (snap) => {
+    if (snap.val() === true && onlineRefActual) {
       onlineRefActual.onDisconnect().set(false).catch(() => {});
       onlineRefActual.set(true).catch(() => {});
     }
-  });
+  };
+
+  connectedRefActual.on("value", connectedCallbackActual);
 }
 
 function marcarOfflineSiExiste() {
   if (!usuarioActualAuth || !usuarioActualAuth.uid) return;
-
   db.ref("online/" + usuarioActualAuth.uid).set(false).catch(() => {});
 }
 
@@ -114,26 +132,12 @@ function registrarCierrePorPestana() {
   if (cierrePorPestanaRegistrado) return;
   cierrePorPestanaRegistrado = true;
 
-  const cerrarSesionSilenciosa = () => {
-    marcarOfflineSiExiste();
-
-    try {
-      auth.signOut();
-    } catch (e) {}
-  };
-
   window.addEventListener("beforeunload", () => {
-    cerrarSesionSilenciosa();
+    marcarOfflineSiExiste();
   });
 
   window.addEventListener("pagehide", () => {
-    cerrarSesionSilenciosa();
-  });
-
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden") {
-      marcarOfflineSiExiste();
-    }
+    marcarOfflineSiExiste();
   });
 }
 
@@ -177,10 +181,14 @@ function mostrarAvisoInactividad() {
 
 function obtenerTiempoInactividadPorPagina() {
   const pagina = obtenerPaginaActual();
-  return pagina === "admin.html" ? TIEMPO_INACTIVIDAD_ADMIN : TIEMPO_INACTIVIDAD_USUARIO;
+  return pagina === "admin.html"
+    ? TIEMPO_INACTIVIDAD_ADMIN
+    : TIEMPO_INACTIVIDAD_USUARIO;
 }
 
 function reiniciarTemporizadorInactividad() {
+  if (!usuarioActualAuth) return;
+
   limpiarTemporizadoresInactividad();
   avisoMostrado = false;
 
@@ -306,13 +314,13 @@ auth.onAuthStateChanged(async (user) => {
 
     registrarPresenciaUsuario(user);
 
-    if (esPaginaPrivada(pagina)) {
-      iniciarControlInactividad();
-    }
-
     if (pagina === "admin.html" && rol !== "admin") {
       window.location.replace("tienda.html");
       return;
+    }
+
+    if (esPaginaPrivada(pagina)) {
+      iniciarControlInactividad();
     }
 
   } catch (error) {
@@ -425,7 +433,11 @@ function iniciarSesion() {
 
   mostrarMensajeAuth("Ingresando...", "#ffd166");
 
-  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+  const tipoPersistencia = mantenerSesion
+    ? firebase.auth.Auth.Persistence.LOCAL
+    : firebase.auth.Auth.Persistence.SESSION;
+
+  auth.setPersistence(tipoPersistencia)
     .then(() => {
       if (mantenerSesion) {
         localStorage.setItem("streamsvip_login_recordado", loginInput);
@@ -647,6 +659,7 @@ CERRAR SESIÓN MANUAL
 function salir() {
   limpiarTemporizadoresInactividad();
   marcarOfflineSiExiste();
+  limpiarReferenciaOnline();
 
   auth.signOut()
     .then(() => {
