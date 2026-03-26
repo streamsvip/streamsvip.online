@@ -40,10 +40,11 @@
       </div>
     </div>
 
-    <a href="tienda.html"><span class="menu-emoji">🛍️</span> Tienda</a>
-    <a href="como-comprar.html"><span class="menu-emoji">💳</span> Cómo comprar</a>
-    <a href="ofertas.html"><span class="menu-emoji">🔥</span> Ofertas</a>
-    <a href="recargas.html" class="activo"><span class="menu-emoji">💸</span> Recargas</a>
+    <a href="tienda.html" data-menu="tienda"><span class="menu-emoji">🛍️</span> Tienda</a>
+    <a href="como-comprar.html" data-menu="como-comprar"><span class="menu-emoji">💳</span> Cómo comprar</a>
+    <a href="ofertas.html" data-menu="ofertas"><span class="menu-emoji">🔥</span> Ofertas</a>
+    <a href="recargas.html" data-menu="recargas" class="activo"><span class="menu-emoji">💸</span> Recargas</a>
+    <a href="mis-compras.html" data-menu="mis-compras"><span class="menu-emoji">📦</span> Mis compras</a>
     <a href="#" onclick="salir(); return false;" class="salir"><span class="menu-emoji">🔙</span> Salir</a>
 
     <script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=074c5be8-e613-4e2e-b987-7910106c9302"></script>
@@ -101,10 +102,23 @@
             <select id="metodoPago" required>
               <option value="">Seleccionar método</option>
               <option value="Yape">Yape</option>
-              <option value="Plin">Plin</option>
-              <option value="Transferencia bancaria">Transferencia bancaria</option>
-              <option value="Depósito">Depósito</option>
+              <option value="Lemon">Lemon</option>
+              <option value="Agora">Agora</option>
             </select>
+
+            <div id="metodoPagoHint" class="metodoPagoHint" style="display:none;">
+              <div class="metodoPagoHintLeft">
+                <span class="metodoPagoDot"></span>
+                <div class="metodoPagoText">
+                  <strong id="metodoPagoHintTitulo">Método seleccionado</strong>
+                  <span id="metodoPagoHintTexto">Consulta los datos oficiales para realizar el pago.</span>
+                </div>
+              </div>
+
+              <button type="button" id="btnAbrirInfoPagoInline" class="btnInlinePago">
+                Ver instrucciones de pago
+              </button>
+            </div>
           </div>
 
           <div class="formGroup">
@@ -167,6 +181,59 @@
     </section>
   </main>
 
+  <!-- MODAL DE PAGO -->
+  <div id="modalPago" class="modalPagoOverlay">
+    <div class="modalPagoBox">
+      <button type="button" class="modalPagoClose" id="cerrarModalPago">×</button>
+
+      <div class="modalPagoTop">
+        <div class="modalPagoBadge" id="modalMetodoBadge">Método</div>
+        <h3 id="modalMetodoTitulo">Datos de pago</h3>
+        <p id="modalMetodoDescripcion">
+          Revisa cuidadosamente los datos antes de realizar tu operación.
+        </p>
+      </div>
+
+      <div class="modalPagoBody">
+        <div class="modalPagoInfo">
+          <div class="modalInfoCard">
+            <span class="modalInfoLabel">Titular</span>
+            <div class="modalInfoRow simpleRow">
+              <strong id="modalNombreDato">-</strong>
+            </div>
+          </div>
+
+          <div class="modalInfoCard">
+            <span class="modalInfoLabel" id="modalDatoLabel">Número / Tag</span>
+            <div class="modalInfoRow">
+              <strong id="modalDatoPrincipal">-</strong>
+              <button type="button" class="btnCopyMini" id="btnCopiarDato">Copiar</button>
+            </div>
+          </div>
+
+          <div class="modalActionGroup">
+            <a href="#" target="_blank" rel="noopener noreferrer" id="btnAbrirMetodo" class="btnAbrirMetodo">
+              Abrir aplicación
+            </a>
+          </div>
+        </div>
+
+        <div class="modalPagoQRWrap" id="modalPagoQRWrap">
+          <div class="modalQRCard">
+            <span class="modalInfoLabel">Código QR</span>
+            <img id="modalQR" src="" alt="QR del método de pago">
+          </div>
+        </div>
+      </div>
+
+      <div class="modalPagoFooter">
+        <p>
+          Luego de realizar el pago, registra correctamente tu número de operación y adjunta tu comprobante.
+        </p>
+      </div>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -191,11 +258,70 @@
     const previewWrap = document.getElementById("previewWrap");
     const previewComprobante = document.getElementById("previewComprobante");
 
+    const metodoPagoHint = document.getElementById("metodoPagoHint");
+    const metodoPagoHintTitulo = document.getElementById("metodoPagoHintTitulo");
+    const metodoPagoHintTexto = document.getElementById("metodoPagoHintTexto");
+    const btnAbrirInfoPagoInline = document.getElementById("btnAbrirInfoPagoInline");
+
+    const modalPago = document.getElementById("modalPago");
+    const cerrarModalPago = document.getElementById("cerrarModalPago");
+    const modalMetodoBadge = document.getElementById("modalMetodoBadge");
+    const modalMetodoTitulo = document.getElementById("modalMetodoTitulo");
+    const modalMetodoDescripcion = document.getElementById("modalMetodoDescripcion");
+    const modalNombreDato = document.getElementById("modalNombreDato");
+    const modalDatoLabel = document.getElementById("modalDatoLabel");
+    const modalDatoPrincipal = document.getElementById("modalDatoPrincipal");
+    const btnCopiarDato = document.getElementById("btnCopiarDato");
+    const btnAbrirMetodo = document.getElementById("btnAbrirMetodo");
+    const modalQR = document.getElementById("modalQR");
+    const modalPagoQRWrap = document.getElementById("modalPagoQRWrap");
+
     const storage = firebase.storage();
 
     let usuarioRecargaActual = null;
     let datosUsuarioRecarga = null;
     let enviandoRecarga = false;
+    let usuarioRecargaRef = null;
+    let historialRecargaRef = null;
+
+    const metodosPagoConfig = {
+      Yape: {
+        badge: "Yape",
+        titulo: "Pago mediante Yape",
+        descripcion: "Escanea el código QR o realiza el pago al número oficial registrado en Yape.",
+        nombre: "Leidy Ser.",
+        datoLabel: "Número Yape",
+        datoPrincipal: "917107386",
+        enlace: "yape://pay?phone=51917107386",
+        textoBoton: "Abrir Yape",
+        qr: "img/Qr.jpeg",
+        mostrarQR: true
+      },
+      Lemon: {
+        badge: "Lemon",
+        titulo: "Pago mediante Lemon",
+        descripcion: "Realiza tu pago usando el LemonTag oficial o escaneando el código QR.",
+        nombre: "Jose Alarc. A.",
+        datoLabel: "LemonTag",
+        datoPrincipal: "$velithaz",
+        enlace: "",
+        textoBoton: "Abrir Lemon",
+        qr: "img/lemonqr.jpeg",
+        mostrarQR: true
+      },
+      Agora: {
+        badge: "Agora",
+        titulo: "Pago mediante Agora",
+        descripcion: "Realiza tu pago usando el dato oficial de Agora o escaneando el código QR.",
+        nombre: "Jose Alarc. A.",
+        datoLabel: "Dato Agora",
+        datoPrincipal: "916252754",
+        enlace: "",
+        textoBoton: "Abrir Agora",
+        qr: "img/agoraqr.jpeg",
+        mostrarQR: true
+      }
+    };
 
     function mostrarMensaje(texto, tipo) {
       mensajeRecarga.className = "mensajeBox show " + tipo;
@@ -209,6 +335,7 @@
 
     function formatearFecha(timestamp) {
       if (!timestamp) return "-";
+
       const fecha = new Date(timestamp);
       if (isNaN(fecha.getTime())) return String(timestamp);
 
@@ -265,14 +392,54 @@
           <td>${item.metodoPago || "-"}</td>
           <td>${item.operacion || "-"}</td>
           <td><span class="badge ${claseEstado(item.estado)}">${textoEstadoUsuario(item.estado)}</span></td>
-          <td>${formatearFecha(item.fecha)}</td>
+          <td>${formatearFecha(item.fecha || item.fechaHora)}</td>
         `;
         historialBody.appendChild(tr);
       });
     }
 
+    function limpiarPreview() {
+      if (previewComprobante) {
+        previewComprobante.removeAttribute("src");
+      }
+
+      if (previewWrap) {
+        previewWrap.style.display = "none";
+      }
+    }
+
+    function mostrarPreviewArchivo(archivo) {
+      if (!archivo || !archivo.type.startsWith("image/")) {
+        limpiarPreview();
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+        previewComprobante.src = ev.target.result;
+        previewWrap.style.display = "block";
+      };
+      reader.readAsDataURL(archivo);
+    }
+
+    function desuscribirListenersRecarga() {
+      if (usuarioRecargaRef) {
+        usuarioRecargaRef.off();
+        usuarioRecargaRef = null;
+      }
+
+      if (historialRecargaRef) {
+        historialRecargaRef.off();
+        historialRecargaRef = null;
+      }
+    }
+
     function cargarDatosUsuarioRecarga(uid) {
-      db.ref("usuarios/" + uid).on("value", snapshot => {
+      if (usuarioRecargaRef) usuarioRecargaRef.off();
+
+      usuarioRecargaRef = db.ref("usuarios/" + uid);
+
+      usuarioRecargaRef.on("value", snapshot => {
         datosUsuarioRecarga = snapshot.val() || {};
 
         const nombre =
@@ -293,44 +460,131 @@
     }
 
     function cargarHistorial(uid) {
-      db.ref("recargas")
-        .orderByChild("uid")
-        .equalTo(uid)
-        .on("value", snapshot => {
-          renderHistorial(snapshot.val());
-        }, error => {
-          console.error("Error cargando historial:", error);
-          historialBody.innerHTML = `
-            <tr>
-              <td colspan="5" class="emptyState">No se pudo cargar el historial.</td>
-            </tr>
-          `;
-        });
+      if (historialRecargaRef) historialRecargaRef.off();
+
+      historialRecargaRef = db.ref("recargas").orderByChild("uid").equalTo(uid);
+
+      historialRecargaRef.on("value", snapshot => {
+        renderHistorial(snapshot.val());
+      }, error => {
+        console.error("Error cargando historial:", error);
+        historialBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="emptyState">No se pudo cargar el historial.</td>
+          </tr>
+        `;
+      });
     }
 
-    function limpiarPreview() {
-      if (previewComprobante) previewComprobante.removeAttribute("src");
-      if (previewWrap) previewWrap.style.display = "none";
-    }
+    function actualizarHintMetodo(metodo) {
+      const config = metodosPagoConfig[metodo];
 
-    function mostrarPreviewArchivo(archivo) {
-      if (!archivo || !archivo.type.startsWith("image/")) {
-        limpiarPreview();
+      if (!config) {
+        metodoPagoHint.style.display = "none";
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = function (ev) {
-        previewComprobante.src = ev.target.result;
-        previewWrap.style.display = "block";
-      };
-      reader.readAsDataURL(archivo);
+      metodoPagoHintTitulo.textContent = config.badge + " seleccionado";
+      metodoPagoHintTexto.textContent = "Consulta los datos oficiales y el código QR antes de realizar tu pago.";
+      metodoPagoHint.style.display = "flex";
     }
+
+    function abrirModalPago(metodo) {
+      const config = metodosPagoConfig[metodo];
+      if (!config) return;
+
+      modalMetodoBadge.textContent = config.badge || metodo;
+      modalMetodoTitulo.textContent = config.titulo || "Datos de pago";
+      modalMetodoDescripcion.textContent = config.descripcion || "Revisa los datos antes de realizar el pago.";
+      modalNombreDato.textContent = config.nombre || "-";
+      modalDatoLabel.textContent = config.datoLabel || "Dato";
+      modalDatoPrincipal.textContent = config.datoPrincipal || "-";
+
+      btnCopiarDato.setAttribute("data-copy", config.datoPrincipal || "");
+
+      if (config.enlace) {
+        btnAbrirMetodo.href = config.enlace;
+        btnAbrirMetodo.style.display = "inline-flex";
+        btnAbrirMetodo.textContent = config.textoBoton || "Abrir aplicación";
+      } else {
+        btnAbrirMetodo.removeAttribute("href");
+        btnAbrirMetodo.style.display = "none";
+      }
+
+      if (config.mostrarQR && config.qr) {
+        modalQR.src = config.qr;
+        modalPagoQRWrap.style.display = "flex";
+      } else {
+        modalQR.removeAttribute("src");
+        modalPagoQRWrap.style.display = "none";
+      }
+
+      modalPago.classList.add("show");
+      document.body.classList.add("modal-open");
+    }
+
+    function cerrarModalPagoFn() {
+      modalPago.classList.remove("show");
+      document.body.classList.remove("modal-open");
+    }
+
+    async function copiarTexto(texto, boton) {
+      if (!texto) return;
+
+      try {
+        await navigator.clipboard.writeText(texto);
+        const textoOriginal = boton.textContent;
+        boton.textContent = "Copiado";
+        setTimeout(() => {
+          boton.textContent = textoOriginal;
+        }, 1400);
+      } catch (error) {
+        console.error("No se pudo copiar:", error);
+      }
+    }
+
+    metodoPagoInput.addEventListener("change", function () {
+      limpiarMensaje();
+
+      const metodo = this.value.trim();
+
+      if (!metodo || !metodosPagoConfig[metodo]) {
+        actualizarHintMetodo("");
+        return;
+      }
+
+      actualizarHintMetodo(metodo);
+    });
+
+    btnAbrirInfoPagoInline.addEventListener("click", function () {
+      const metodo = metodoPagoInput.value.trim();
+      if (!metodo || !metodosPagoConfig[metodo]) return;
+      abrirModalPago(metodo);
+    });
+
+    cerrarModalPago.addEventListener("click", cerrarModalPagoFn);
+
+    modalPago.addEventListener("click", function (e) {
+      if (e.target === modalPago) {
+        cerrarModalPagoFn();
+      }
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && modalPago.classList.contains("show")) {
+        cerrarModalPagoFn();
+      }
+    });
+
+    btnCopiarDato.addEventListener("click", function () {
+      copiarTexto(this.getAttribute("data-copy"), this);
+    });
 
     comprobanteInput.addEventListener("change", function () {
       limpiarMensaje();
 
       const archivo = this.files && this.files[0] ? this.files[0] : null;
+
       if (!archivo) {
         limpiarPreview();
         return;
@@ -361,12 +615,16 @@
 
       if (!user) {
         usuarioRecargaActual = null;
+        datosUsuarioRecarga = null;
+        desuscribirListenersRecarga();
         btnEnviar.disabled = true;
+
         historialBody.innerHTML = `
           <tr>
             <td colspan="5" class="emptyState">Debes iniciar sesión para usar esta sección.</td>
           </tr>
         `;
+
         mostrarMensaje("Debes iniciar sesión para registrar una recarga.", "error");
         return;
       }
@@ -403,6 +661,11 @@
 
       if (!metodoPago) {
         mostrarMensaje("Selecciona un método de pago.", "error");
+        return;
+      }
+
+      if (!["Yape", "Lemon", "Agora"].includes(metodoPago)) {
+        mostrarMensaje("Selecciona un método de pago válido.", "error");
         return;
       }
 
@@ -492,6 +755,7 @@
         mostrarMensaje("Solicitud enviada correctamente. Tu recarga quedó en estado Pendiente hasta su validación administrativa.", "success");
         formRecarga.reset();
         limpiarPreview();
+        actualizarHintMetodo("");
 
       } catch (error) {
         console.error("Error registrando recarga:", error);
@@ -505,7 +769,14 @@
         }
 
         let mensajeError = "No se pudo registrar la recarga o subir el comprobante.";
-        if (error && error.message) {
+
+        if (error && error.code === "storage/unauthorized") {
+          mensajeError = "Storage rechazó la subida. Revisa tus Storage Rules.";
+        } else if (error && error.code === "storage/canceled") {
+          mensajeError = "La subida del comprobante fue cancelada.";
+        } else if (error && error.code === "storage/unknown") {
+          mensajeError = "Hubo un error desconocido al subir el comprobante.";
+        } else if (error && error.message) {
           mensajeError += " " + error.message;
         }
 
@@ -516,6 +787,29 @@
         btnEnviar.textContent = "Enviar solicitud";
       }
     });
+
+    (function () {
+      const pagina = window.location.pathname.split("/").pop() || "tienda.html";
+
+      const mapa = {
+        "tienda.html": "tienda",
+        "como-comprar.html": "como-comprar",
+        "ofertas.html": "ofertas",
+        "recargas.html": "recargas",
+        "mis-compras.html": "mis-compras"
+      };
+
+      const claveActiva = mapa[pagina];
+      if (!claveActiva) return;
+
+      document.querySelectorAll("#menuLateral a[data-menu]").forEach((link) => {
+        link.classList.remove("activo");
+
+        if (link.getAttribute("data-menu") === claveActiva) {
+          link.classList.add("activo");
+        }
+      });
+    })();
   </script>
 
   <div style="opacity:0;position:absolute;">StreamsVip Oficial 2026</div>
