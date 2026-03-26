@@ -1040,3 +1040,84 @@ a.smallBtn{
     min-width: 220px;
   }
 }
+.adminTopActions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.btnTiempoActivoSwitch{
+  position:relative;
+  min-width:220px;
+  height:46px;
+  padding:0 16px 0 58px;
+  border:none;
+  border-radius:999px;
+  font-size:14px;
+  font-weight:800;
+  color:#fff;
+  cursor:pointer;
+  transition:all .25s ease;
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-start;
+  box-shadow:0 10px 24px rgba(0,0,0,0.25);
+}
+
+.btnTiempoActivoSwitch::before{
+  content:"";
+  position:absolute;
+  left:6px;
+  top:50%;
+  transform:translateY(-50%);
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:#fff;
+  transition:all .25s ease;
+  box-shadow:0 4px 12px rgba(0,0,0,0.25);
+}
+
+.btnTiempoActivoOn{
+  background:linear-gradient(135deg,#1c8f4d,#28b463) !important;
+  color:#fff !important;
+}
+
+.btnTiempoActivoOn::before{
+  left:180px;
+  background:#f7fff9;
+}
+
+.btnTiempoActivoOn:hover{
+  background:linear-gradient(135deg,#22a558,#31c96d) !important;
+  transform:translateY(-1px);
+}
+
+.btnTiempoActivoOff{
+  background:linear-gradient(135deg,#444,#5a5a5a) !important;
+  color:#fff !important;
+}
+
+.btnTiempoActivoOff::before{
+  left:6px;
+  background:#ffffff;
+}
+
+.btnTiempoActivoOff:hover{
+  background:linear-gradient(135deg,#555,#6a6a6a) !important;
+  transform:translateY(-1px);
+}
+
+@media (max-width:640px){
+  .btnTiempoActivoSwitch{
+    min-width:100%;
+    width:100%;
+    justify-content:center;
+    padding:0 16px 0 52px;
+  }
+
+  .btnTiempoActivoOn::before{
+    left:calc(100% - 40px);
+  }
+}
