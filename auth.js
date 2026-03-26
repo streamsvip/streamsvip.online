@@ -15,13 +15,9 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const db = firebase.database();
 
-/* =========================
-CONFIGURACIÓN DE INACTIVIDAD
-========================= */
-
-const TIEMPO_INACTIVIDAD_USUARIO = 15 * 60 * 1000; // 15 minutos
-const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;   // 7 minutos
-const TIEMPO_AVISO = 1 * 60 * 1000;               // aviso 1 minuto antes
+const TIEMPO_INACTIVIDAD_USUARIO = 15 * 60 * 1000;
+const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;
+const TIEMPO_AVISO = 1 * 60 * 1000;
 
 let temporizadorInactividad = null;
 let temporizadorAviso = null;
@@ -64,6 +60,7 @@ function esPaginaPrivada(pagina) {
     "perfil.html",
     "saldo.html",
     "compras.html",
+    "mis-compras.html",
     "ofertas.html",
     "como-comprar.html"
   ];
@@ -222,7 +219,7 @@ auth.onAuthStateChanged(async (user) => {
     const snap = await db.ref("usuarios/" + user.uid).once("value");
     const dataUsuario = snap.val() || {};
     const rol = dataUsuario.rol || "";
-    const estado = (dataUsuario.estado || "activo").toLowerCase();
+    const estado = String(dataUsuario.estado || "activo").toLowerCase();
 
     if (estado === "bloqueado") {
       limpiarTemporizadoresInactividad();
@@ -236,11 +233,9 @@ auth.onAuthStateChanged(async (user) => {
       iniciarControlInactividad();
     }
 
-    if (pagina === "admin.html") {
-      if (rol !== "admin") {
-        window.location.replace("tienda.html");
-        return;
-      }
+    if (pagina === "admin.html" && rol !== "admin") {
+      window.location.replace("tienda.html");
+      return;
     }
 
   } catch (error) {
