@@ -55,6 +55,10 @@ function obtenerPaginaActual() {
   return window.location.pathname.split("/").pop() || "index.html";
 }
 
+function existeElemento(id) {
+  return document.getElementById(id);
+}
+
 function formatearSaldo(saldo) {
   const monto = Number(saldo || 0);
   const montoFormateado = monto.toLocaleString("es-PE", {
@@ -85,6 +89,325 @@ function formatearPrecioProducto(precio) {
   return "S/ " + Number(precio || 0).toFixed(2);
 }
 
+function actualizarVisualCantidadYTotal() {
+  const cantidadEl = document.getElementById("cantidadProducto");
+  const totalEl = document.getElementById("precioTotal");
+
+  if (cantidadEl) cantidadEl.innerText = String(cantidadProducto);
+  if (totalEl) totalEl.innerText = (precioBase * cantidadProducto).toFixed(2);
+}
+
+/* =========================
+AVISOS PROFESIONALES
+========================= */
+
+function inyectarEstilosAvisoSistema() {
+  if (document.getElementById("estilosAvisoSistema")) return;
+
+  const style = document.createElement("style");
+  style.id = "estilosAvisoSistema";
+  style.textContent = `
+    .avisoSistemaOverlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.68);
+      backdrop-filter:blur(6px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:999999;
+      padding:20px;
+      animation:fadeAviso .18s ease;
+    }
+
+    .avisoSistemaBox{
+      width:100%;
+      max-width:500px;
+      background:
+        radial-gradient(circle at top right, rgba(255,38,38,0.08), transparent 30%),
+        linear-gradient(180deg,#0f141d,#090d14);
+      color:#fff;
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:22px;
+      box-shadow:0 24px 70px rgba(0,0,0,0.52);
+      overflow:hidden;
+      animation:subirAviso .22s ease;
+    }
+
+    .avisoSistemaBox.stockLimitado{
+      border:1px solid rgba(255,59,59,0.22);
+      box-shadow:0 24px 70px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,40,40,0.04) inset;
+    }
+
+    .avisoSistemaHead{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:18px 20px 14px;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));
+    }
+
+    .avisoSistemaIcono{
+      width:46px;
+      height:46px;
+      border-radius:15px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:22px;
+      flex:0 0 46px;
+      box-shadow:0 10px 24px rgba(0,0,0,0.24);
+    }
+
+    .avisoSistemaIcono.info{
+      background:linear-gradient(180deg,#2563eb,#1d4ed8);
+    }
+
+    .avisoSistemaIcono.warn{
+      background:linear-gradient(180deg,#f59e0b,#d97706);
+    }
+
+    .avisoSistemaIcono.error{
+      background:linear-gradient(180deg,#ef4444,#dc2626);
+    }
+
+    .avisoSistemaIcono.stock{
+      background:linear-gradient(180deg,#ff3b3b,#c91010);
+      box-shadow:0 14px 28px rgba(201,16,16,0.28);
+    }
+
+    .avisoSistemaTitulo{
+      margin:0;
+      font-size:19px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+
+    .avisoSistemaBody{
+      padding:18px 20px 10px;
+      color:rgba(255,255,255,0.90);
+      font-size:15px;
+      line-height:1.6;
+      white-space:pre-line;
+    }
+
+    .avisoSistemaBodyHtml{
+      white-space:normal;
+    }
+
+    .avisoSistemaStockCard{
+      margin-top:4px;
+      background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius:18px;
+      padding:16px;
+    }
+
+    .avisoSistemaStockTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:10px;
+    }
+
+    .avisoSistemaStockLabel{
+      font-size:13px;
+      color:rgba(255,255,255,0.68);
+      letter-spacing:.4px;
+      text-transform:uppercase;
+      font-weight:700;
+    }
+
+    .avisoSistemaStockBadge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:74px;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:14px;
+      font-weight:900;
+      color:#fff;
+      background:linear-gradient(180deg,#ff2f2f,#b90f0f);
+      box-shadow:0 10px 24px rgba(185,15,15,0.28);
+    }
+
+    .avisoSistemaStockTexto{
+      color:rgba(255,255,255,0.92);
+      font-size:15px;
+      line-height:1.7;
+    }
+
+    .avisoSistemaResaltado{
+      color:#fff;
+      font-weight:900;
+    }
+
+    .avisoSistemaSub{
+      margin-top:10px;
+      font-size:13px;
+      color:rgba(255,255,255,0.62);
+    }
+
+    .avisoSistemaFooter{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      padding:10px 20px 20px;
+      flex-wrap:wrap;
+    }
+
+    .avisoSistemaBtn{
+      border:none;
+      outline:none;
+      cursor:pointer;
+      min-width:128px;
+      padding:12px 18px;
+      border-radius:14px;
+      font-size:14px;
+      font-weight:800;
+      color:#fff;
+      background:linear-gradient(180deg,#ff2a2a,#c90f0f);
+      box-shadow:0 10px 24px rgba(201,15,15,0.34);
+      transition:transform .16s ease, opacity .16s ease, filter .16s ease;
+    }
+
+    .avisoSistemaBtn:hover{
+      transform:translateY(-1px);
+      opacity:.97;
+      filter:brightness(1.03);
+    }
+
+    .avisoSistemaBtn.secundario{
+      background:linear-gradient(180deg,#1f2937,#111827);
+      box-shadow:none;
+      border:1px solid rgba(255,255,255,0.10);
+      color:#fff;
+    }
+
+    @keyframes fadeAviso{
+      from{opacity:0;}
+      to{opacity:1;}
+    }
+
+    @keyframes subirAviso{
+      from{opacity:0; transform:translateY(10px) scale(.98);}
+      to{opacity:1; transform:translateY(0) scale(1);}
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function mostrarAvisoSistema(titulo, mensaje, tipo = "info", opciones = {}) {
+  inyectarEstilosAvisoSistema();
+
+  const anterior = document.getElementById("avisoSistemaOverlay");
+  if (anterior) anterior.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "avisoSistemaOverlay";
+  overlay.className = "avisoSistemaOverlay";
+
+  const icono = opciones.icono || (tipo === "error" ? "⛔" : tipo === "warn" ? "⚠" : "ℹ");
+  const claseCajaExtra = opciones.claseCajaExtra ? ` ${opciones.claseCajaExtra}` : "";
+  const claseIconoExtra = opciones.claseIconoExtra ? ` ${opciones.claseIconoExtra}` : "";
+  const usarHtml = opciones.usarHtml === true;
+  const textoBoton = opciones.textoBoton || "Entendido";
+  const textoBotonSecundario = opciones.textoBotonSecundario || "";
+
+  overlay.innerHTML = `
+    <div class="avisoSistemaBox${claseCajaExtra}">
+      <div class="avisoSistemaHead">
+        <div class="avisoSistemaIcono ${tipo}${claseIconoExtra}">${icono}</div>
+        <h3 class="avisoSistemaTitulo">${escaparHTML(titulo)}</h3>
+      </div>
+      <div class="avisoSistemaBody${usarHtml ? " avisoSistemaBodyHtml" : ""}" id="avisoSistemaBodyContenido"></div>
+      <div class="avisoSistemaFooter">
+        ${textoBotonSecundario ? `<button class="avisoSistemaBtn secundario" id="btnSecundarioAvisoSistema">${escaparHTML(textoBotonSecundario)}</button>` : ""}
+        <button class="avisoSistemaBtn" id="btnCerrarAvisoSistema">${escaparHTML(textoBoton)}</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const body = document.getElementById("avisoSistemaBodyContenido");
+  if (body) {
+    if (usarHtml) {
+      body.innerHTML = mensaje;
+    } else {
+      body.textContent = mensaje;
+    }
+  }
+
+  function cerrarAviso() {
+    overlay.remove();
+  }
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) cerrarAviso();
+  });
+
+  const btn = document.getElementById("btnCerrarAvisoSistema");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      cerrarAviso();
+      if (typeof opciones.onConfirmar === "function") {
+        opciones.onConfirmar();
+      }
+    });
+  }
+
+  const btnSec = document.getElementById("btnSecundarioAvisoSistema");
+  if (btnSec) {
+    btnSec.addEventListener("click", () => {
+      cerrarAviso();
+      if (typeof opciones.onSecundario === "function") {
+        opciones.onSecundario();
+      }
+    });
+  }
+}
+
+function mostrarAvisoStockPremium(stockMaximo) {
+  const stock = Number(stockMaximo || 0);
+
+  mostrarAvisoSistema(
+    "Stock limitado",
+    `
+      <div class="avisoSistemaStockCard">
+        <div class="avisoSistemaStockTop">
+          <div class="avisoSistemaStockLabel">Disponibilidad actual</div>
+          <div class="avisoSistemaStockBadge">${stock} ${stock === 1 ? "unidad" : "unidades"}</div>
+        </div>
+
+        <div class="avisoSistemaStockTexto">
+          Ajustamos automáticamente tu cantidad al <span class="avisoSistemaResaltado">máximo disponible</span> para que puedas continuar con la compra sin errores.
+        </div>
+
+        <div class="avisoSistemaSub">
+          Puedes seguir comprando con la cantidad disponible actual.
+        </div>
+      </div>
+    `,
+    "warn",
+    {
+      icono: "🔥",
+      claseCajaExtra: "stockLimitado",
+      claseIconoExtra: " stock",
+      usarHtml: true,
+      textoBoton: "Continuar",
+      textoBotonSecundario: "Cerrar"
+    }
+  );
+}
+
+/* =========================
+NORMALIZACION PRODUCTOS
+========================= */
+
 function normalizarProductoBase(nombre) {
   const texto = String(nombre || "").toLowerCase();
 
@@ -103,11 +426,14 @@ function normalizarProductoBase(nombre) {
   if (texto.includes("youtube premium")) return "YouTubePremium";
   if (texto.includes("youtube")) return "YouTubePremium";
   if (texto.includes("chatgpt")) return "ChatGPT";
+
   if (
     texto.includes("windows 11 pro") ||
     texto.includes("win11pro") ||
     texto.includes("windows11pro")
-  ) return "Windows11Pro";
+  ) {
+    return "Windows11Pro";
+  }
 
   return "";
 }
@@ -126,18 +452,19 @@ function esProductoLicencia(productoId = "", itemProducto = {}) {
 }
 
 function esProductoCodigo(productoId = "", itemProducto = {}) {
-  const id = String(productoId || "").toLowerCase();
   const nombre = String(itemProducto.nombre || "").toLowerCase();
   const categoria = String(itemProducto.categoria || "").toLowerCase();
 
   return (
     esProductoLicencia(productoId, itemProducto) ||
     categoria.includes("codigo") ||
+    categoria.includes("código") ||
     categoria.includes("clave") ||
     categoria.includes("key") ||
     nombre.includes("licencia") ||
     nombre.includes("clave") ||
-    nombre.includes("key")
+    nombre.includes("key") ||
+    nombre.includes("código")
   );
 }
 
@@ -361,6 +688,10 @@ function obtenerDescripcionProductoFallback(productoBase) {
     return "Cuenta digital Spotify Premium para reproducción musical sin anuncios y acceso a funciones avanzadas durante el periodo contratado.";
   }
 
+  if (productoBase === "Windows11Pro") {
+    return "Licencia digital OEM para activar Windows 11 Pro de forma rápida y segura. Después de la compra, ve a Configuración > Sistema > Activación > Cambiar clave de producto, ingresa la key recibida y confirma la activación. Producto digital, no requiere envío físico.";
+  }
+
   return "Producto digital disponible.";
 }
 
@@ -380,6 +711,10 @@ function formatearFechaEntregaLocal() {
   });
 }
 
+/* =========================
+RUTAS CUENTAS SEGUN FIREBASE
+========================= */
+
 function obtenerRutaCuentasPorProducto(productoId, itemProducto = {}) {
   const id = String(productoId || "").toLowerCase().trim();
   const nombre = String(itemProducto.nombre || productoActual || "").toLowerCase();
@@ -388,14 +723,14 @@ function obtenerRutaCuentasPorProducto(productoId, itemProducto = {}) {
   if (id === "disney" || nombre.includes("disney")) return "Disney";
   if (id === "hboprime" || nombre.includes("hbo max + prime") || (nombre.includes("hbo") && nombre.includes("prime"))) return "hboprime";
   if (id === "prime" || nombre.includes("prime video")) return "Prime";
-  if (id === "hboplatinium" || nombre.includes("hbo max platinium") || nombre.includes("hbomax platinium") || nombre.includes("hbo platinium")) return "HBOPlatinium";
+  if (id === "hboplatinium" || nombre.includes("hbo max platinium") || nombre.includes("hbomax platinium") || nombre.includes("hbo platinium")) return "hboplatinium";
   if (id === "hbo" || nombre.includes("hbo")) return "HBO";
   if (id === "paramount" || nombre.includes("paramount")) return "Paramount";
   if (id === "spotify" || nombre.includes("spotify")) return "Spotify";
   if (id === "vix" || nombre.includes("vix")) return "Vix";
-  if (id === "crunchyroll" || nombre.includes("crunchyroll")) return "Crunchyroll";
-  if (id === "canva" || nombre.includes("canva")) return "Canva";
-  if (id === "youtubepremium" || nombre.includes("youtube premium")) return "YouTubePremium";
+  if (id === "crunchyroll" || nombre.includes("crunchyroll")) return "crunchyroll";
+  if (id === "canva" || nombre.includes("canva")) return "canva";
+  if (id === "youtubepremium" || nombre.includes("youtube premium") || nombre.includes("youtube")) return "youtubepremium";
   if (id === "chatgpt" || nombre.includes("chatgpt")) return "ChatGPT";
   if (id === "windows11pro" || nombre.includes("windows 11 pro")) return "windows11pro";
 
@@ -430,9 +765,7 @@ function mostrarToastCompraExitosa(producto, total) {
 function convertirVentasANumero(data) {
   if (data == null) return 0;
 
-  if (typeof data === "number") {
-    return data;
-  }
+  if (typeof data === "number") return data;
 
   if (typeof data === "object") {
     let total = 0;
@@ -472,15 +805,17 @@ function cerrarSesionPorBloqueo() {
   limpiarListenersSesion();
   actualizarBadgeMisCompras(0);
 
-  alert("Tu cuenta ha sido bloqueada. Contacta con soporte.");
+  mostrarAvisoSistema("Cuenta bloqueada", "Tu cuenta ha sido bloqueada. Contacta con soporte.", "error");
 
-  auth.signOut()
-    .then(() => {
-      window.location.href = "index.html";
-    })
-    .catch(() => {
-      window.location.href = "index.html";
-    });
+  setTimeout(() => {
+    auth.signOut()
+      .then(() => {
+        window.location.href = "index.html";
+      })
+      .catch(() => {
+        window.location.href = "index.html";
+      });
+  }, 700);
 }
 
 /* =========================
@@ -727,9 +1062,7 @@ function cargarPanelUsuario(user, dataPerfil = null) {
 function salir() {
   const toast = document.getElementById("toastGracias");
 
-  if (toast) {
-    toast.classList.add("show");
-  }
+  if (toast) toast.classList.add("show");
 
   setTimeout(() => {
     limpiarListenersSesion();
@@ -815,7 +1148,7 @@ function abrirYape() {
   if (esMovil) {
     window.location.href = "yape://pay?phone=" + telefono;
   } else {
-    alert("Para abrir Yape debes usar un celular");
+    mostrarAvisoSistema("Yape disponible en móvil", "Para abrir Yape debes usar un celular.", "info");
   }
 }
 
@@ -823,14 +1156,16 @@ function abrirYape() {
 CLIENTES HOY
 ========================= */
 
-db.ref("comprasHoy").on("value", (snap) => {
-  const total = snap.val() || 0;
+function escucharClientesHoy() {
   const span = document.getElementById("clientesHoy");
-  if (span) span.innerText = total;
-}, () => {
-  const span = document.getElementById("clientesHoy");
-  if (span) span.innerText = "0";
-});
+  if (!span) return;
+
+  db.ref("comprasHoy").on("value", (snap) => {
+    span.innerText = snap.val() || 0;
+  }, () => {
+    span.innerText = "0";
+  });
+}
 
 /* =========================
 VENTAS POR PRODUCTO
@@ -846,65 +1181,69 @@ const productosVentas = {
   crunchyroll: "ventasCrunchyroll",
   canva: "ventasCanva",
   hboplatinium: "ventasHBOPlatinium",
-  youtubepremium: "ventasYouTubePremium"
+  youtubepremium: "ventasYouTubePremium",
+  windows11pro: "ventasWindows11Pro"
 };
 
-Object.keys(productosVentas).forEach((prod) => {
-  const spanId = productosVentas[prod];
-  const rutasCompatibles = [
-    "ventas/" + prod,
-    "ventas/" + prod.charAt(0).toUpperCase() + prod.slice(1)
-  ];
-
-  let totalRuta1 = 0;
-  let totalRuta2 = 0;
-
-  db.ref(rutasCompatibles[0]).on("value", (snap) => {
-    totalRuta1 = convertirVentasANumero(snap.val());
+function escucharVentasProductos() {
+  Object.keys(productosVentas).forEach((prod) => {
+    const spanId = productosVentas[prod];
     const span = document.getElementById(spanId);
-    if (span) span.innerText = totalRuta1 + totalRuta2;
-  }, () => {
-    const span = document.getElementById(spanId);
-    if (span) span.innerText = totalRuta1 + totalRuta2;
+    if (!span) return;
+
+    const rutasCompatibles = [
+      "ventas/" + prod,
+      "ventas/" + prod.charAt(0).toUpperCase() + prod.slice(1)
+    ];
+
+    let totalRuta1 = 0;
+    let totalRuta2 = 0;
+
+    db.ref(rutasCompatibles[0]).on("value", (snap) => {
+      totalRuta1 = convertirVentasANumero(snap.val());
+      span.innerText = totalRuta1 + totalRuta2;
+    }, () => {
+      span.innerText = totalRuta1 + totalRuta2;
+    });
+
+    db.ref(rutasCompatibles[1]).on("value", (snap) => {
+      totalRuta2 = convertirVentasANumero(snap.val());
+      span.innerText = totalRuta1 + totalRuta2;
+    }, () => {
+      span.innerText = totalRuta1 + totalRuta2;
+    });
   });
-
-  db.ref(rutasCompatibles[1]).on("value", (snap) => {
-    totalRuta2 = convertirVentasANumero(snap.val());
-    const span = document.getElementById(spanId);
-    if (span) span.innerText = totalRuta1 + totalRuta2;
-  }, () => {
-    const span = document.getElementById(spanId);
-    if (span) span.innerText = totalRuta1 + totalRuta2;
-  });
-});
+}
 
 /* =========================
 NOTIFICACION COMPRA
 ========================= */
 
-db.ref("comprasLive").limitToLast(1).on("child_added", (snap) => {
-  const data = snap.val();
-  if (!data) return;
-
+function escucharNotificacionCompra() {
   const box = document.getElementById("notificacionCompra");
   const texto = document.getElementById("textoCompra");
 
   if (!box || !texto) return;
 
-  const productoMostrar = String(data.producto || "").replace(/ x\d+$/i, "");
-  texto.innerText = `${data.nombre || "Cliente"} compró ${productoMostrar}`;
+  db.ref("comprasLive").limitToLast(1).on("child_added", (snap) => {
+    const data = snap.val();
+    if (!data) return;
 
-  box.style.display = "block";
-  box.classList.add("show");
+    const productoMostrar = String(data.producto || "").replace(/ x\d+$/i, "");
+    texto.innerText = `${data.nombre || "Cliente"} compró ${productoMostrar}`;
 
-  setTimeout(() => {
-    box.classList.remove("show");
-    box.style.display = "none";
-  }, 5000);
-}, () => {});
+    box.style.display = "block";
+    box.classList.add("show");
+
+    setTimeout(() => {
+      box.classList.remove("show");
+      box.style.display = "none";
+    }, 5000);
+  }, () => {});
+}
 
 /* =========================
-PRODUCTOS DINÁMICOS TIENDA
+PRODUCTOS DINAMICOS TIENDA
 ========================= */
 
 function renderizarProductosTienda(data) {
@@ -995,12 +1334,12 @@ function cargarProductosTienda() {
 function abrirProductoPorId(productoId) {
   const item = productosTiendaCache[productoId];
   if (!item) {
-    alert("No se encontró el producto.");
+    mostrarAvisoSistema("Producto no encontrado", "No se encontró el producto seleccionado.", "error");
     return;
   }
 
   if (item.activo === false) {
-    alert("Este producto no está disponible.");
+    mostrarAvisoSistema("Producto no disponible", "Este producto no está disponible.", "warn");
     return;
   }
 
@@ -1013,7 +1352,7 @@ function abrirProductoPorId(productoId) {
   const proveedorNombre = item.proveedorNombre || "Josking";
 
   if (stock <= 0) {
-    alert("Producto agotado");
+    mostrarAvisoSistema("Producto agotado", "Este producto no tiene stock disponible en este momento.", "warn");
     return;
   }
 
@@ -1067,7 +1406,7 @@ function agregarCarrito(nombre) {
   });
 
   if (!productoEncontradoId) {
-    alert("No se encontró el producto.");
+    mostrarAvisoSistema("Producto no encontrado", "No se encontró el producto solicitado.", "error");
     return;
   }
 
@@ -1085,17 +1424,14 @@ function cambiarCantidad(valor) {
   if (nuevaCantidad < 1) nuevaCantidad = 1;
 
   if (nuevaCantidad > stockDisponible) {
-    alert("Solo quedan " + stockDisponible + " cuentas disponibles");
+    cantidadProducto = Math.max(1, stockDisponible);
+    actualizarVisualCantidadYTotal();
+    mostrarAvisoStockPremium(stockDisponible);
     return;
   }
 
   cantidadProducto = nuevaCantidad;
-
-  const cantidadEl = document.getElementById("cantidadProducto");
-  const totalEl = document.getElementById("precioTotal");
-
-  if (cantidadEl) cantidadEl.innerText = cantidadProducto;
-  if (totalEl) totalEl.innerText = (precioBase * cantidadProducto).toFixed(2);
+  actualizarVisualCantidadYTotal();
 }
 
 /* =========================
@@ -1173,45 +1509,78 @@ function codigoEstaDisponible(data = {}) {
   return activo && !usado && codigo !== "";
 }
 
+function esNodoCuentaDirecta(data = {}) {
+  if (!data || typeof data !== "object") return false;
+
+  const tieneDatoPrincipal =
+    String(data.cuenta || "").trim() !== "" ||
+    String(data.correo || "").trim() !== "" ||
+    String(data.email || "").trim() !== "" ||
+    String(data.usuario || "").trim() !== "" ||
+    String(data.codigo || "").trim() !== "";
+
+  return tieneDatoPrincipal;
+}
+
+function recolectarCuentasDesdeNodo(nodoActual, rutaProducto, cantidadNecesaria, acumulado = [], rutaRelativa = "") {
+  if (!nodoActual || typeof nodoActual !== "object") return acumulado;
+  if (acumulado.length >= cantidadNecesaria) return acumulado;
+
+  if (esNodoCuentaDirecta(nodoActual)) {
+    if (cuentaEstaDisponible(nodoActual)) {
+      const keyFinal = rutaRelativa.split("/").filter(Boolean).pop() || "";
+
+      acumulado.push({
+        tipo: "cuenta",
+        key: keyFinal,
+        ruta: rutaProducto,
+        nodePath: rutaRelativa,
+        cuenta: obtenerCuentaValor(nodoActual),
+        clave: obtenerClaveValor(nodoActual),
+        perfil: obtenerPerfilValor(nodoActual),
+        pin: obtenerPinValor(nodoActual),
+        observacion: obtenerObservacionValor(nodoActual),
+        raw: nodoActual
+      });
+    }
+
+    return acumulado;
+  }
+
+  Object.keys(nodoActual).forEach((subKey) => {
+    if (acumulado.length >= cantidadNecesaria) return;
+
+    const subNodo = nodoActual[subKey];
+    const nuevaRuta = rutaRelativa ? `${rutaRelativa}/${subKey}` : subKey;
+
+    if (subNodo && typeof subNodo === "object") {
+      recolectarCuentasDesdeNodo(subNodo, rutaProducto, cantidadNecesaria, acumulado, nuevaRuta);
+    }
+  });
+
+  return acumulado;
+}
+
 async function obtenerCuentasDisponibles(productoId, itemProducto, cantidadNecesaria) {
   const rutaCuentas = obtenerRutaCuentasPorProducto(productoId, itemProducto);
   const snap = await db.ref("cuentas/" + rutaCuentas).once("value");
   const data = snap.val() || {};
 
-  const cuentas = [];
-
-  Object.keys(data).forEach((key) => {
-    const item = data[key] || {};
-
-    if (!cuentaEstaDisponible(item)) return;
-    if (cuentas.length >= cantidadNecesaria) return;
-
-    cuentas.push({
-      tipo: "cuenta",
-      key,
-      ruta: rutaCuentas,
-      cuenta: obtenerCuentaValor(item),
-      clave: obtenerClaveValor(item),
-      perfil: obtenerPerfilValor(item),
-      pin: obtenerPinValor(item),
-      observacion: obtenerObservacionValor(item),
-      raw: item
-    });
-  });
-
+  const cuentas = recolectarCuentasDesdeNodo(data, rutaCuentas, cantidadNecesaria, [], "");
   return cuentas;
 }
 
 async function obtenerCodigosDisponibles(productoId, cantidadNecesaria) {
+  const productoNormalizado = String(productoId || "").trim().toLowerCase();
   const snap = await db.ref("codigos").once("value");
   const data = snap.val() || {};
   const codigos = [];
 
   Object.keys(data).forEach((key) => {
     const item = data[key] || {};
-    const productoCodigo = String(item.producto || "").trim();
+    const productoCodigo = String(item.producto || "").trim().toLowerCase();
 
-    if (productoCodigo !== productoId) return;
+    if (productoCodigo !== productoNormalizado) return;
     if (!codigoEstaDisponible(item)) return;
     if (codigos.length >= cantidadNecesaria) return;
 
@@ -1318,7 +1687,9 @@ async function marcarItemsVendidos(items, user, nombreComprador) {
       return;
     }
 
-    const base = `cuentas/${itemObj.ruta}/${itemObj.key}`;
+    const rutaInterna = itemObj.nodePath || itemObj.key;
+    const base = `cuentas/${itemObj.ruta}/${rutaInterna}`;
+
     updates[`${base}/estado`] = "usada";
     updates[`${base}/uidUsuario`] = user.uid;
     updates[`${base}/comprador`] = nombreComprador;
@@ -1350,7 +1721,9 @@ async function revertirItemsVendidos(items) {
       return;
     }
 
-    const base = `cuentas/${itemObj.ruta}/${itemObj.key}`;
+    const rutaInterna = itemObj.nodePath || itemObj.key;
+    const base = `cuentas/${itemObj.ruta}/${rutaInterna}`;
+
     updates[`${base}/estado`] = "disponible";
     updates[`${base}/uidUsuario`] = null;
     updates[`${base}/comprador`] = null;
@@ -1461,22 +1834,24 @@ COMPRAR
 
 async function comprarAhora() {
   if (!usuarioActual) {
-    alert("Debes iniciar sesión para comprar.");
+    mostrarAvisoSistema("Acceso requerido", "Debes iniciar sesión para comprar.", "info");
     return;
   }
 
   if (!productoSeleccionadoData || !productoSeleccionadoId) {
-    alert("Selecciona un producto válido.");
+    mostrarAvisoSistema("Producto no válido", "Selecciona un producto válido.", "error");
     return;
   }
 
   if (cantidadProducto < 1) {
-    alert("Cantidad inválida.");
+    mostrarAvisoSistema("Cantidad inválida", "La cantidad seleccionada no es válida.", "warn");
     return;
   }
 
   if (cantidadProducto > stockDisponible) {
-    alert("No hay suficiente stock disponible.");
+    cantidadProducto = Math.max(1, stockDisponible);
+    actualizarVisualCantidadYTotal();
+    mostrarAvisoStockPremium(stockDisponible);
     return;
   }
 
@@ -1484,6 +1859,7 @@ async function comprarAhora() {
   const uid = usuarioActual.uid;
   const totalCompra = Number((Number(precioBase || 0) * Number(cantidadProducto || 1)).toFixed(2));
   const productoEsLicencia = esProductoLicencia(productoSeleccionadoId, item);
+  const productoEsCodigo = esProductoCodigo(productoSeleccionadoId, item);
 
   let saldoDescontado = false;
   let stockDescontado = false;
@@ -1503,21 +1879,23 @@ async function comprarAhora() {
     const saldoActual = Number(perfil.saldo || 0);
 
     if (saldoActual < totalCompra) {
-      alert("Saldo insuficiente para completar esta compra.");
+      mostrarAvisoSistema("Saldo insuficiente", "Tu saldo no alcanza para completar esta compra.", "warn");
       return;
     }
 
-    if (productoEsLicencia || esProductoCodigo(productoSeleccionadoId, item)) {
+    if (productoEsLicencia || productoEsCodigo) {
       itemsDisponibles = await obtenerCodigosDisponibles(productoSeleccionadoId, cantidadProducto);
     } else {
       itemsDisponibles = await obtenerCuentasDisponibles(productoSeleccionadoId, item, cantidadProducto);
     }
 
     if (itemsDisponibles.length < cantidadProducto) {
-      alert(
-        (productoEsLicencia || esProductoCodigo(productoSeleccionadoId, item))
-          ? "No hay suficientes códigos configurados para este producto."
-          : "No hay suficientes cuentas configuradas para este producto."
+      mostrarAvisoSistema(
+        "Configuración incompleta",
+        (productoEsLicencia || productoEsCodigo)
+          ? "Hay stock visible, pero no hay suficientes códigos disponibles configurados para entregar este producto."
+          : "Hay stock visible, pero no hay suficientes cuentas disponibles configuradas para entregar este producto.",
+        "error"
       );
       return;
     }
@@ -1564,16 +1942,20 @@ async function comprarAhora() {
     }
 
     if (String(error?.message || "").includes("SALDO_INSUFICIENTE")) {
-      alert("Saldo insuficiente para completar esta compra.");
+      mostrarAvisoSistema("Saldo insuficiente", "Tu saldo no alcanza para completar esta compra.", "warn");
       return;
     }
 
     if (String(error?.message || "").includes("STOCK_INSUFICIENTE")) {
-      alert("El stock cambió y ya no alcanza para completar la compra.");
+      mostrarAvisoSistema("Stock actualizado", "El stock cambió y ya no alcanza para completar la compra.", "warn");
       return;
     }
 
-    alert("Ocurrió un error al procesar la compra. No se completó la operación.");
+    mostrarAvisoSistema(
+      "Compra no completada",
+      "Ocurrió un error al procesar la compra. No se realizó ningún cobro definitivo.",
+      "error"
+    );
   }
 }
 
@@ -1630,9 +2012,10 @@ function currentSlide(n) {
 }
 
 function iniciarSlider() {
-  mostrarSlides(slideIndex);
-
   const slides = document.querySelectorAll(".slide");
+  if (!slides.length) return;
+
+  mostrarSlides(slideIndex);
 
   if (slides.length > 1) {
     if (sliderInterval) clearInterval(sliderInterval);
@@ -1650,7 +2033,6 @@ MENU
 function toggleMenu() {
   const menu = document.getElementById("menuLateral");
   if (!menu) return;
-
   menu.classList.toggle("activo");
 }
 
@@ -1712,6 +2094,10 @@ document.addEventListener("DOMContentLoaded", function () {
   verificarUrgenciaOferta();
   cargarProductosTienda();
   insertarBadgeMisComprasSiNoExiste();
+  inyectarEstilosAvisoSistema();
+  escucharClientesHoy();
+  escucharVentasProductos();
+  escucharNotificacionCompra();
 
   if (ofertaSigueActiva() && !localStorage.getItem("visitoOfertas")) {
     mostrarModalOfertaVigente();
@@ -1721,7 +2107,11 @@ document.addEventListener("DOMContentLoaded", function () {
   if (form) {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
-      alert("Este formulario quedará reservado para futuras recargas de saldo.");
+      mostrarAvisoSistema(
+        "Función reservada",
+        "Este formulario quedará reservado para futuras recargas de saldo.",
+        "info"
+      );
     });
   }
 });
@@ -1776,5 +2166,8 @@ document.addEventListener("keydown", function (e) {
     if (modalOferta && modalOferta.style.display === "flex") {
       cerrarModalOfertaVigente();
     }
+
+    const aviso = document.getElementById("avisoSistemaOverlay");
+    if (aviso) aviso.remove();
   }
 });
