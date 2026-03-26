@@ -414,10 +414,14 @@
 
     .modalCuentaBox.codigo{
       background:
-        radial-gradient(circle at top right, rgba(60,140,255,0.10), transparent 24%),
-        radial-gradient(circle at bottom left, rgba(90,170,255,0.08), transparent 26%),
-        linear-gradient(180deg,#101723,#09111b);
-      border:1px solid rgba(120,180,255,0.12);
+        radial-gradient(circle at top right, rgba(60,140,255,0.12), transparent 24%),
+        radial-gradient(circle at bottom left, rgba(90,170,255,0.10), transparent 26%),
+        linear-gradient(180deg,#0d1521,#070d16);
+      border:1px solid rgba(120,180,255,0.18);
+      box-shadow:
+        0 26px 70px rgba(0,0,0,0.62),
+        0 0 0 1px rgba(90,170,255,0.05) inset,
+        inset 0 1px 0 rgba(255,255,255,0.03);
     }
 
     .modalCuentaHeader{
@@ -498,6 +502,27 @@
       box-shadow:inset 0 1px 0 rgba(255,255,255,0.02);
     }
 
+    .modalCuentaHeroCard.codigoMain{
+      background:
+        linear-gradient(180deg,rgba(20,48,82,0.85),rgba(12,28,48,0.94));
+      border:1px solid rgba(120,180,255,0.25);
+      box-shadow:
+        0 16px 30px rgba(10,25,45,0.24),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .modalCuentaHeroCard.codigoMain .modalMiniLabel{
+      color:#a9cdf7;
+    }
+
+    .modalCuentaHeroCard.codigoMain .modalHeroValor{
+      font-size:24px;
+      line-height:1.4;
+      color:#ffffff;
+      font-family:Consolas, Monaco, monospace;
+      word-break:break-word;
+    }
+
     .modalMiniLabel{
       display:block;
       font-size:11px;
@@ -543,6 +568,11 @@
       grid-column:1 / -1;
     }
 
+    .modalCuentaDato.codigoSecundario{
+      background:linear-gradient(180deg,#101820,#0a1219);
+      border:1px solid rgba(120,180,255,0.14);
+    }
+
     .modalCuentaLabel{
       display:block;
       font-size:11px;
@@ -578,6 +608,14 @@
       border-radius:12px;
       background:rgba(255,255,255,0.02);
       border:1px solid rgba(255,255,255,0.05);
+    }
+
+    .campoCopiableTexto.codigoTexto{
+      font-family:Consolas, Monaco, monospace;
+      font-size:17px;
+      letter-spacing:.3px;
+      background:rgba(90,170,255,0.05);
+      border:1px solid rgba(120,180,255,0.14);
     }
 
     .btnCopiar{
@@ -652,7 +690,6 @@
     }
 
     @media (max-width:700px){
-
       .misComprasPage{
         padding:78px 12px 24px;
       }
@@ -742,7 +779,7 @@
       }
 
       .misCompraCuentaWrap::before{
-        content:"Cuenta";
+        content:"Acceso";
         display:block;
         width:100%;
         font-size:11px;
@@ -783,7 +820,7 @@
 
       .misCompraDato.nombreCliente::before{ content:"Cliente"; }
       .misCompraDato.precio::before{ content:"Precio"; }
-      .misCompraDato.expira::before{ content:"Expira"; }
+      .misCompraDato.expira::before{ content:"Vigencia"; }
       .misCompraTiempo::before{ content:"Tiempo restante"; }
 
       .misCompraDato.nombreCliente{
@@ -923,7 +960,6 @@
   <div class="menuIcon" onclick="toggleMenu()">☰</div>
 
   <nav id="menuLateral" class="menuLateral">
-
     <div class="menuLogo">
       <img src="img/logo.jpg" alt="StreamsVip">
     </div>
@@ -960,7 +996,6 @@
         scrolling="auto">
       </iframe>
     </div>
-
   </nav>
 
   <div class="misComprasPage">
@@ -983,7 +1018,7 @@
         <input type="text" id="buscadorCompras" class="misComprasBuscar" placeholder="Buscar...">
 
         <select id="filtroEstado" class="misComprasSelect">
-          <option value="todos">Todas las cuentas</option>
+          <option value="todos">Todas las compras</option>
           <option value="activa">Activas</option>
           <option value="reembolsado">Reembolsadas</option>
           <option value="expirada">Expiradas</option>
@@ -993,10 +1028,10 @@
       <div class="misComprasTabla">
         <div class="misComprasHead">
           <div>Servicio</div>
-          <div>Cuenta</div>
+          <div>Acceso</div>
           <div>Nombre cliente</div>
           <div>Precio</div>
-          <div>Expira</div>
+          <div>Vigencia</div>
           <div>Tiempo restante</div>
           <div>Acciones</div>
         </div>
@@ -1020,8 +1055,8 @@
       </div>
 
       <div class="modalCuentaHero">
-        <div class="modalCuentaHeroCard">
-          <span class="modalMiniLabel">Servicio asignado</span>
+        <div id="heroPrincipalCodigo" class="modalCuentaHeroCard">
+          <span id="modalHeroMainLabel" class="modalMiniLabel">Servicio asignado</span>
           <div id="modalServicio" class="modalHeroValor">-</div>
         </div>
 
@@ -1032,7 +1067,7 @@
       </div>
 
       <div class="modalCuentaGrid">
-        <div class="modalCuentaDato full">
+        <div id="bloqueCorreoCodigo" class="modalCuentaDato full">
           <span id="labelModalCorreo" class="modalCuentaLabel">Correo / Usuario</span>
           <div class="campoCopiable">
             <div id="modalCorreo" class="modalCuentaValor campoCopiableTexto">-</div>
@@ -1073,7 +1108,7 @@
           <div class="modalCuentaIcono">👤</div>
           <div class="modalCuentaTituloWrap">
             <h2>Registrar cliente</h2>
-            <div class="modalCuentaSub">Asigna un nombre antes de desbloquear la cuenta</div>
+            <div class="modalCuentaSub">Este nombre solo se guardará de forma visual en este dispositivo</div>
           </div>
         </div>
         <div class="cerrarModalCuenta" onclick="cerrarModalNombreCliente()">&times;</div>
@@ -1092,7 +1127,7 @@
 
       <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px; flex-wrap:wrap;">
         <button class="btnSoporte" onclick="cerrarModalNombreCliente()">Cancelar</button>
-        <button id="btnGuardarNombreCliente" class="btnRenovar activo" style="cursor:pointer;">Guardar y ver cuenta</button>
+        <button id="btnGuardarNombreCliente" class="btnRenovar activo" style="cursor:pointer;">Guardar y ver</button>
       </div>
     </div>
   </div>
@@ -1116,6 +1151,7 @@
     let timerToastCopiado = null;
     let compraPendienteNombre = null;
     let uidActual = null;
+    let comprasRef = null;
 
     function esCompraCodigo(compra) {
       return (
@@ -1124,6 +1160,30 @@
         compra?.esLicencia === true ||
         compra?.entregaVisual === "codigo"
       );
+    }
+
+    function obtenerClaveNombreClienteLocal(uid, compraId) {
+      return `streamsvip_nombre_cliente_${uid}_${compraId}`;
+    }
+
+    function obtenerNombreClienteLocal(uid, compraId) {
+      if (!uid || !compraId) return "";
+      return localStorage.getItem(obtenerClaveNombreClienteLocal(uid, compraId)) || "";
+    }
+
+    function guardarNombreClienteLocal(uid, compraId, nombre) {
+      if (!uid || !compraId) return;
+      localStorage.setItem(obtenerClaveNombreClienteLocal(uid, compraId), nombre || "");
+    }
+
+    function aplicarNombresVisualesLocalmente(compras) {
+      return compras.map(compra => {
+        const nombreLocal = obtenerNombreClienteLocal(uidActual, compra.id);
+        return {
+          ...compra,
+          nombreClienteVisual: nombreLocal || compra.nombreCliente || ""
+        };
+      });
     }
 
     function formatearFecha(fecha) {
@@ -1220,10 +1280,23 @@
     function abrirModalCuenta(compra) {
       const esCodigo = esCompraCodigo(compra);
       const box = document.getElementById("modalCuentaBox");
+      const heroPrincipal = document.getElementById("heroPrincipalCodigo");
+      const bloqueCorreoCodigo = document.getElementById("bloqueCorreoCodigo");
+      const bloqueClave = document.getElementById("bloqueClave");
+      const bloquePerfil = document.getElementById("bloquePerfil");
+      const bloquePin = document.getElementById("bloquePin");
+      const bloqueObservacion = document.getElementById("bloqueObservacion");
+      const modalCorreo = document.getElementById("modalCorreo");
+      const modalClave = document.getElementById("modalClave");
 
       box.classList.toggle("codigo", esCodigo);
+      heroPrincipal.classList.toggle("codigoMain", esCodigo);
+      bloqueCorreoCodigo.classList.toggle("codigoSecundario", esCodigo);
+      bloqueClave.classList.toggle("codigoSecundario", esCodigo);
+      modalCorreo.classList.toggle("codigoTexto", esCodigo);
+      modalClave.classList.toggle("codigoTexto", esCodigo);
 
-      document.getElementById("modalServicio").innerText = compra.servicio || "-";
+      document.getElementById("modalServicio").innerText = esCodigo ? (compra.servicio || "Licencia digital") : (compra.servicio || "-");
       document.getElementById("modalCorreo").innerText = compra.cuenta || "-";
       document.getElementById("modalClave").innerText = compra.clave || "-";
       document.getElementById("modalPerfil").innerText = compra.perfil || "-";
@@ -1234,17 +1307,18 @@
         ? (compra.fechaExpiraTexto || compra.duracionTexto || "Permanente")
         : formatearFecha(compra.fechaExpira);
 
-      document.getElementById("modalTituloPrincipal").innerText = esCodigo ? "Datos de la licencia" : "Datos de la cuenta";
-      document.getElementById("modalSubPrincipal").innerText = esCodigo ? "Código digital entregado" : "Acceso seguro y detalles de uso";
+      document.getElementById("modalTituloPrincipal").innerText = esCodigo ? "Licencia digital" : "Datos de la cuenta";
+      document.getElementById("modalSubPrincipal").innerText = esCodigo ? "Código entregado para activación o uso permanente" : "Acceso seguro y detalles de uso";
       document.getElementById("modalIconoPrincipal").innerText = esCodigo ? "🔑" : "🔐";
       document.getElementById("modalHeroExpiraLabel").innerText = esCodigo ? "Vigencia" : "Expiración";
-      document.getElementById("labelModalCorreo").innerText = esCodigo ? "Código / licencia" : "Correo / Usuario";
+      document.getElementById("modalHeroMainLabel").innerText = esCodigo ? "Código principal" : "Servicio asignado";
+      document.getElementById("labelModalCorreo").innerText = esCodigo ? "Licencia / key" : "Correo / Usuario";
       document.getElementById("labelModalClave").innerText = esCodigo ? "Detalle adicional" : "Clave";
 
-      document.getElementById("bloquePerfil").classList.toggle("oculto", esCodigo);
-      document.getElementById("bloquePin").classList.toggle("oculto", esCodigo);
-      document.getElementById("bloqueClave").classList.toggle("oculto", !compra.clave && esCodigo);
-      document.getElementById("bloqueObservacion").classList.toggle("oculto", !compra.observacion);
+      bloquePerfil.classList.toggle("oculto", esCodigo);
+      bloquePin.classList.toggle("oculto", esCodigo);
+      bloqueClave.classList.toggle("oculto", !compra.clave && esCodigo);
+      bloqueObservacion.classList.toggle("oculto", !compra.observacion);
 
       document.getElementById("modalCuenta").style.display = "flex";
     }
@@ -1255,7 +1329,7 @@
 
     function abrirModalNombreCliente(compra) {
       compraPendienteNombre = compra;
-      document.getElementById("inputNombreCliente").value = "";
+      document.getElementById("inputNombreCliente").value = compra.nombreClienteVisual || "";
       document.getElementById("modalNombreCliente").style.display = "flex";
     }
 
@@ -1282,18 +1356,22 @@
         return;
       }
 
-      db.ref(`ordenes/${uidActual}/${compraId}`).update({
-        nombreCliente: nombre
-      })
-      .then(() => {
-        compraPendienteNombre.nombreCliente = nombre;
-        cerrarModalNombreCliente();
-        abrirModalCuenta(compraPendienteNombre);
-      })
-      .catch((error) => {
-        console.error(error);
-        alert("No se pudo guardar el nombre del cliente.");
+      guardarNombreClienteLocal(uidActual, compraId, nombre);
+      compraPendienteNombre.nombreClienteVisual = nombre;
+
+      comprasOriginales = comprasOriginales.map(item => {
+        if (item.id === compraId) {
+          return {
+            ...item,
+            nombreClienteVisual: nombre
+          };
+        }
+        return item;
       });
+
+      cerrarModalNombreCliente();
+      renderCompras();
+      abrirModalCuenta(compraPendienteNombre);
     }
 
     function crearFilaCompra(compra) {
@@ -1301,7 +1379,8 @@
       const tiempo = calcularTiempoRestante(compra.fechaExpira, estadoReal, compra);
       const renovarActivo = puedeRenovar(compra.fechaExpira, estadoReal, compra);
       const numeroSoporte = compra.soporteNumero || "51916252754";
-      const tieneNombreCliente = !!(compra.nombreCliente && String(compra.nombreCliente).trim());
+      const nombreVisible = compra.nombreClienteVisual || "";
+      const tieneNombreCliente = !!(nombreVisible && String(nombreVisible).trim());
       const esCodigo = esCompraCodigo(compra);
       const expiraTexto = obtenerTextoExpiracion(compra);
 
@@ -1318,7 +1397,7 @@
           <button class="btnVerCuenta ${esCodigo ? "codigo" : ""}">
             ${
               tieneNombreCliente
-                ? (esCodigo ? "🔑 Ver código" : "👁 Ver Cuenta")
+                ? (esCodigo ? "🔑 Ver código" : "👁 Ver cuenta")
                 : "🔒 Registrar cliente"
             }
           </button>
@@ -1327,7 +1406,7 @@
         <div class="misCompraDato nombreCliente">
           ${
             tieneNombreCliente
-              ? (compra.nombreCliente || "-")
+              ? nombreVisible
               : `<span class="misCompraDatoOculto">🔒 Pendiente</span>`
           }
         </div>
@@ -1365,7 +1444,7 @@
 
       const btnVerCuenta = div.querySelector(".btnVerCuenta");
       btnVerCuenta.addEventListener("click", () => {
-        if (!compra.nombreCliente || !String(compra.nombreCliente).trim()) {
+        if (!tieneNombreCliente) {
           abrirModalNombreCliente(compra);
           return;
         }
@@ -1430,7 +1509,7 @@
               fechaSolicitud: Date.now(),
               fechaCompra: compra.fechaCompra || "",
               fechaExpira: compra.fechaExpira || "",
-              nombreCliente: compra.nombreCliente || "",
+              nombreCliente: compra.nombreClienteVisual || "",
               cuenta: compra.cuenta || "",
               usuario: document.getElementById("panelUsuarioHandle")?.innerText?.replace("@", "") || "",
               nombreComprador: document.getElementById("panelUsuarioNombre")?.innerText || "",
@@ -1462,7 +1541,7 @@
 
         const textoBase = `
           ${compra.servicio || ""}
-          ${compra.nombreCliente || ""}
+          ${compra.nombreClienteVisual || ""}
           ${compra.cuenta || ""}
           ${compra.perfil || ""}
           ${compra.observacion || ""}
@@ -1500,7 +1579,13 @@
     }
 
     function escucharComprasUsuario(uid) {
-      db.ref("ordenes/" + uid).on("value", snapshot => {
+      if (comprasRef) {
+        comprasRef.off();
+      }
+
+      comprasRef = db.ref("ordenes/" + uid);
+
+      comprasRef.on("value", snapshot => {
         const data = snapshot.val() || {};
         const compras = Object.keys(data).map(id => ({
           id,
@@ -1513,7 +1598,7 @@
           return fb - fa;
         });
 
-        comprasOriginales = compras;
+        comprasOriginales = aplicarNombresVisualesLocalmente(compras);
         cargarServiciosEnFiltro(comprasOriginales);
         renderCompras();
 
