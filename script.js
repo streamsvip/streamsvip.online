@@ -1673,11 +1673,13 @@ function devolverStockProducto(productoId, cantidad) {
   });
 }
 
-async function marcarItemsVendidos(items, user, nombreComprador) {
+async function marcarItemsVendidos(items, user, nombreComprador, ordenIdsAsignados = []) {
   const updates = {};
   const fechaEntrega = formatearFechaEntregaLocal();
 
-  items.forEach((itemObj) => {
+  items.forEach((itemObj, index) => {
+    const ordenIdAsignado = ordenIdsAsignados[index] || "";
+
     if (itemObj.tipo === "codigo") {
       const base = `codigos/${itemObj.key}`;
       updates[`${base}/usado`] = true;
@@ -1701,6 +1703,7 @@ async function marcarItemsVendidos(items, user, nombreComprador) {
     updates[`${base}/uidComprador`] = user.uid;
     updates[`${base}/compradorNombre`] = nombreComprador;
     updates[`${base}/fechaVenta`] = Date.now();
+    updates[`${base}/ordenId`] = ordenIdAsignado;
   });
 
   return db.ref().update(updates);
@@ -1735,6 +1738,7 @@ async function revertirItemsVendidos(items) {
     updates[`${base}/uidComprador`] = null;
     updates[`${base}/compradorNombre`] = null;
     updates[`${base}/fechaVenta`] = null;
+    updates[`${base}/ordenId`] = null;
   });
 
   return db.ref().update(updates);
@@ -1753,12 +1757,13 @@ function obtenerFechaExpiraOrden(itemProducto, tipoEntrega, ahora) {
 
 async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprador) {
   const uid = usuarioActual && usuarioActual.uid ? usuarioActual.uid : "";
-  if (!uid || !itemsAsignados.length) return;
+  if (!uid || !itemsAsignados.length) return [];
 
   const ahora = new Date();
   const precioUnitario = Number(itemProducto.precio || precioBase || 0);
+  const ordenesGeneradas = [];
 
-  const tareas = itemsAsignados.map((itemObj) => {
+  for (const itemObj of itemsAsignados) {
     const nuevaOrdenRef = db.ref("ordenes/" + uid).push();
     const tipoEntrega = itemObj.tipo === "codigo" ? "codigo" : "cuenta";
     const esCodigo = tipoEntrega === "codigo";
@@ -1766,7 +1771,7 @@ async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprad
     const fechaExpira = obtenerFechaExpiraOrden(itemProducto, tipoEntrega, ahora);
     const duracionTexto = obtenerDuracionTextoOrden(itemProducto, tipoEntrega);
 
-    return nuevaOrdenRef.set({
+    await nuevaOrdenRef.set({
       servicio: itemProducto.nombre || productoActual || "",
       producto: productoSeleccionadoId || "",
       cuenta: itemObj.cuenta || "",
@@ -1789,12 +1794,17 @@ async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprad
       entregaVisual: esCodigo ? "codigo" : "cuenta",
       duracionTexto: duracionTexto
     });
-  });
 
-  return Promise.all(tareas);
+    ordenesGeneradas.push({
+      ordenId: nuevaOrdenRef.key,
+      item: itemObj
+    });
+  }
+
+  return ordenesGeneradas;
 }
 
-async function registrarCompraFinal(itemsAsignados, nombreComprador) {
+async function registrarCompraFinal(itemsAsignados, nombreComprador, ordenesGeneradas = []) {
   const item = productoSeleccionadoData || {};
   const productoId = productoSeleccionadoId;
   const reparto = calcularRepartoVenta(precioBase, cantidadProducto, item);
@@ -1826,7 +1836,7 @@ async function registrarCompraFinal(itemsAsignados, nombreComprador) {
     time: Date.now()
   });
 
-  await guardarOrdenesUsuario(item, itemsAsignados, nombreComprador);
+  return ordenesGeneradas;
 }
 
 /* =========================
@@ -1912,10 +1922,13 @@ async function comprarAhora() {
     await descontarStockProducto(productoSeleccionadoId, cantidadProducto);
     stockDescontado = true;
 
-    await marcarItemsVendidos(itemsDisponibles, usuarioActual, nombreComprador);
+    const ordenesGeneradas = await guardarOrdenesUsuario(item, itemsDisponibles, nombreComprador);
+    const ordenIds = ordenesGeneradas.map((o) => o.ordenId);
+
+    await marcarItemsVendidos(itemsDisponibles, usuarioActual, nombreComprador, ordenIds);
     itemsMarcados = true;
 
-    await registrarCompraFinal(itemsDisponibles, nombreComprador);
+    await registrarCompraFinal(itemsDisponibles, nombreComprador, ordenesGeneradas);
 
     cerrarModal();
     mostrarToastCompraExitosa(item.nombre || productoActual, totalCompra);
