@@ -200,8 +200,8 @@
 
         <div class="adminTopActions">
           <button id="toggleTiempoActivoBtn" class="btnTiempoActivoSwitch btnTiempoActivoOff" type="button" onclick="toggleTiempoActivoAdmin()">
-  Tiempo activo: Desactivado
-</button>
+            Tiempo activo: Desactivado
+          </button>
           <button class="btn btnLogout" onclick="cerrarSesion()">Cerrar sesión</button>
         </div>
       </div>
@@ -513,6 +513,7 @@
                 <tr>
                   <th>Producto</th>
                   <th>Correo</th>
+                  <th>Clave</th>
                   <th>Perfil</th>
                   <th>Comprador</th>
                   <th>UID Usuario</th>
@@ -520,6 +521,8 @@
                   <th>Fecha creación</th>
                   <th>Fecha entrega</th>
                   <th>Vence</th>
+                  <th>PIN</th>
+                  <th>Observación</th>
                   <th>Estado</th>
                   <th>Acciones</th>
                 </tr>
@@ -673,6 +676,7 @@
     const db = firebase.database();
 
     const ADMIN_EMAIL = "velithaz@gmail.com".toLowerCase();
+    const LIMITE_REEMBOLSO_MS = 24 * 60 * 60 * 1000;
 
     const loginSection = document.getElementById("loginSection");
     const panelSection = document.getElementById("panelSection");
@@ -709,6 +713,13 @@
     let stockAutoSyncEscuchando = false;
 
     let tiempoActivoAdmin = localStorage.getItem("streamsvip_admin_tiempo_activo") === "true";
+
+    function reembolsoDentroDeTiempo(fechaCompra) {
+      if (!fechaCompra) return false;
+      const compraMs = new Date(fechaCompra).getTime();
+      if (isNaN(compraMs)) return false;
+      return (Date.now() - compraMs) <= LIMITE_REEMBOLSO_MS;
+    }
 
     function esProductoLicenciaAdmin(productoId, item = {}) {
       const id = String(productoId || "").toLowerCase();
@@ -1501,7 +1512,8 @@
           fechaVencimiento: fechaVencimientoISO,
           comprador: "",
           uidUsuario: "",
-          fechaEntrega: ""
+          fechaEntrega: "",
+          ordenId: ""
         });
       })
       .then(() => {
@@ -1591,6 +1603,53 @@
       .catch((error) => mostrarMensajeCuenta("Error: " + error.message, true));
     }
 
+    function guardarCuentaUsada(producto, cuentaId) {
+      const correo = document.getElementById("usedCorreo_" + producto + "_" + cuentaId)?.value.trim() || "";
+      const clave = document.getElementById("usedClave_" + producto + "_" + cuentaId)?.value.trim() || "";
+      const perfil = document.getElementById("usedPerfil_" + producto + "_" + cuentaId)?.value.trim() || "";
+      const pin = document.getElementById("usedPin_" + producto + "_" + cuentaId)?.value.trim() || "";
+      const observacion = document.getElementById("usedObs_" + producto + "_" + cuentaId)?.value.trim() || "";
+
+      if (!correo) return mostrarMensajeCuenta("El correo no puede quedar vacío.", true);
+      if (!clave) return mostrarMensajeCuenta("La clave no puede quedar vacía.", true);
+
+      db.ref("cuentas/" + producto + "/" + cuentaId).once("value")
+        .then((snap) => {
+          const cuentaActual = snap.val() || {};
+          if (!cuentaActual || typeof cuentaActual !== "object") {
+            throw new Error("La cuenta usada no existe.");
+          }
+
+          const uidUsuario = cuentaActual.uidUsuario || "";
+          const ordenId = cuentaActual.ordenId || "";
+
+          const updates = {};
+          updates["cuentas/" + producto + "/" + cuentaId + "/correo"] = correo;
+          updates["cuentas/" + producto + "/" + cuentaId + "/clave"] = clave;
+          updates["cuentas/" + producto + "/" + cuentaId + "/perfil"] = perfil;
+          updates["cuentas/" + producto + "/" + cuentaId + "/pin"] = pin;
+          updates["cuentas/" + producto + "/" + cuentaId + "/observacion"] = observacion;
+          updates["cuentas/" + producto + "/" + cuentaId + "/fechaActualizacionAdmin"] = Date.now();
+
+          if (uidUsuario && ordenId) {
+            updates["ordenes/" + uidUsuario + "/" + ordenId + "/cuenta"] = correo;
+            updates["ordenes/" + uidUsuario + "/" + ordenId + "/clave"] = clave;
+            updates["ordenes/" + uidUsuario + "/" + ordenId + "/perfil"] = perfil;
+            updates["ordenes/" + uidUsuario + "/" + ordenId + "/pin"] = pin;
+            updates["ordenes/" + uidUsuario + "/" + ordenId + "/observacion"] = observacion;
+            updates["ordenes/" + uidUsuario + "/" + ordenId + "/fechaActualizacionAdmin"] = Date.now();
+          }
+
+          return db.ref().update(updates);
+        })
+        .then(() => {
+          mostrarMensajeCuenta("Cuenta usada actualizada correctamente y reflejada en Mis Compras.");
+        })
+        .catch((error) => {
+          mostrarMensajeCuenta("Error al actualizar la cuenta usada: " + error.message, true);
+        });
+    }
+
     function cargarCuentas() {
       db.ref("cuentas").on("value", (snapshot) => {
         const data = snapshot.val();
@@ -1656,17 +1715,28 @@
               tbodyUsadas.innerHTML += `
                 <tr>
                   <td>${producto}</td>
-                  <td>${textoSeguro(item.correo)}</td>
-                  <td>${textoSeguro(item.perfil)}</td>
+                  <td><input id="usedCorreo_${producto}_${cuentaId}" class="tableInput tableInputWide" value="${textoSeguro(item.correo, "")}"></td>
+                  <td>
+                    <div class="accountPassWrap">
+                      <input type="password" id="usedClave_${producto}_${cuentaId}" class="accountPassInput" value="${textoSeguro(item.clave, "")}">
+                      <button class="accountEye" onclick="toggleCuentaPassword('usedClave_${producto}_${cuentaId}', this)">👁️</button>
+                    </div>
+                  </td>
+                  <td><input id="usedPerfil_${producto}_${cuentaId}" class="tableInput" value="${textoSeguro(item.perfil, "")}"></td>
                   <td>${textoSeguro(item.comprador)}</td>
                   <td>${textoSeguro(item.uidUsuario)}</td>
                   <td>${textoSeguro(item.duracionDias, 30)} días</td>
                   <td>${formatearFecha(item.fechaCreacion)}</td>
                   <td>${formatearFecha(item.fechaEntrega)}</td>
                   <td>${formatearFecha(item.fechaVencimiento)}</td>
+                  <td><input id="usedPin_${producto}_${cuentaId}" class="tableInput" value="${textoSeguro(item.pin, "")}"></td>
+                  <td><input id="usedObs_${producto}_${cuentaId}" class="tableInput tableInputWide" value="${textoSeguro(item.observacion, "")}"></td>
                   <td>${badgeEstado(item.estado || "usada")}</td>
                   <td>
-                    <button class="smallBtn btnDelete" onclick="eliminarCuenta('${producto}', '${cuentaId}')">Eliminar</button>
+                    <div class="actionGroup">
+                      <button class="smallBtn btnSave" onclick="guardarCuentaUsada('${producto}', '${cuentaId}')">Guardar cambios</button>
+                      <button class="smallBtn btnDelete" onclick="eliminarCuenta('${producto}', '${cuentaId}')">Eliminar</button>
+                    </div>
                   </td>
                 </tr>
               `;
@@ -1792,23 +1862,43 @@
           if (!usuario) throw new Error("No existe el usuario del reembolso.");
           if (!orden) throw new Error("No existe la orden vinculada.");
 
-          const ordenEstado = String(orden.estado || "").toLowerCase();
-          if (ordenEstado === "reembolsado") throw new Error("La orden ya figura como reembolsada.");
+          const tipoEntrega = String(orden.tipoEntrega || "").toLowerCase();
+          const esCodigo = orden.esCodigo === true || tipoEntrega === "codigo";
+          const esLicencia = orden.esLicencia === true;
+
+          if (esCodigo || esLicencia) {
+            throw new Error("Los reembolsos solo están habilitados para compras entregadas con cuentas, no para códigos o licencias.");
+          }
+
+          if (!reembolsoDentroDeTiempo(orden.fechaCompra)) {
+            throw new Error("El plazo de 24 horas para reembolso ya venció.");
+          }
 
           const saldoActual = Number(usuario.saldo || 0);
           const nuevoSaldo = Number((saldoActual + monto).toFixed(2));
+          const ahora = Date.now();
+
+          const historialReembolso = {
+            ...orden,
+            ordenIdOriginal: ordenId,
+            uidUsuario: uid,
+            reembolsoId: id,
+            estado: "reembolsado",
+            fechaReembolso: ahora,
+            montoReembolsado: monto
+          };
 
           const updates = {};
           updates["usuarios/" + uid + "/saldo"] = nuevoSaldo;
-          updates["ordenes/" + uid + "/" + ordenId + "/estado"] = "reembolsado";
-          updates["ordenes/" + uid + "/" + ordenId + "/fechaReembolso"] = Date.now();
+          updates["ordenesReembolsadas/" + uid + "/" + ordenId] = historialReembolso;
           updates["reembolsos/" + id + "/estado"] = "aprobado";
-          updates["reembolsos/" + id + "/fechaAprobacion"] = Date.now();
+          updates["reembolsos/" + id + "/fechaAprobacion"] = ahora;
+          updates["ordenes/" + uid + "/" + ordenId] = null;
 
           return db.ref().update(updates);
         });
       })
-      .then(() => mostrarMensajeReembolso("Reembolso aprobado y saldo devuelto correctamente."))
+      .then(() => mostrarMensajeReembolso("Reembolso aprobado, saldo devuelto y compra eliminada de Mis Compras."))
       .catch((error) => mostrarMensajeReembolso("Error al aprobar reembolso: " + error.message, true));
     }
 
