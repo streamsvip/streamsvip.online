@@ -369,46 +369,46 @@
     }
 
     .btnReembolsoBloqueado{
-  background:
-    linear-gradient(180deg,#1b1b1b,#101010);
-  color:#aab2bd;
-  cursor:not-allowed;
-  border:1px solid rgba(255,255,255,0.08);
-  box-shadow:
-    0 8px 18px rgba(0,0,0,0.22),
-    inset 0 1px 0 rgba(255,255,255,0.03);
-  opacity:.95;
-  position:relative;
-  overflow:hidden;
-}
+      background:
+        linear-gradient(180deg,#1b1b1b,#101010);
+      color:#aab2bd;
+      cursor:not-allowed;
+      border:1px solid rgba(255,255,255,0.08);
+      box-shadow:
+        0 8px 18px rgba(0,0,0,0.22),
+        inset 0 1px 0 rgba(255,255,255,0.03);
+      opacity:.95;
+      position:relative;
+      overflow:hidden;
+    }
 
-.btnReembolsoBloqueado::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.04) 45%, transparent 100%);
-  pointer-events:none;
-}
+    .btnReembolsoBloqueado::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.04) 45%, transparent 100%);
+      pointer-events:none;
+    }
 
-.btnReembolsoBloqueado.vencido{
-  background:
-    linear-gradient(180deg,#2a1717,#171010);
-  color:#ffb0b0;
-  border:1px solid rgba(255,90,90,0.18);
-  box-shadow:
-    0 8px 18px rgba(50,10,10,0.24),
-    inset 0 1px 0 rgba(255,255,255,0.02);
-}
+    .btnReembolsoBloqueado.vencido{
+      background:
+        linear-gradient(180deg,#2a1717,#171010);
+      color:#ffb0b0;
+      border:1px solid rgba(255,90,90,0.18);
+      box-shadow:
+        0 8px 18px rgba(50,10,10,0.24),
+        inset 0 1px 0 rgba(255,255,255,0.02);
+    }
 
-.btnReembolsoBloqueado.noAplica{
-  background:
-    linear-gradient(180deg,#161d27,#0f141c);
-  color:#a9d2ff;
-  border:1px solid rgba(90,160,255,0.16);
-  box-shadow:
-    0 8px 18px rgba(10,25,50,0.24),
-    inset 0 1px 0 rgba(255,255,255,0.02);
-}
+    .btnReembolsoBloqueado.noAplica{
+      background:
+        linear-gradient(180deg,#161d27,#0f141c);
+      color:#a9d2ff;
+      border:1px solid rgba(90,160,255,0.16);
+      box-shadow:
+        0 8px 18px rgba(10,25,50,0.24),
+        inset 0 1px 0 rgba(255,255,255,0.02);
+    }
 
     .estadoReembolsado{
       background:linear-gradient(180deg,#13b37d,#109c6d);
@@ -1199,6 +1199,7 @@
     let compraPendienteNombre = null;
     let uidActual = null;
     let comprasRef = null;
+    let timerCompras = null;
 
     function esCompraCodigo(compra) {
       return (
@@ -1505,14 +1506,14 @@
           }
 
           ${
-  estadoReal === "reembolsado"
-    ? ``
-    : esCodigo
-      ? `<span class="btnReembolsoBloqueado noAplica">🔑 No aplica</span>`
-      : puedeReembolso
-        ? `<button class="btnReembolso">⛔ Reembolso</button>`
-        : `<span class="btnReembolsoBloqueado vencido">⏳ ${textoReembolso}</span>`
-}
+            estadoReal === "reembolsado"
+              ? ``
+              : esCodigo
+                ? `<span class="btnReembolsoBloqueado noAplica">🔑 No aplica</span>`
+                : puedeReembolso
+                  ? `<button class="btnReembolso">⛔ Reembolso</button>`
+                  : `<span class="btnReembolsoBloqueado vencido">⏳ ${textoReembolso}</span>`
+          }
         </div>
       `;
 
@@ -1618,7 +1619,7 @@
       const estado = filtroEstado.value;
       const texto = buscadorCompras.value.trim().toLowerCase();
 
-      let filtradas = comprasOriginales.filter(compra => {
+      const filtradas = comprasOriginales.filter(compra => {
         const estadoReal = obtenerEstadoReal(compra);
         const coincideServicio = servicio === "todos" || (compra.servicio || "") === servicio;
         const coincideEstado = estado === "todos" || estadoReal === estado;
@@ -1662,10 +1663,15 @@
       });
     }
 
-    function escucharComprasUsuario(uid) {
+    function detenerListenersCompras() {
       if (comprasRef) {
         comprasRef.off();
+        comprasRef = null;
       }
+    }
+
+    function escucharComprasUsuario(uid) {
+      detenerListenersCompras();
 
       comprasRef = db.ref("ordenes/" + uid);
 
@@ -1706,6 +1712,8 @@
 
     auth.onAuthStateChanged(user => {
       if (!user) {
+        detenerListenersCompras();
+        if (timerCompras) clearInterval(timerCompras);
         window.location.href = "index.html";
         return;
       }
@@ -1714,8 +1722,10 @@
       escucharComprasUsuario(user.uid);
     });
 
-    setInterval(() => {
-      if (comprasOriginales.length) renderCompras();
+    timerCompras = setInterval(() => {
+      if (comprasOriginales.length && !document.hidden) {
+        renderCompras();
+      }
     }, 1000);
 
     window.addEventListener("click", function(e){
@@ -1770,7 +1780,8 @@
       });
     })();
   </script>
- <script>
+
+  <script>
     document.addEventListener("contextmenu", function(e){
       e.preventDefault();
     });
