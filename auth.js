@@ -21,23 +21,6 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const db = firebase.database();
 
-const TIEMPO_INACTIVIDAD_USUARIO = 5 * 60 * 1000;
-const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;
-const TIEMPO_AVISO = 1 * 60 * 1000;
-const TIEMPO_ESPERA_OFFLINE = 2500;
-
-let temporizadorInactividad = null;
-let temporizadorAviso = null;
-let controlInactividadIniciado = false;
-let avisoMostrado = false;
-
-let usuarioActualAuth = null;
-let onlineRefActual = null;
-let connectedRefActual = null;
-let connectedCallbackActual = null;
-let cierrePorPestanaRegistrado = false;
-let timeoutOfflinePendiente = null;
-
 /* =========================
 FUNCIONES GENERALES
 ========================= */
@@ -96,199 +79,19 @@ function mostrarMensajeSalidaEnLogin() {
 
   if (motivo === "inactividad") {
     mostrarMensajeAuth(
-      "La sesión fue finalizada automáticamente por inactividad del usuario. Vuelva a iniciar sesión para restablecer el acceso.",
+      "La sesión fue finalizada automáticamente por inactividad del usuario. Vuelve a iniciar sesión para restablecer el acceso.",
       "#ffd166"
+    );
+  } else if (motivo === "bloqueado") {
+    mostrarMensajeAuth(
+      "Tu cuenta fue bloqueada. Contacta con soporte para más información.",
+      "#ff6b6b"
     );
   }
 
   try {
     sessionStorage.removeItem("streamsvip_motivo_salida");
   } catch (e) {}
-}
-
-/* =========================
-PRESENCIA / ONLINE
-========================= */
-
-function limpiarReferenciaOnline() {
-  if (onlineRefActual) {
-    try {
-      onlineRefActual.onDisconnect().cancel();
-    } catch (e) {}
-  }
-
-  if (connectedRefActual && connectedCallbackActual) {
-    try {
-      connectedRefActual.off("value", connectedCallbackActual);
-    } catch (e) {}
-  }
-
-  onlineRefActual = null;
-  connectedRefActual = null;
-  connectedCallbackActual = null;
-}
-
-function cancelarOfflinePendiente() {
-  if (timeoutOfflinePendiente) {
-    clearTimeout(timeoutOfflinePendiente);
-    timeoutOfflinePendiente = null;
-  }
-}
-
-function marcarOfflineSiExiste() {
-  if (!usuarioActualAuth || !usuarioActualAuth.uid) return;
-  db.ref("online/" + usuarioActualAuth.uid).set(false).catch(() => {});
-}
-
-function programarOfflineConEspera() {
-  cancelarOfflinePendiente();
-
-  timeoutOfflinePendiente = setTimeout(() => {
-    marcarOfflineSiExiste();
-    timeoutOfflinePendiente = null;
-  }, TIEMPO_ESPERA_OFFLINE);
-}
-
-function registrarPresenciaUsuario(user) {
-  if (!user || !user.uid) return;
-
-  cancelarOfflinePendiente();
-  limpiarReferenciaOnline();
-
-  onlineRefActual = db.ref("online/" + user.uid);
-  connectedRefActual = db.ref(".info/connected");
-
-  connectedCallbackActual = (snap) => {
-    if (snap.val() === true && onlineRefActual) {
-      cancelarOfflinePendiente();
-      onlineRefActual.onDisconnect().set(false).catch(() => {});
-      onlineRefActual.set(true).catch(() => {});
-    }
-  };
-
-  connectedRefActual.on("value", connectedCallbackActual);
-  onlineRefActual.set(true).catch(() => {});
-}
-
-/* =========================
-CIERRE POR PESTAÑA / NAVEGADOR
-========================= */
-
-function registrarCierrePorPestana() {
-  if (cierrePorPestanaRegistrado) return;
-  cierrePorPestanaRegistrado = true;
-
-  window.addEventListener("beforeunload", () => {
-    programarOfflineConEspera();
-  });
-
-  window.addEventListener("pagehide", () => {
-    programarOfflineConEspera();
-  });
-}
-
-/* =========================
-INACTIVIDAD / AUTO LOGOUT
-========================= */
-
-function limpiarTemporizadoresInactividad() {
-  if (temporizadorInactividad) {
-    clearTimeout(temporizadorInactividad);
-    temporizadorInactividad = null;
-  }
-
-  if (temporizadorAviso) {
-    clearTimeout(temporizadorAviso);
-    temporizadorAviso = null;
-  }
-}
-
-function cerrarSesionPorInactividad() {
-  limpiarTemporizadoresInactividad();
-  avisoMostrado = false;
-  cancelarOfflinePendiente();
-  marcarOfflineSiExiste();
-  limpiarReferenciaOnline();
-
-  try {
-    sessionStorage.setItem("streamsvip_motivo_salida", "inactividad");
-  } catch (e) {}
-
-  auth.signOut()
-    .then(() => {
-      window.location.replace("index.html");
-    })
-    .catch(() => {
-      window.location.replace("index.html");
-    });
-}
-
-function mostrarAvisoInactividad() {
-  if (avisoMostrado) return;
-  avisoMostrado = true;
-  alert("Llevas un tiempo inactivo. Tu sesión se cerrará en 1 minuto si no realizas ninguna acción.");
-}
-
-function obtenerTiempoInactividadPorPagina() {
-  const pagina = obtenerPaginaActual();
-  return pagina === "admin.html"
-    ? TIEMPO_INACTIVIDAD_ADMIN
-    : TIEMPO_INACTIVIDAD_USUARIO;
-}
-
-function reiniciarTemporizadorInactividad() {
-  if (!usuarioActualAuth) return;
-
-  limpiarTemporizadoresInactividad();
-  avisoMostrado = false;
-
-  const tiempoInactividad = obtenerTiempoInactividadPorPagina();
-
-  if (tiempoInactividad > TIEMPO_AVISO) {
-    temporizadorAviso = setTimeout(() => {
-      mostrarAvisoInactividad();
-    }, tiempoInactividad - TIEMPO_AVISO);
-  }
-
-  temporizadorInactividad = setTimeout(() => {
-    cerrarSesionPorInactividad();
-  }, tiempoInactividad);
-}
-
-function iniciarControlInactividad() {
-  if (controlInactividadIniciado) {
-    reiniciarTemporizadorInactividad();
-    return;
-  }
-
-  const eventos = [
-    "mousemove",
-    "mousedown",
-    "click",
-    "scroll",
-    "keypress",
-    "keydown",
-    "touchstart",
-    "touchmove"
-  ];
-
-  eventos.forEach((evento) => {
-    document.addEventListener(evento, reiniciarTemporizadorInactividad, true);
-  });
-
-  window.addEventListener("focus", reiniciarTemporizadorInactividad);
-
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) {
-      cancelarOfflinePendiente();
-      reiniciarTemporizadorInactividad();
-    } else {
-      programarOfflineConEspera();
-    }
-  });
-
-  controlInactividadIniciado = true;
-  reiniciarTemporizadorInactividad();
 }
 
 /* =========================
@@ -330,8 +133,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
-  registrarCierrePorPestana();
 });
 
 /* =========================
@@ -340,56 +141,34 @@ CONTROL DE SESIÓN
 
 auth.onAuthStateChanged(async (user) => {
   const pagina = obtenerPaginaActual();
-  usuarioActualAuth = user || null;
 
   if (!user) {
-    limpiarTemporizadoresInactividad();
-    cancelarOfflinePendiente();
-    limpiarReferenciaOnline();
-
     if (esPaginaPrivada(pagina)) {
       window.location.replace("index.html");
     }
     return;
   }
 
-  try {
-    const snap = await db.ref("usuarios/" + user.uid).once("value");
-    const dataUsuario = snap.val() || {};
-    const rol = dataUsuario.rol || "";
-    const estado = String(dataUsuario.estado || "activo").toLowerCase();
+  if (pagina === "index.html") {
+    try {
+      const snap = await db.ref("usuarios/" + user.uid).once("value");
+      const dataUsuario = snap.val() || {};
+      const estado = String(dataUsuario.estado || "activo").toLowerCase();
 
-    if (estado === "bloqueado") {
-      limpiarTemporizadoresInactividad();
-      cancelarOfflinePendiente();
-      marcarOfflineSiExiste();
-      await auth.signOut();
-      alert("Tu cuenta ha sido bloqueada. Contacta con soporte.");
-      window.location.replace("index.html");
-      return;
-    }
+      if (estado === "bloqueado") {
+        try {
+          sessionStorage.setItem("streamsvip_motivo_salida", "bloqueado");
+        } catch (e) {}
 
-    registrarPresenciaUsuario(user);
+        await auth.signOut();
+        window.location.replace("index.html");
+        return;
+      }
 
-    if (pagina === "admin.html" && rol !== "admin") {
       window.location.replace("tienda.html");
-      return;
-    }
-
-    if (esPaginaPrivada(pagina)) {
-      iniciarControlInactividad();
-    }
-
-  } catch (error) {
-    console.error("Error verificando usuario:", error);
-
-    if (pagina === "admin.html") {
+    } catch (error) {
+      console.error("Error verificando usuario en index:", error);
       window.location.replace("tienda.html");
-      return;
-    }
-
-    if (esPaginaPrivada(pagina)) {
-      window.location.replace("index.html");
     }
   }
 });
@@ -517,13 +296,37 @@ function iniciarSesion() {
         return auth.signInWithEmailAndPassword(correoEncontrado, password);
       });
     })
-    .then(() => {
+    .then(async (credencial) => {
+      const user = credencial.user;
+      if (!user) throw new Error("No se pudo validar el usuario.");
+
+      const snap = await db.ref("usuarios/" + user.uid).once("value");
+      const dataUsuario = snap.val() || {};
+      const estado = String(dataUsuario.estado || "activo").toLowerCase();
+
+      if (estado === "bloqueado") {
+        try {
+          sessionStorage.setItem("streamsvip_motivo_salida", "bloqueado");
+        } catch (e) {}
+
+        await auth.signOut();
+        throw { code: "cuenta-bloqueada" };
+      }
+
       mostrarMensajeAuth("Inicio de sesión correcto.", "#00e676");
+
       setTimeout(() => {
         window.location.replace("tienda.html");
       }, 700);
     })
-    .catch(manejarErrorLogin);
+    .catch((error) => {
+      if (error?.code === "cuenta-bloqueada") {
+        mostrarMensajeAuth("Tu cuenta está bloqueada. Contacta con soporte.", "#ff6b6b");
+        return;
+      }
+
+      manejarErrorLogin(error);
+    });
 }
 
 /* =========================
@@ -637,7 +440,6 @@ async function crearCuenta() {
 
     await db.ref("usuarios/" + user.uid).set(datosUsuario);
     await db.ref("usernames/" + usuarioNormalizado).set(datosUsername);
-    await db.ref("online/" + user.uid).set(true).catch(() => {});
 
     mostrarMensajeAuth("Cuenta creada correctamente.", "#00e676");
 
@@ -719,11 +521,6 @@ CERRAR SESIÓN MANUAL
 ========================= */
 
 function salir() {
-  limpiarTemporizadoresInactividad();
-  cancelarOfflinePendiente();
-  marcarOfflineSiExiste();
-  limpiarReferenciaOnline();
-
   auth.signOut()
     .then(() => {
       window.location.replace("index.html");
