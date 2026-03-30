@@ -24,6 +24,7 @@ const db = firebase.database();
 const TIEMPO_INACTIVIDAD_USUARIO = 5 * 60 * 1000;
 const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;
 const TIEMPO_AVISO = 1 * 60 * 1000;
+const TIEMPO_ESPERA_OFFLINE = 2500;
 
 let temporizadorInactividad = null;
 let temporizadorAviso = null;
@@ -35,7 +36,7 @@ let onlineRefActual = null;
 let connectedRefActual = null;
 let connectedCallbackActual = null;
 let cierrePorPestanaRegistrado = false;
-let cerrandoPagina = false;
+let timeoutOfflinePendiente = null;
 
 /* =========================
 FUNCIONES GENERALES
@@ -127,14 +128,31 @@ function limpiarReferenciaOnline() {
   connectedCallbackActual = null;
 }
 
+function cancelarOfflinePendiente() {
+  if (timeoutOfflinePendiente) {
+    clearTimeout(timeoutOfflinePendiente);
+    timeoutOfflinePendiente = null;
+  }
+}
+
 function marcarOfflineSiExiste() {
   if (!usuarioActualAuth || !usuarioActualAuth.uid) return;
   db.ref("online/" + usuarioActualAuth.uid).set(false).catch(() => {});
 }
 
+function programarOfflineConEspera() {
+  cancelarOfflinePendiente();
+
+  timeoutOfflinePendiente = setTimeout(() => {
+    marcarOfflineSiExiste();
+    timeoutOfflinePendiente = null;
+  }, TIEMPO_ESPERA_OFFLINE);
+}
+
 function registrarPresenciaUsuario(user) {
   if (!user || !user.uid) return;
 
+  cancelarOfflinePendiente();
   limpiarReferenciaOnline();
 
   onlineRefActual = db.ref("online/" + user.uid);
@@ -142,6 +160,7 @@ function registrarPresenciaUsuario(user) {
 
   connectedCallbackActual = (snap) => {
     if (snap.val() === true && onlineRefActual) {
+      cancelarOfflinePendiente();
       onlineRefActual.onDisconnect().set(false).catch(() => {});
       onlineRefActual.set(true).catch(() => {});
     }
@@ -159,19 +178,13 @@ function registrarCierrePorPestana() {
   if (cierrePorPestanaRegistrado) return;
   cierrePorPestanaRegistrado = true;
 
-  const cerrarSesionAlSalir = () => {
-    if (cerrandoPagina) return;
-    cerrandoPagina = true;
+  window.addEventListener("beforeunload", () => {
+    programarOfflineConEspera();
+  });
 
-    try {
-      marcarOfflineSiExiste();
-      limpiarReferenciaOnline();
-      auth.signOut().catch(() => {});
-    } catch (e) {}
-  };
-
-  window.addEventListener("beforeunload", cerrarSesionAlSalir);
-  window.addEventListener("pagehide", cerrarSesionAlSalir);
+  window.addEventListener("pagehide", () => {
+    programarOfflineConEspera();
+  });
 }
 
 /* =========================
@@ -193,6 +206,7 @@ function limpiarTemporizadoresInactividad() {
 function cerrarSesionPorInactividad() {
   limpiarTemporizadoresInactividad();
   avisoMostrado = false;
+  cancelarOfflinePendiente();
   marcarOfflineSiExiste();
   limpiarReferenciaOnline();
 
@@ -217,7 +231,6 @@ function mostrarAvisoInactividad() {
 
 function obtenerTiempoInactividadPorPagina() {
   const pagina = obtenerPaginaActual();
-
   return pagina === "admin.html"
     ? TIEMPO_INACTIVIDAD_ADMIN
     : TIEMPO_INACTIVIDAD_USUARIO;
@@ -267,7 +280,10 @@ function iniciarControlInactividad() {
 
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
+      cancelarOfflinePendiente();
       reiniciarTemporizadorInactividad();
+    } else {
+      programarOfflineConEspera();
     }
   });
 
@@ -328,6 +344,7 @@ auth.onAuthStateChanged(async (user) => {
 
   if (!user) {
     limpiarTemporizadoresInactividad();
+    cancelarOfflinePendiente();
     limpiarReferenciaOnline();
 
     if (esPaginaPrivada(pagina)) {
@@ -344,9 +361,8 @@ auth.onAuthStateChanged(async (user) => {
 
     if (estado === "bloqueado") {
       limpiarTemporizadoresInactividad();
+      cancelarOfflinePendiente();
       marcarOfflineSiExiste();
-      limpiarReferenciaOnline();
-
       await auth.signOut();
       alert("Tu cuenta ha sido bloqueada. Contacta con soporte.");
       window.location.replace("index.html");
@@ -479,7 +495,11 @@ function iniciarSesion() {
 
   mostrarMensajeAuth("Ingresando...", "#ffd166");
 
-  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+  const tipoPersistencia = mantenerSesion
+    ? firebase.auth.Auth.Persistence.LOCAL
+    : firebase.auth.Auth.Persistence.SESSION;
+
+  auth.setPersistence(tipoPersistencia)
     .then(() => {
       if (mantenerSesion) {
         localStorage.setItem("streamsvip_login_recordado", loginInput);
@@ -700,6 +720,7 @@ CERRAR SESIÓN MANUAL
 
 function salir() {
   limpiarTemporizadoresInactividad();
+  cancelarOfflinePendiente();
   marcarOfflineSiExiste();
   limpiarReferenciaOnline();
 
