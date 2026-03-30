@@ -25,12 +25,6 @@ const TIEMPO_INACTIVIDAD_USUARIO = 5 * 60 * 1000;
 const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;
 const TIEMPO_AVISO = 1 * 60 * 1000;
 
-/*
-  Pequeño margen para no parpadear offline/online
-  cuando el usuario cambia entre páginas internas.
-*/
-const TIEMPO_ESPERA_OFFLINE = 2500;
-
 let temporizadorInactividad = null;
 let temporizadorAviso = null;
 let controlInactividadIniciado = false;
@@ -41,7 +35,7 @@ let onlineRefActual = null;
 let connectedRefActual = null;
 let connectedCallbackActual = null;
 let cierrePorPestanaRegistrado = false;
-let timeoutOfflinePendiente = null;
+let cerrandoPagina = false;
 
 /* =========================
 FUNCIONES GENERALES
@@ -87,6 +81,30 @@ function esPaginaPrivada(pagina) {
   return paginasPrivadas.includes(pagina);
 }
 
+function mostrarMensajeSalidaEnLogin() {
+  const pagina = obtenerPaginaActual();
+  if (pagina !== "index.html") return;
+
+  let motivo = "";
+
+  try {
+    motivo = sessionStorage.getItem("streamsvip_motivo_salida") || "";
+  } catch (e) {}
+
+  if (!motivo) return;
+
+  if (motivo === "inactividad") {
+    mostrarMensajeAuth(
+      "La sesión fue finalizada automáticamente por inactividad del usuario. Vuelva a iniciar sesión para restablecer el acceso.",
+      "#ffd166"
+    );
+  }
+
+  try {
+    sessionStorage.removeItem("streamsvip_motivo_salida");
+  } catch (e) {}
+}
+
 /* =========================
 PRESENCIA / ONLINE
 ========================= */
@@ -109,31 +127,14 @@ function limpiarReferenciaOnline() {
   connectedCallbackActual = null;
 }
 
-function cancelarOfflinePendiente() {
-  if (timeoutOfflinePendiente) {
-    clearTimeout(timeoutOfflinePendiente);
-    timeoutOfflinePendiente = null;
-  }
-}
-
 function marcarOfflineSiExiste() {
   if (!usuarioActualAuth || !usuarioActualAuth.uid) return;
   db.ref("online/" + usuarioActualAuth.uid).set(false).catch(() => {});
 }
 
-function programarOfflineConEspera() {
-  cancelarOfflinePendiente();
-
-  timeoutOfflinePendiente = setTimeout(() => {
-    marcarOfflineSiExiste();
-    timeoutOfflinePendiente = null;
-  }, TIEMPO_ESPERA_OFFLINE);
-}
-
 function registrarPresenciaUsuario(user) {
   if (!user || !user.uid) return;
 
-  cancelarOfflinePendiente();
   limpiarReferenciaOnline();
 
   onlineRefActual = db.ref("online/" + user.uid);
@@ -141,14 +142,12 @@ function registrarPresenciaUsuario(user) {
 
   connectedCallbackActual = (snap) => {
     if (snap.val() === true && onlineRefActual) {
-      cancelarOfflinePendiente();
       onlineRefActual.onDisconnect().set(false).catch(() => {});
       onlineRefActual.set(true).catch(() => {});
     }
   };
 
   connectedRefActual.on("value", connectedCallbackActual);
-
   onlineRefActual.set(true).catch(() => {});
 }
 
@@ -160,13 +159,19 @@ function registrarCierrePorPestana() {
   if (cierrePorPestanaRegistrado) return;
   cierrePorPestanaRegistrado = true;
 
-  window.addEventListener("beforeunload", () => {
-    programarOfflineConEspera();
-  });
+  const cerrarSesionAlSalir = () => {
+    if (cerrandoPagina) return;
+    cerrandoPagina = true;
 
-  window.addEventListener("pagehide", () => {
-    programarOfflineConEspera();
-  });
+    try {
+      marcarOfflineSiExiste();
+      limpiarReferenciaOnline();
+      auth.signOut().catch(() => {});
+    } catch (e) {}
+  };
+
+  window.addEventListener("beforeunload", cerrarSesionAlSalir);
+  window.addEventListener("pagehide", cerrarSesionAlSalir);
 }
 
 /* =========================
@@ -188,16 +193,18 @@ function limpiarTemporizadoresInactividad() {
 function cerrarSesionPorInactividad() {
   limpiarTemporizadoresInactividad();
   avisoMostrado = false;
-  cancelarOfflinePendiente();
   marcarOfflineSiExiste();
+  limpiarReferenciaOnline();
+
+  try {
+    sessionStorage.setItem("streamsvip_motivo_salida", "inactividad");
+  } catch (e) {}
 
   auth.signOut()
     .then(() => {
-      alert("Tu sesión se cerró por inactividad.");
       window.location.replace("index.html");
     })
     .catch(() => {
-      alert("Tu sesión se cerró por inactividad.");
       window.location.replace("index.html");
     });
 }
@@ -210,6 +217,7 @@ function mostrarAvisoInactividad() {
 
 function obtenerTiempoInactividadPorPagina() {
   const pagina = obtenerPaginaActual();
+
   return pagina === "admin.html"
     ? TIEMPO_INACTIVIDAD_ADMIN
     : TIEMPO_INACTIVIDAD_USUARIO;
@@ -246,9 +254,9 @@ function iniciarControlInactividad() {
     "click",
     "scroll",
     "keypress",
+    "keydown",
     "touchstart",
-    "touchmove",
-    "keydown"
+    "touchmove"
   ];
 
   eventos.forEach((evento) => {
@@ -275,6 +283,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const correoInput = document.getElementById("correo");
   const mantenerSesion = document.getElementById("mantenerSesion");
   const passwordInput = document.getElementById("password");
+
+  mostrarMensajeSalidaEnLogin();
 
   const loginGuardado = localStorage.getItem("streamsvip_login_recordado");
   const sesionGuardada = localStorage.getItem("streamsvip_mantener_sesion");
@@ -318,7 +328,6 @@ auth.onAuthStateChanged(async (user) => {
 
   if (!user) {
     limpiarTemporizadoresInactividad();
-    cancelarOfflinePendiente();
     limpiarReferenciaOnline();
 
     if (esPaginaPrivada(pagina)) {
@@ -335,8 +344,9 @@ auth.onAuthStateChanged(async (user) => {
 
     if (estado === "bloqueado") {
       limpiarTemporizadoresInactividad();
-      cancelarOfflinePendiente();
       marcarOfflineSiExiste();
+      limpiarReferenciaOnline();
+
       await auth.signOut();
       alert("Tu cuenta ha sido bloqueada. Contacta con soporte.");
       window.location.replace("index.html");
@@ -359,6 +369,11 @@ auth.onAuthStateChanged(async (user) => {
 
     if (pagina === "admin.html") {
       window.location.replace("tienda.html");
+      return;
+    }
+
+    if (esPaginaPrivada(pagina)) {
+      window.location.replace("index.html");
     }
   }
 });
@@ -464,11 +479,7 @@ function iniciarSesion() {
 
   mostrarMensajeAuth("Ingresando...", "#ffd166");
 
-  const tipoPersistencia = mantenerSesion
-    ? firebase.auth.Auth.Persistence.LOCAL
-    : firebase.auth.Auth.Persistence.SESSION;
-
-  auth.setPersistence(tipoPersistencia)
+  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
     .then(() => {
       if (mantenerSesion) {
         localStorage.setItem("streamsvip_login_recordado", loginInput);
@@ -489,7 +500,7 @@ function iniciarSesion() {
     .then(() => {
       mostrarMensajeAuth("Inicio de sesión correcto.", "#00e676");
       setTimeout(() => {
-        window.location.href = "tienda.html";
+        window.location.replace("tienda.html");
       }, 700);
     })
     .catch(manejarErrorLogin);
@@ -611,7 +622,7 @@ async function crearCuenta() {
     mostrarMensajeAuth("Cuenta creada correctamente.", "#00e676");
 
     setTimeout(() => {
-      window.location.href = "tienda.html";
+      window.location.replace("tienda.html");
     }, 800);
 
   } catch (error) {
@@ -689,7 +700,6 @@ CERRAR SESIÓN MANUAL
 
 function salir() {
   limpiarTemporizadoresInactividad();
-  cancelarOfflinePendiente();
   marcarOfflineSiExiste();
   limpiarReferenciaOnline();
 
