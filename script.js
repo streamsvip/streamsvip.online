@@ -48,6 +48,12 @@ let usuarioPerfilRef = null;
 let redireccionPorBloqueoEnCurso = false;
 let compraEnProceso = false;
 
+/* refs para evitar listeners innecesarios */
+let productosRef = null;
+let comprasHoyRef = null;
+let comprasLiveRef = null;
+let ventasRefs = [];
+
 /* =========================
 UTILIDADES
 ========================= */
@@ -58,6 +64,26 @@ function obtenerPaginaActual() {
 
 function existeElemento(id) {
   return document.getElementById(id);
+}
+
+function esPaginaTienda() {
+  return obtenerPaginaActual() === "tienda.html";
+}
+
+function esPaginaMisCompras() {
+  return obtenerPaginaActual() === "mis-compras.html";
+}
+
+function esPaginaRecargas() {
+  return obtenerPaginaActual() === "recargas.html";
+}
+
+function esPaginaComoComprar() {
+  return obtenerPaginaActual() === "como-comprar.html";
+}
+
+function esPaginaOfertas() {
+  return obtenerPaginaActual() === "ofertas.html";
 }
 
 function formatearSaldo(saldo) {
@@ -787,6 +813,10 @@ function convertirVentasANumero(data) {
   return 0;
 }
 
+/* =========================
+LIMPIEZA DE LISTENERS
+========================= */
+
 function limpiarListenersSesion() {
   if (badgeComprasRef) {
     badgeComprasRef.off();
@@ -799,11 +829,42 @@ function limpiarListenersSesion() {
   }
 }
 
+function limpiarListenersPagina() {
+  if (productosRef) {
+    productosRef.off();
+    productosRef = null;
+  }
+
+  if (comprasHoyRef) {
+    comprasHoyRef.off();
+    comprasHoyRef = null;
+  }
+
+  if (comprasLiveRef) {
+    comprasLiveRef.off();
+    comprasLiveRef = null;
+  }
+
+  if (ventasRefs.length) {
+    ventasRefs.forEach((item) => {
+      try {
+        item.ref.off("value", item.callback);
+      } catch (e) {}
+    });
+    ventasRefs = [];
+  }
+}
+
+function limpiarTodoListeners() {
+  limpiarListenersSesion();
+  limpiarListenersPagina();
+}
+
 function cerrarSesionPorBloqueo() {
   if (redireccionPorBloqueoEnCurso) return;
   redireccionPorBloqueoEnCurso = true;
 
-  limpiarListenersSesion();
+  limpiarTodoListeners();
   actualizarBadgeMisCompras(0);
 
   mostrarAvisoSistema("Cuenta bloqueada", "Tu cuenta ha sido bloqueada. Contacta con soporte.", "error");
@@ -971,7 +1032,7 @@ auth.onAuthStateChanged((user) => {
   ];
 
   if (!user) {
-    limpiarListenersSesion();
+    limpiarTodoListeners();
 
     if (paginasProtegidas.includes(pagina)) {
       window.location.href = "index.html";
@@ -1066,7 +1127,7 @@ function salir() {
   if (toast) toast.classList.add("show");
 
   setTimeout(() => {
-    limpiarListenersSesion();
+    limpiarTodoListeners();
 
     auth.signOut()
       .then(() => {
@@ -1161,7 +1222,10 @@ function escucharClientesHoy() {
   const span = document.getElementById("clientesHoy");
   if (!span) return;
 
-  db.ref("comprasHoy").on("value", (snap) => {
+  if (comprasHoyRef) comprasHoyRef.off();
+
+  comprasHoyRef = db.ref("comprasHoy");
+  comprasHoyRef.on("value", (snap) => {
     span.innerText = snap.val() || 0;
   }, () => {
     span.innerText = "0";
@@ -1187,6 +1251,15 @@ const productosVentas = {
 };
 
 function escucharVentasProductos() {
+  if (ventasRefs.length) {
+    ventasRefs.forEach((item) => {
+      try {
+        item.ref.off("value", item.callback);
+      } catch (e) {}
+    });
+    ventasRefs = [];
+  }
+
   Object.keys(productosVentas).forEach((prod) => {
     const spanId = productosVentas[prod];
     const span = document.getElementById(spanId);
@@ -1200,19 +1273,25 @@ function escucharVentasProductos() {
     let totalRuta1 = 0;
     let totalRuta2 = 0;
 
-    db.ref(rutasCompatibles[0]).on("value", (snap) => {
+    const ref1 = db.ref(rutasCompatibles[0]);
+    const cb1 = (snap) => {
       totalRuta1 = convertirVentasANumero(snap.val());
       span.innerText = totalRuta1 + totalRuta2;
-    }, () => {
+    };
+    ref1.on("value", cb1, () => {
       span.innerText = totalRuta1 + totalRuta2;
     });
+    ventasRefs.push({ ref: ref1, callback: cb1 });
 
-    db.ref(rutasCompatibles[1]).on("value", (snap) => {
+    const ref2 = db.ref(rutasCompatibles[1]);
+    const cb2 = (snap) => {
       totalRuta2 = convertirVentasANumero(snap.val());
       span.innerText = totalRuta1 + totalRuta2;
-    }, () => {
+    };
+    ref2.on("value", cb2, () => {
       span.innerText = totalRuta1 + totalRuta2;
     });
+    ventasRefs.push({ ref: ref2, callback: cb2 });
   });
 }
 
@@ -1226,7 +1305,10 @@ function escucharNotificacionCompra() {
 
   if (!box || !texto) return;
 
-  db.ref("comprasLive").limitToLast(1).on("child_added", (snap) => {
+  if (comprasLiveRef) comprasLiveRef.off();
+
+  comprasLiveRef = db.ref("comprasLive").limitToLast(1);
+  comprasLiveRef.on("child_added", (snap) => {
     const data = snap.val();
     if (!data) return;
 
@@ -1323,7 +1405,10 @@ function cargarProductosTienda() {
   const contenedor = document.getElementById("contenedorProductos");
   if (!contenedor) return;
 
-  db.ref("productos").on("value", (snapshot) => {
+  if (productosRef) productosRef.off();
+
+  productosRef = db.ref("productos");
+  productosRef.on("value", (snapshot) => {
     const data = snapshot.val() || {};
     productosTiendaCache = data;
     renderizarProductosTienda(productosTiendaCache);
@@ -2123,15 +2208,13 @@ function verificarUrgenciaOferta() {
 }
 
 /* =========================
-DOM READY
+INICIO POR PAGINA
 ========================= */
 
-document.addEventListener("DOMContentLoaded", function () {
+function iniciarPaginaTienda() {
   iniciarSlider();
   verificarUrgenciaOferta();
   cargarProductosTienda();
-  insertarBadgeMisComprasSiNoExiste();
-  inyectarEstilosAvisoSistema();
   escucharClientesHoy();
   escucharVentasProductos();
   escucharNotificacionCompra();
@@ -2139,7 +2222,14 @@ document.addEventListener("DOMContentLoaded", function () {
   if (ofertaSigueActiva() && !localStorage.getItem("visitoOfertas")) {
     mostrarModalOfertaVigente();
   }
+}
 
+function iniciarPaginaGeneralConMenu() {
+  insertarBadgeMisComprasSiNoExiste();
+  inyectarEstilosAvisoSistema();
+}
+
+function iniciarFormularioReservado() {
   const form = document.getElementById("formCompra");
   if (form) {
     form.addEventListener("submit", function (e) {
@@ -2151,7 +2241,9 @@ document.addEventListener("DOMContentLoaded", function () {
       );
     });
   }
+}
 
+function iniciarComportamientoMenu() {
   const menu = document.getElementById("menuLateral");
   const menuIcon = document.querySelector(".menuIcon");
 
@@ -2180,6 +2272,38 @@ document.addEventListener("DOMContentLoaded", function () {
       cerrarMenu();
     }
   });
+}
+
+/* =========================
+DOM READY
+========================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+  const pagina = obtenerPaginaActual();
+
+  iniciarPaginaGeneralConMenu();
+  iniciarComportamientoMenu();
+
+  if (pagina === "tienda.html") {
+    iniciarPaginaTienda();
+    iniciarFormularioReservado();
+  }
+
+  if (pagina === "como-comprar.html") {
+    /* sin listeners pesados */
+  }
+
+  if (pagina === "ofertas.html") {
+    verificarUrgenciaOferta();
+  }
+
+  if (pagina === "recargas.html") {
+    /* recargas usa su propio script inline */
+  }
+
+  if (pagina === "mis-compras.html") {
+    /* mis compras usa su propio script inline */
+  }
 });
 
 /* =========================
@@ -2251,4 +2375,12 @@ document.addEventListener("keydown", function (e) {
       cerrarMenu();
     }
   }
+});
+
+/* =========================
+LIMPIEZA AL SALIR DE PAGINA
+========================= */
+
+window.addEventListener("beforeunload", () => {
+  limpiarListenersPagina();
 });
