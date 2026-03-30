@@ -746,22 +746,22 @@ function obtenerRutaCuentasPorProducto(productoId, itemProducto = {}) {
   const id = String(productoId || "").toLowerCase().trim();
   const nombre = String(itemProducto.nombre || productoActual || "").toLowerCase();
 
-  if (id === "netflix" || nombre.includes("netflix")) return "Netflix";
-  if (id === "disney" || nombre.includes("disney")) return "Disney";
+  if (id === "netflix" || nombre.includes("netflix")) return "netflix";
+  if (id === "disney" || nombre.includes("disney")) return "disney";
   if (id === "hboprime" || nombre.includes("hbo max + prime") || (nombre.includes("hbo") && nombre.includes("prime"))) return "hboprime";
-  if (id === "prime" || nombre.includes("prime video")) return "Prime";
+  if (id === "prime" || nombre.includes("prime video")) return "prime";
   if (id === "hboplatinium" || nombre.includes("hbo max platinium") || nombre.includes("hbomax platinium") || nombre.includes("hbo platinium")) return "hboplatinium";
-  if (id === "hbo" || nombre.includes("hbo")) return "HBO";
-  if (id === "paramount" || nombre.includes("paramount")) return "Paramount";
-  if (id === "spotify" || nombre.includes("spotify")) return "Spotify";
-  if (id === "vix" || nombre.includes("vix")) return "Vix";
+  if (id === "hbo" || nombre.includes("hbo")) return "hbo";
+  if (id === "paramount" || nombre.includes("paramount")) return "paramount";
+  if (id === "spotify" || nombre.includes("spotify")) return "spotify";
+  if (id === "vix" || nombre.includes("vix")) return "vix";
   if (id === "crunchyroll" || nombre.includes("crunchyroll")) return "crunchyroll";
   if (id === "canva" || nombre.includes("canva")) return "canva";
   if (id === "youtubepremium" || nombre.includes("youtube premium") || nombre.includes("youtube")) return "youtubepremium";
-  if (id === "chatgpt" || nombre.includes("chatgpt")) return "ChatGPT";
+  if (id === "chatgpt" || nombre.includes("chatgpt")) return "chatgpt";
   if (id === "windows11pro" || nombre.includes("windows 11 pro")) return "windows11pro";
 
-  return productoId;
+  return id;
 }
 
 function mostrarToastCompraExitosa(producto, total) {
