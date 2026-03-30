@@ -333,6 +333,14 @@
       mensajeRecarga.textContent = "";
     }
 
+    function limpiarPanelUsuarioRecarga() {
+      if (panelUsuarioNombre) panelUsuarioNombre.textContent = "INVITADO";
+      if (panelUsuarioHandle) panelUsuarioHandle.textContent = "@usuario";
+      if (panelUsuarioSaldo) {
+        panelUsuarioSaldo.innerHTML = `S/ 0.00 <span class="panelSaldoMoneda">PEN</span>`;
+      }
+    }
+
     function formatearFecha(timestamp) {
       if (!timestamp) return "-";
 
@@ -462,7 +470,7 @@
     function cargarHistorial(uid) {
       if (historialRecargaRef) historialRecargaRef.off();
 
-      historialRecargaRef = db.ref("recargas").orderByChild("uid").equalTo(uid);
+      historialRecargaRef = db.ref("recargas").orderByChild("uidUsuario").equalTo(uid);
 
       historialRecargaRef.on("value", snapshot => {
         renderHistorial(snapshot.val());
@@ -618,6 +626,13 @@
         datosUsuarioRecarga = null;
         desuscribirListenersRecarga();
         btnEnviar.disabled = true;
+        btnEnviar.textContent = "Enviar solicitud";
+        enviandoRecarga = false;
+
+        limpiarPanelUsuarioRecarga();
+        limpiarPreview();
+        actualizarHintMetodo("");
+        cerrarModalPagoFn();
 
         historialBody.innerHTML = `
           <tr>
@@ -626,6 +641,10 @@
         `;
 
         mostrarMensaje("Debes iniciar sesión para registrar una recarga.", "error");
+
+        if (pagina === "recargas.html") {
+          window.location.href = "index.html";
+        }
         return;
       }
 
@@ -811,7 +830,8 @@
       });
     })();
   </script>
- <script>
+
+  <script>
     document.addEventListener("contextmenu", function(e){
       e.preventDefault();
     });
@@ -846,6 +866,7 @@
       e.preventDefault();
     });
   </script>
+
   <div style="opacity:0;position:absolute;">StreamsVip Oficial 2026</div>
 </body>
 </html>
