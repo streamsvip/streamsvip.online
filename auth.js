@@ -22,7 +22,7 @@ const auth = firebase.auth();
 const db = firebase.database();
 
 /* =========================
-FUNCIONES GENERALES
+UTILIDADES
 ========================= */
 
 function mostrarMensajeAuth(texto, color = "#ffffff") {
@@ -48,23 +48,6 @@ function esCorreoValido(valor) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(limpiarTexto(valor));
 }
 
-function esPaginaPrivada(pagina) {
-  const paginasPrivadas = [
-    "tienda.html",
-    "panel.html",
-    "recargas.html",
-    "admin.html",
-    "perfil.html",
-    "saldo.html",
-    "compras.html",
-    "mis-compras.html",
-    "ofertas.html",
-    "como-comprar.html"
-  ];
-
-  return paginasPrivadas.includes(pagina);
-}
-
 function mostrarMensajeSalidaEnLogin() {
   const pagina = obtenerPaginaActual();
   if (pagina !== "index.html") return;
@@ -79,10 +62,10 @@ function mostrarMensajeSalidaEnLogin() {
 
   if (motivo === "inactividad") {
     mostrarMensajeAuth(
-      "La sesión fue finalizada automáticamente por inactividad del usuario. Vuelve a iniciar sesión para restablecer el acceso.",
+      "La sesión fue finalizada automáticamente por inactividad del usuario. Vuelva a iniciar sesión para restablecer el acceso.",
       "#ffd166"
     );
-  } else if (motivo === "bloqueado") {
+  } else if (motivo === "bloqueo") {
     mostrarMensajeAuth(
       "Tu cuenta fue bloqueada. Contacta con soporte para más información.",
       "#ff6b6b"
@@ -93,6 +76,39 @@ function mostrarMensajeSalidaEnLogin() {
     sessionStorage.removeItem("streamsvip_motivo_salida");
   } catch (e) {}
 }
+
+/* =========================
+CONTROL DE SESIÓN EN LOGIN / REGISTRO
+========================= */
+
+auth.onAuthStateChanged(async (user) => {
+  const pagina = obtenerPaginaActual();
+
+  if (!user) return;
+
+  try {
+    const snap = await db.ref("usuarios/" + user.uid).once("value");
+    const dataUsuario = snap.val() || {};
+    const estado = String(dataUsuario.estado || "activo").toLowerCase();
+
+    if (estado === "bloqueado") {
+      try {
+        sessionStorage.setItem("streamsvip_motivo_salida", "bloqueo");
+      } catch (e) {}
+
+      await auth.signOut();
+      window.location.replace("index.html");
+      return;
+    }
+
+    if (pagina === "index.html" || pagina === "registro.html") {
+      window.location.replace("tienda.html");
+    }
+
+  } catch (error) {
+    console.error("Error verificando sesión en auth.js:", error);
+  }
+});
 
 /* =========================
 CARGA INICIAL
@@ -133,43 +149,46 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-});
 
-/* =========================
-CONTROL DE SESIÓN
-========================= */
+  const nombreInput = document.getElementById("nombre");
+  const apellidoInput = document.getElementById("apellido");
+  const usuarioInput = document.getElementById("usuario");
+  const confirmarPasswordInput = document.getElementById("confirmarPassword");
 
-auth.onAuthStateChanged(async (user) => {
-  const pagina = obtenerPaginaActual();
-
-  if (!user) {
-    if (esPaginaPrivada(pagina)) {
-      window.location.replace("index.html");
-    }
-    return;
+  if (nombreInput) {
+    nombreInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        crearCuenta();
+      }
+    });
   }
 
-  if (pagina === "index.html") {
-    try {
-      const snap = await db.ref("usuarios/" + user.uid).once("value");
-      const dataUsuario = snap.val() || {};
-      const estado = String(dataUsuario.estado || "activo").toLowerCase();
-
-      if (estado === "bloqueado") {
-        try {
-          sessionStorage.setItem("streamsvip_motivo_salida", "bloqueado");
-        } catch (e) {}
-
-        await auth.signOut();
-        window.location.replace("index.html");
-        return;
+  if (apellidoInput) {
+    apellidoInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        crearCuenta();
       }
+    });
+  }
 
-      window.location.replace("tienda.html");
-    } catch (error) {
-      console.error("Error verificando usuario en index:", error);
-      window.location.replace("tienda.html");
-    }
+  if (usuarioInput) {
+    usuarioInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        crearCuenta();
+      }
+    });
+  }
+
+  if (confirmarPasswordInput) {
+    confirmarPasswordInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        crearCuenta();
+      }
+    });
   }
 });
 
@@ -233,6 +252,8 @@ function manejarErrorLogin(error) {
     mensaje = "Usuario/correo o contraseña incorrectos.";
   } else if (codigo === "auth/invalid-email") {
     mensaje = "Correo electrónico no válido.";
+  } else if (codigo === "auth/invalid-credential") {
+    mensaje = "Usuario/correo o contraseña incorrectos.";
   }
 
   mostrarMensajeAuth(mensaje, "#ff6b6b");
@@ -298,7 +319,7 @@ function iniciarSesion() {
     })
     .then(async (credencial) => {
       const user = credencial.user;
-      if (!user) throw new Error("No se pudo validar el usuario.");
+      if (!user) throw new Error("No se pudo obtener el usuario autenticado.");
 
       const snap = await db.ref("usuarios/" + user.uid).once("value");
       const dataUsuario = snap.val() || {};
@@ -306,11 +327,11 @@ function iniciarSesion() {
 
       if (estado === "bloqueado") {
         try {
-          sessionStorage.setItem("streamsvip_motivo_salida", "bloqueado");
+          sessionStorage.setItem("streamsvip_motivo_salida", "bloqueo");
         } catch (e) {}
 
         await auth.signOut();
-        throw { code: "cuenta-bloqueada" };
+        throw { code: "usuario-bloqueado" };
       }
 
       mostrarMensajeAuth("Inicio de sesión correcto.", "#00e676");
@@ -320,7 +341,7 @@ function iniciarSesion() {
       }, 700);
     })
     .catch((error) => {
-      if (error?.code === "cuenta-bloqueada") {
+      if (error?.code === "usuario-bloqueado") {
         mostrarMensajeAuth("Tu cuenta está bloqueada. Contacta con soporte.", "#ff6b6b");
         return;
       }
