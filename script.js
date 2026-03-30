@@ -54,6 +54,23 @@ let comprasHoyRef = null;
 let comprasLiveRef = null;
 let ventasRefs = [];
 
+/* control inactividad / presencia */
+const TIEMPO_INACTIVIDAD_USUARIO = 5 * 60 * 1000;
+const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;
+const TIEMPO_AVISO_INACTIVIDAD = 1 * 60 * 1000;
+const TIEMPO_ESPERA_OFFLINE = 2500;
+
+let temporizadorInactividad = null;
+let temporizadorAvisoInactividad = null;
+let controlInactividadIniciado = false;
+let avisoInactividadMostrado = false;
+
+let onlineRefActual = null;
+let connectedRefActual = null;
+let connectedCallbackActual = null;
+let cierrePorPestanaRegistrado = false;
+let timeoutOfflinePendiente = null;
+
 /* =========================
 UTILIDADES
 ========================= */
@@ -84,6 +101,22 @@ function esPaginaComoComprar() {
 
 function esPaginaOfertas() {
   return obtenerPaginaActual() === "ofertas.html";
+}
+
+function esPaginaAdmin() {
+  return obtenerPaginaActual() === "admin.html";
+}
+
+function esPaginaPrivadaInterna() {
+  const pagina = obtenerPaginaActual();
+  return [
+    "tienda.html",
+    "mis-compras.html",
+    "recargas.html",
+    "ofertas.html",
+    "como-comprar.html",
+    "admin.html"
+  ].includes(pagina);
 }
 
 function formatearSaldo(saldo) {
@@ -122,6 +155,210 @@ function actualizarVisualCantidadYTotal() {
 
   if (cantidadEl) cantidadEl.innerText = String(cantidadProducto);
   if (totalEl) totalEl.innerText = (precioBase * cantidadProducto).toFixed(2);
+}
+
+/* =========================
+PRESENCIA / ONLINE
+========================= */
+
+function limpiarReferenciaOnline() {
+  if (onlineRefActual) {
+    try {
+      onlineRefActual.onDisconnect().cancel();
+    } catch (e) {}
+  }
+
+  if (connectedRefActual && connectedCallbackActual) {
+    try {
+      connectedRefActual.off("value", connectedCallbackActual);
+    } catch (e) {}
+  }
+
+  onlineRefActual = null;
+  connectedRefActual = null;
+  connectedCallbackActual = null;
+}
+
+function cancelarOfflinePendiente() {
+  if (timeoutOfflinePendiente) {
+    clearTimeout(timeoutOfflinePendiente);
+    timeoutOfflinePendiente = null;
+  }
+}
+
+function marcarOfflineSiExiste() {
+  if (!usuarioActual || !usuarioActual.uid) return;
+  db.ref("online/" + usuarioActual.uid).set(false).catch(() => {});
+}
+
+function programarOfflineConEspera() {
+  cancelarOfflinePendiente();
+
+  timeoutOfflinePendiente = setTimeout(() => {
+    marcarOfflineSiExiste();
+    timeoutOfflinePendiente = null;
+  }, TIEMPO_ESPERA_OFFLINE);
+}
+
+function registrarPresenciaUsuario(user) {
+  if (!user || !user.uid) return;
+
+  cancelarOfflinePendiente();
+  limpiarReferenciaOnline();
+
+  onlineRefActual = db.ref("online/" + user.uid);
+  connectedRefActual = db.ref(".info/connected");
+
+  connectedCallbackActual = (snap) => {
+    if (snap.val() === true && onlineRefActual) {
+      cancelarOfflinePendiente();
+      onlineRefActual.onDisconnect().set(false).catch(() => {});
+      onlineRefActual.set(true).catch(() => {});
+    }
+  };
+
+  connectedRefActual.on("value", connectedCallbackActual);
+  onlineRefActual.set(true).catch(() => {});
+}
+
+/* =========================
+INACTIVIDAD / AUTO LOGOUT
+========================= */
+
+function limpiarTemporizadoresInactividad() {
+  if (temporizadorInactividad) {
+    clearTimeout(temporizadorInactividad);
+    temporizadorInactividad = null;
+  }
+
+  if (temporizadorAvisoInactividad) {
+    clearTimeout(temporizadorAvisoInactividad);
+    temporizadorAvisoInactividad = null;
+  }
+}
+
+function obtenerTiempoInactividadPorPagina() {
+  return esPaginaAdmin()
+    ? TIEMPO_INACTIVIDAD_ADMIN
+    : TIEMPO_INACTIVIDAD_USUARIO;
+}
+
+function mostrarAvisoInactividad() {
+  if (avisoInactividadMostrado) return;
+  avisoInactividadMostrado = true;
+
+  mostrarAvisoSistema(
+    "Sesión próxima a finalizar",
+    "Se detectó inactividad prolongada en la sesión actual. Por seguridad, el acceso será finalizado automáticamente en 1 minuto si no registras interacción.",
+    "warn",
+    {
+      textoBoton: "Entendido"
+    }
+  );
+}
+
+function cerrarSesionPorInactividad() {
+  limpiarTemporizadoresInactividad();
+  avisoInactividadMostrado = false;
+  cancelarOfflinePendiente();
+  marcarOfflineSiExiste();
+  limpiarReferenciaOnline();
+  limpiarTodoListeners();
+
+  try {
+    sessionStorage.setItem("streamsvip_motivo_salida", "inactividad");
+  } catch (e) {}
+
+  auth.signOut()
+    .then(() => {
+      window.location.replace("index.html");
+    })
+    .catch(() => {
+      window.location.replace("index.html");
+    });
+}
+
+function reiniciarTemporizadorInactividad() {
+  if (!usuarioActual || !esPaginaPrivadaInterna()) return;
+
+  limpiarTemporizadoresInactividad();
+  avisoInactividadMostrado = false;
+
+  const tiempoInactividad = obtenerTiempoInactividadPorPagina();
+
+  if (tiempoInactividad > TIEMPO_AVISO_INACTIVIDAD) {
+    temporizadorAvisoInactividad = setTimeout(() => {
+      mostrarAvisoInactividad();
+    }, tiempoInactividad - TIEMPO_AVISO_INACTIVIDAD);
+  }
+
+  temporizadorInactividad = setTimeout(() => {
+    cerrarSesionPorInactividad();
+  }, tiempoInactividad);
+}
+
+function iniciarControlInactividad() {
+  if (!esPaginaPrivadaInterna()) return;
+
+  if (controlInactividadIniciado) {
+    reiniciarTemporizadorInactividad();
+    return;
+  }
+
+  const eventos = [
+    "mousemove",
+    "mousedown",
+    "click",
+    "scroll",
+    "keypress",
+    "keydown",
+    "touchstart",
+    "touchmove"
+  ];
+
+  eventos.forEach((evento) => {
+    document.addEventListener(evento, reiniciarTemporizadorInactividad, true);
+  });
+
+  window.addEventListener("focus", () => {
+    cancelarOfflinePendiente();
+    reiniciarTemporizadorInactividad();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (!usuarioActual) return;
+
+    if (!document.hidden) {
+      cancelarOfflinePendiente();
+      reiniciarTemporizadorInactividad();
+      if (usuarioActual && usuarioActual.uid) {
+        db.ref("online/" + usuarioActual.uid).set(true).catch(() => {});
+      }
+    } else {
+      programarOfflineConEspera();
+    }
+  });
+
+  controlInactividadIniciado = true;
+  reiniciarTemporizadorInactividad();
+}
+
+/* =========================
+CIERRE POR PESTAÑA / NAVEGADOR
+========================= */
+
+function registrarCierrePorPestana() {
+  if (cierrePorPestanaRegistrado) return;
+  cierrePorPestanaRegistrado = true;
+
+  window.addEventListener("beforeunload", () => {
+    limpiarListenersPagina();
+    programarOfflineConEspera();
+  });
+
+  window.addEventListener("pagehide", () => {
+    programarOfflineConEspera();
+  });
 }
 
 /* =========================
@@ -864,7 +1101,11 @@ function cerrarSesionPorBloqueo() {
   if (redireccionPorBloqueoEnCurso) return;
   redireccionPorBloqueoEnCurso = true;
 
+  limpiarTemporizadoresInactividad();
+  cancelarOfflinePendiente();
   limpiarTodoListeners();
+  marcarOfflineSiExiste();
+  limpiarReferenciaOnline();
   actualizarBadgeMisCompras(0);
 
   mostrarAvisoSistema("Cuenta bloqueada", "Tu cuenta ha sido bloqueada. Contacta con soporte.", "error");
@@ -1028,10 +1269,14 @@ auth.onAuthStateChanged((user) => {
     "ofertas.html",
     "recargas.html",
     "como-comprar.html",
-    "mis-compras.html"
+    "mis-compras.html",
+    "admin.html"
   ];
 
   if (!user) {
+    limpiarTemporizadoresInactividad();
+    cancelarOfflinePendiente();
+    limpiarReferenciaOnline();
     limpiarTodoListeners();
 
     if (paginasProtegidas.includes(pagina)) {
@@ -1042,6 +1287,8 @@ auth.onAuthStateChanged((user) => {
     actualizarBadgeMisCompras(0);
     return;
   }
+
+  registrarPresenciaUsuario(user);
 
   if (!paginasProtegidas.includes(pagina)) {
     limpiarListenersSesion();
@@ -1056,17 +1303,25 @@ auth.onAuthStateChanged((user) => {
   usuarioPerfilRef.on("value", (snap) => {
     const data = snap.val() || {};
     const estado = String(data.estado || "activo").toLowerCase();
+    const rol = String(data.rol || "");
 
     if (estado === "bloqueado") {
       cerrarSesionPorBloqueo();
       return;
     }
 
+    if (pagina === "admin.html" && rol !== "admin") {
+      window.location.href = "tienda.html";
+      return;
+    }
+
     cargarPanelUsuario(user, data);
     escucharBadgeMisCompras(user.uid);
+    iniciarControlInactividad();
   }, () => {
     cargarPanelUsuario(user, {});
     escucharBadgeMisCompras(user.uid);
+    iniciarControlInactividad();
   });
 });
 
@@ -1127,6 +1382,10 @@ function salir() {
   if (toast) toast.classList.add("show");
 
   setTimeout(() => {
+    limpiarTemporizadoresInactividad();
+    cancelarOfflinePendiente();
+    marcarOfflineSiExiste();
+    limpiarReferenciaOnline();
     limpiarTodoListeners();
 
     auth.signOut()
@@ -2283,6 +2542,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   iniciarPaginaGeneralConMenu();
   iniciarComportamientoMenu();
+  registrarCierrePorPestana();
 
   if (pagina === "tienda.html") {
     iniciarPaginaTienda();
