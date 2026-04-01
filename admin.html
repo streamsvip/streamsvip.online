@@ -1311,18 +1311,31 @@
           if (esLicencia) {
             Object.keys(codigos).forEach((codigoId) => {
               const item = codigos[codigoId] || {};
-              const mismoProducto = String(item.producto || "") === productoId;
+              const mismoProducto = String(item.producto || "").toLowerCase() === String(productoId).toLowerCase();
               const disponible = item.activo !== false && item.usado !== true;
 
               if (mismoProducto && disponible) stockReal++;
             });
           } else {
-            const cuentasProducto = cuentas[productoId] || {};
-            Object.keys(cuentasProducto).forEach((cuentaId) => {
-              const item = cuentasProducto[cuentaId] || {};
-              if (String(item.estado || "").toLowerCase() === "disponible") {
-                stockReal++;
-              }
+            const rutasCompatibles = [
+              String(productoId),
+              String(productoId).toLowerCase(),
+              String(productoId).charAt(0).toUpperCase() + String(productoId).slice(1)
+            ];
+
+            const rutasProcesadas = new Set();
+
+            rutasCompatibles.forEach((ruta) => {
+              if (!ruta || rutasProcesadas.has(ruta)) return;
+              rutasProcesadas.add(ruta);
+
+              const cuentasProducto = cuentas[ruta] || {};
+              Object.keys(cuentasProducto).forEach((cuentaId) => {
+                const item = cuentasProducto[cuentaId] || {};
+                if (String(item.estado || "").toLowerCase() === "disponible") {
+                  stockReal++;
+                }
+              });
             });
           }
 
@@ -1457,7 +1470,7 @@
     }
 
     function crearCuenta() {
-      const producto = document.getElementById("cuentaProducto").value.trim();
+      const producto = document.getElementById("cuentaProducto").value.trim().toLowerCase();
       const correo = document.getElementById("cuentaCorreo").value.trim();
       const clave = document.getElementById("cuentaClave").value.trim();
       const perfil = document.getElementById("cuentaPerfil").value.trim();
@@ -1530,7 +1543,7 @@
     }
 
     function crearCodigo() {
-      const producto = document.getElementById("codigoProducto").value.trim();
+      const producto = document.getElementById("codigoProducto").value.trim().toLowerCase();
       const codigo = document.getElementById("nuevoCodigoValor").value.trim();
       const observacion = document.getElementById("nuevoCodigoObservacion").value.trim();
 
