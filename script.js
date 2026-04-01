@@ -985,9 +985,18 @@ function obtenerRutaCuentasPorProducto(productoId, itemProducto = {}) {
 
   if (id === "netflix" || nombre.includes("netflix")) return "netflix";
   if (id === "disney" || nombre.includes("disney")) return "disney";
-  if (id === "hboprime" || nombre.includes("hbo max + prime") || (nombre.includes("hbo") && nombre.includes("prime"))) return "hboprime";
+  if (
+    id === "hboprime" ||
+    nombre.includes("hbo max + prime") ||
+    (nombre.includes("hbo") && nombre.includes("prime"))
+  ) return "hboprime";
   if (id === "prime" || nombre.includes("prime video")) return "prime";
-  if (id === "hboplatinium" || nombre.includes("hbo max platinium") || nombre.includes("hbomax platinium") || nombre.includes("hbo platinium")) return "hboplatinium";
+  if (
+    id === "hboplatinium" ||
+    nombre.includes("hbo max platinium") ||
+    nombre.includes("hbomax platinium") ||
+    nombre.includes("hbo platinium")
+  ) return "hboplatinium";
   if (id === "hbo" || nombre.includes("hbo")) return "hbo";
   if (id === "paramount" || nombre.includes("paramount")) return "paramount";
   if (id === "spotify" || nombre.includes("spotify")) return "spotify";
@@ -999,6 +1008,47 @@ function obtenerRutaCuentasPorProducto(productoId, itemProducto = {}) {
   if (id === "windows11pro" || nombre.includes("windows 11 pro")) return "windows11pro";
 
   return id;
+}
+
+function obtenerRutasCuentasCompatibles(productoId, itemProducto = {}) {
+  const rutaBase = obtenerRutaCuentasPorProducto(productoId, itemProducto);
+  const nombre = String(itemProducto.nombre || "").trim();
+
+  const variantes = new Set();
+
+  if (rutaBase) variantes.add(rutaBase);
+  if (rutaBase) variantes.add(rutaBase.toLowerCase());
+  if (rutaBase) variantes.add(rutaBase.toUpperCase());
+  if (rutaBase) variantes.add(rutaBase.charAt(0).toUpperCase() + rutaBase.slice(1));
+
+  if (productoId) variantes.add(String(productoId).trim());
+  if (productoId) variantes.add(String(productoId).trim().toLowerCase());
+  if (productoId) variantes.add(String(productoId).trim().charAt(0).toUpperCase() + String(productoId).trim().slice(1));
+
+  if (nombre) variantes.add(nombre);
+
+  const mapaEspecial = {
+    netflix: ["Netflix"],
+    disney: ["Disney"],
+    prime: ["Prime"],
+    hbo: ["HBO"],
+    hboprime: ["hboprime", "HBOPrime", "HboPrime"],
+    hboplatinium: ["HBOPlatinium", "hboplatinium", "HboPlatinium"],
+    paramount: ["Paramount"],
+    spotify: ["Spotify"],
+    vix: ["Vix"],
+    crunchyroll: ["Crunchyroll"],
+    canva: ["Canva"],
+    youtubepremium: ["YouTubePremium", "YoutubePremium", "youtubepremium"],
+    chatgpt: ["ChatGPT", "chatgpt"],
+    windows11pro: ["Windows11Pro", "windows11pro"]
+  };
+
+  if (mapaEspecial[rutaBase]) {
+    mapaEspecial[rutaBase].forEach(v => variantes.add(v));
+  }
+
+  return Array.from(variantes).filter(Boolean);
 }
 
 function mostrarToastCompraExitosa(producto, total) {
@@ -1836,11 +1886,11 @@ function obtenerObservacionValor(data = {}) {
 function cuentaEstaDisponible(data = {}) {
   const vendida = data.vendida === true || data.vendido === true || data.usada === true;
   const disponibleFalse = data.disponible === false;
-  const estado = String(data.estado || "").toLowerCase();
+  const estado = String(data.estado || "").toLowerCase().trim();
 
   if (vendida) return false;
   if (disponibleFalse) return false;
-  if (["vendida", "usada", "ocupada", "inactiva"].includes(estado)) return false;
+  if (["vendida", "usada", "ocupada", "inactiva", "agotada"].includes(estado)) return false;
 
   const cuenta = obtenerCuentaValor(data);
   return String(cuenta || "").trim() !== "";
@@ -1907,12 +1957,48 @@ function recolectarCuentasDesdeNodo(nodoActual, rutaProducto, cantidadNecesaria,
 }
 
 async function obtenerCuentasDisponibles(productoId, itemProducto, cantidadNecesaria) {
-  const rutaCuentas = obtenerRutaCuentasPorProducto(productoId, itemProducto);
-  const snap = await db.ref("cuentas/" + rutaCuentas).once("value");
-  const data = snap.val() || {};
+  const rutasCompatibles = obtenerRutasCuentasCompatibles(productoId, itemProducto);
+  const cuentasEncontradas = [];
+  const rutasYaProcesadas = new Set();
 
-  const cuentas = recolectarCuentasDesdeNodo(data, rutaCuentas, cantidadNecesaria, [], "");
-  return cuentas;
+  for (const ruta of rutasCompatibles) {
+    if (!ruta || rutasYaProcesadas.has(ruta)) continue;
+    rutasYaProcesadas.add(ruta);
+
+    try {
+      const snap = await db.ref("cuentas/" + ruta).once("value");
+      const data = snap.val();
+
+      if (!data || typeof data !== "object") continue;
+
+      const cuentasRuta = recolectarCuentasDesdeNodo(
+        data,
+        ruta,
+        cantidadNecesaria,
+        [],
+        ""
+      );
+
+      for (const cuenta of cuentasRuta) {
+        const claveUnica = `${cuenta.ruta}::${cuenta.nodePath || cuenta.key}`;
+        const yaExiste = cuentasEncontradas.some(
+          (c) => `${c.ruta}::${c.nodePath || c.key}` === claveUnica
+        );
+
+        if (!yaExiste) {
+          cuentasEncontradas.push(cuenta);
+        }
+
+        if (cuentasEncontradas.length >= cantidadNecesaria) {
+          return cuentasEncontradas.slice(0, cantidadNecesaria);
+        }
+      }
+    } catch (error) {
+      console.error("Error leyendo cuentas en ruta:", ruta, error);
+    }
+  }
+
+  return cuentasEncontradas.slice(0, cantidadNecesaria);
 }
 
 async function obtenerCodigosDisponibles(productoId, cantidadNecesaria) {
