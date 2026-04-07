@@ -929,7 +929,7 @@ function obtenerDescripcionProductoFallback(productoBase) {
   }
 
   if (productoBase === "YouTubePremium") {
-    return "<li>Obligatorio haber estado en ningun plan familiar.</li>Suscripción digital YouTube Premium con vigencia de 30 días. Incluye reproducción sin anuncios, reproducción en segundo plano, acceso optimizado desde múltiples dispositivos compatibles y funciones premium asociadas al servicio.";
+    return "Obligatorio haber estado en ningun plan familiar. Suscripción digital YouTube Premium con vigencia de 30 días. Incluye reproducción sin anuncios, reproducción en segundo plano, acceso optimizado desde múltiples dispositivos compatibles y funciones premium asociadas al servicio.";
   }
 
   if (productoBase === "Netflix") {
