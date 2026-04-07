@@ -171,6 +171,11 @@
     <span class="tooltip">Soporte</span>
   </a>
 
+  <div id="avisoFlotante" class="avisoFlotante" style="display:none;">
+    <button type="button" class="cerrarAvisoFlotante" id="cerrarAvisoFlotante" aria-label="Cerrar aviso">✕</button>
+    <img src="img/aviso.jpeg" alt="Aviso StreamsVip">
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -235,6 +240,39 @@
     document.addEventListener("dragstart", function(e){
       e.preventDefault();
     });
+  </script>
+
+  <script>
+    (function () {
+      const paginaActual = window.location.pathname.split("/").pop() || "tienda.html";
+      if (paginaActual !== "tienda.html") return;
+
+      const aviso = document.getElementById("avisoFlotante");
+      const btnCerrar = document.getElementById("cerrarAvisoFlotante");
+
+      if (!aviso || !btnCerrar) return;
+
+      /* =========================================================
+         CONFIGURACION DEL AVISO
+         CAMBIA SOLO ESTA FECHA/HORA CUANDO QUIERAS ACTIVAR UNO NUEVO
+      ========================================================= */
+
+      const inicioAviso = new Date("2026-04-07T18:00:00-05:00").getTime();
+      const duracionAviso = 3 * 60 * 60 * 1000;
+      const finAviso = inicioAviso + duracionAviso;
+
+      const ahora = Date.now();
+
+      if (ahora >= inicioAviso && ahora <= finAviso) {
+        aviso.style.display = "block";
+      } else {
+        aviso.style.display = "none";
+      }
+
+      btnCerrar.addEventListener("click", function () {
+        aviso.style.display = "none";
+      });
+    })();
   </script>
 
   <div style="opacity:0;position:absolute;">StreamsVip Oficial 2026</div>
