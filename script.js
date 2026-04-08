@@ -169,6 +169,65 @@ function normalizarTextoBusqueda(texto) {
 }
 
 /* =========================
+UI OVERLAY / MODALES / MENU
+========================= */
+
+function inyectarEstilosUIOverlay() {
+  if (document.getElementById("estilosUIOverlay")) return;
+
+  const style = document.createElement("style");
+  style.id = "estilosUIOverlay";
+  style.textContent = `
+    body.modal-abierto{
+      overflow:hidden;
+    }
+
+    @media (max-width: 1024px){
+      body.modal-abierto .menuIcon{
+        opacity:0 !important;
+        visibility:hidden !important;
+        pointer-events:none !important;
+        transform:scale(.92);
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function elementoEstaVisible(el) {
+  if (!el) return false;
+  const estilos = window.getComputedStyle(el);
+  return estilos.display !== "none" && estilos.visibility !== "hidden" && estilos.opacity !== "0";
+}
+
+function hayOverlayActivo() {
+  const modalCompra = document.getElementById("modalCompra");
+  const modalOferta = document.getElementById("modalOfertaVigente");
+  const modalTerminos = document.getElementById("modalTerminos");
+  const avisoSistema = document.getElementById("avisoSistemaOverlay");
+
+  return (
+    elementoEstaVisible(modalCompra) ||
+    elementoEstaVisible(modalOferta) ||
+    elementoEstaVisible(modalTerminos) ||
+    !!avisoSistema
+  );
+}
+
+function actualizarEstadoUIOverlay() {
+  inyectarEstilosUIOverlay();
+
+  const overlayActivo = hayOverlayActivo();
+
+  if (overlayActivo) {
+    document.body.classList.add("modal-abierto");
+    cerrarMenu();
+  } else {
+    document.body.classList.remove("modal-abierto");
+  }
+}
+
+/* =========================
 PRESENCIA / ONLINE
 ========================= */
 
@@ -579,7 +638,9 @@ function mostrarAvisoSistema(titulo, mensaje, tipo = "info", opciones = {}) {
   inyectarEstilosAvisoSistema();
 
   const anterior = document.getElementById("avisoSistemaOverlay");
-  if (anterior) anterior.remove();
+  if (anterior) {
+    anterior.remove();
+  }
 
   const overlay = document.createElement("div");
   overlay.id = "avisoSistemaOverlay";
@@ -607,6 +668,7 @@ function mostrarAvisoSistema(titulo, mensaje, tipo = "info", opciones = {}) {
   `;
 
   document.body.appendChild(overlay);
+  actualizarEstadoUIOverlay();
 
   const body = document.getElementById("avisoSistemaBodyContenido");
   if (body) {
@@ -619,6 +681,7 @@ function mostrarAvisoSistema(titulo, mensaje, tipo = "info", opciones = {}) {
 
   function cerrarAviso() {
     overlay.remove();
+    actualizarEstadoUIOverlay();
   }
 
   overlay.addEventListener("click", (e) => {
@@ -1522,12 +1585,18 @@ TERMINOS
 
 function abrirTerminos() {
   const modal = document.getElementById("modalTerminos");
-  if (modal) modal.style.display = "flex";
+  if (modal) {
+    modal.style.display = "flex";
+    actualizarEstadoUIOverlay();
+  }
 }
 
 function cerrarTerminos() {
   const modal = document.getElementById("modalTerminos");
-  if (modal) modal.style.display = "none";
+  if (modal) {
+    modal.style.display = "none";
+    actualizarEstadoUIOverlay();
+  }
 }
 
 function aceptarTerminos() {
@@ -1539,7 +1608,11 @@ function aceptarTerminos() {
     check.checked = true;
   }
 
-  if (modal) modal.style.display = "none";
+  if (modal) {
+    modal.style.display = "none";
+  }
+
+  actualizarEstadoUIOverlay();
 }
 
 /* =========================
@@ -1949,7 +2022,10 @@ function abrirProductoPorId(productoId) {
   if (totalEl) totalEl.innerText = precio.toFixed(2);
   if (lista) lista.innerHTML = obtenerReglasProducto(productoBaseNormalizado);
 
-  if (modal) modal.style.display = "flex";
+  if (modal) {
+    modal.style.display = "flex";
+    actualizarEstadoUIOverlay();
+  }
 }
 
 /* =========================
@@ -1972,7 +2048,10 @@ function agregarCarrito(nombre) {
 
 function cerrarModal() {
   const modal = document.getElementById("modalCompra");
-  if (modal) modal.style.display = "none";
+  if (modal) {
+    modal.style.display = "none";
+    actualizarEstadoUIOverlay();
+  }
 }
 
 function cambiarCantidad(valor) {
@@ -2652,6 +2731,8 @@ function esModoMovilOTablet() {
 function toggleMenu(e) {
   if (e) e.stopPropagation();
 
+  if (document.body.classList.contains("modal-abierto")) return;
+
   const menu = document.getElementById("menuLateral");
   if (!menu) return;
 
@@ -2685,8 +2766,10 @@ function mostrarModalOfertaVigente() {
 
   if (ofertaSigueActiva()) {
     modal.style.display = "flex";
+    actualizarEstadoUIOverlay();
   } else {
     modal.style.display = "none";
+    actualizarEstadoUIOverlay();
   }
 }
 
@@ -2694,6 +2777,7 @@ function cerrarModalOfertaVigente() {
   const modal = document.getElementById("modalOfertaVigente");
   if (!modal) return;
   modal.style.display = "none";
+  actualizarEstadoUIOverlay();
 }
 
 function verificarUrgenciaOferta() {
@@ -2735,6 +2819,7 @@ function iniciarPaginaTienda() {
 function iniciarPaginaGeneralConMenu() {
   insertarBadgeMisComprasSiNoExiste();
   inyectarEstilosAvisoSistema();
+  inyectarEstilosUIOverlay();
 }
 
 function iniciarFormularioReservado() {
@@ -2779,6 +2864,7 @@ function iniciarComportamientoMenu() {
     if (!esModoMovilOTablet()) {
       cerrarMenu();
     }
+    actualizarEstadoUIOverlay();
   });
 }
 
@@ -2813,6 +2899,8 @@ document.addEventListener("DOMContentLoaded", function () {
   if (pagina === "mis-compras.html") {
     /* mis compras usa su propio script inline */
   }
+
+  actualizarEstadoUIOverlay();
 });
 
 /* =========================
@@ -2822,10 +2910,16 @@ CLICK GLOBAL
 document.addEventListener("click", function (e) {
   const modalCompra = document.getElementById("modalCompra");
   const modalOferta = document.getElementById("modalOfertaVigente");
+  const modalTerminos = document.getElementById("modalTerminos");
   const menu = document.getElementById("menuLateral");
   const menuIcon = document.querySelector(".menuIcon");
 
-  if (menu && esModoMovilOTablet() && menu.classList.contains("activo")) {
+  if (
+    menu &&
+    esModoMovilOTablet() &&
+    menu.classList.contains("activo") &&
+    !document.body.classList.contains("modal-abierto")
+  ) {
     const clicDentroMenu = menu.contains(e.target);
     const clicEnIcono = menuIcon && menuIcon.contains(e.target);
 
@@ -2836,6 +2930,11 @@ document.addEventListener("click", function (e) {
 
   if (modalCompra && e.target === modalCompra) {
     cerrarModal();
+    return;
+  }
+
+  if (modalTerminos && e.target === modalTerminos) {
+    cerrarTerminos();
     return;
   }
 
@@ -2871,6 +2970,7 @@ ESCAPE
 document.addEventListener("keydown", function (e) {
   if (e.key === "Escape") {
     cerrarModal();
+    cerrarTerminos();
 
     const modalOferta = document.getElementById("modalOfertaVigente");
     if (modalOferta && modalOferta.style.display === "flex") {
@@ -2878,9 +2978,12 @@ document.addEventListener("keydown", function (e) {
     }
 
     const aviso = document.getElementById("avisoSistemaOverlay");
-    if (aviso) aviso.remove();
+    if (aviso) {
+      aviso.remove();
+      actualizarEstadoUIOverlay();
+    }
 
-    if (esModoMovilOTablet()) {
+    if (esModoMovilOTablet() && !document.body.classList.contains("modal-abierto")) {
       cerrarMenu();
     }
   }
