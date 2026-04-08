@@ -48,6 +48,9 @@ let usuarioPerfilRef = null;
 let redireccionPorBloqueoEnCurso = false;
 let compraEnProceso = false;
 
+let filtroBusqueda = "";
+let filtroCategoria = "todos";
+
 /* refs para evitar listeners innecesarios */
 let productosRef = null;
 let comprasHoyRef = null;
@@ -155,6 +158,14 @@ function actualizarVisualCantidadYTotal() {
 
   if (cantidadEl) cantidadEl.innerText = String(cantidadProducto);
   if (totalEl) totalEl.innerText = (precioBase * cantidadProducto).toFixed(2);
+}
+
+function normalizarTextoBusqueda(texto) {
+  return String(texto || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
 }
 
 /* =========================
@@ -700,6 +711,63 @@ function normalizarProductoBase(nombre) {
   }
 
   return "";
+}
+
+function obtenerCategoriaVisualProducto(idProducto, itemProducto = {}) {
+  const id = String(idProducto || "").toLowerCase();
+  const nombre = normalizarTextoBusqueda(itemProducto.nombre || "");
+  const categoriaDb = normalizarTextoBusqueda(itemProducto.categoria || "");
+
+  if (
+    categoriaDb.includes("licencia") ||
+    categoriaDb.includes("codigo") ||
+    categoriaDb.includes("clave") ||
+    id.includes("windows") ||
+    nombre.includes("windows 11 pro")
+  ) {
+    return "licencias";
+  }
+
+  if (
+    nombre.includes("spotify") ||
+    categoriaDb.includes("musica") ||
+    categoriaDb.includes("música")
+  ) {
+    return "musica";
+  }
+
+  if (
+    nombre.includes("canva") ||
+    categoriaDb.includes("diseno") ||
+    categoriaDb.includes("diseño")
+  ) {
+    return "diseno";
+  }
+
+  if (
+    nombre.includes("chatgpt") ||
+    categoriaDb.includes("ia") ||
+    categoriaDb.includes("inteligencia artificial")
+  ) {
+    return "ia";
+  }
+
+  return "streaming";
+}
+
+function productoCoincideBusquedaYCategoria(idProducto, itemProducto = {}) {
+  const nombre = normalizarTextoBusqueda(itemProducto.nombre || idProducto);
+  const categoriaProducto = obtenerCategoriaVisualProducto(idProducto, itemProducto);
+
+  const coincideBusqueda =
+    !filtroBusqueda ||
+    nombre.includes(normalizarTextoBusqueda(filtroBusqueda));
+
+  const coincideCategoria =
+    filtroCategoria === "todos" ||
+    categoriaProducto === filtroCategoria;
+
+  return coincideBusqueda && coincideCategoria;
 }
 
 function esProductoLicencia(productoId = "", itemProducto = {}) {
@@ -1635,6 +1703,82 @@ function escucharNotificacionCompra() {
 }
 
 /* =========================
+FILTROS TIENDA
+========================= */
+
+function obtenerTextoResultadoFiltros(totalMostrados, totalGeneral) {
+  const partes = [];
+
+  if (filtroCategoria === "todos") {
+    partes.push("categoría: todas");
+  } else {
+    partes.push("categoría: " + filtroCategoria);
+  }
+
+  if (filtroBusqueda) {
+    partes.push('búsqueda: "' + filtroBusqueda + '"');
+  }
+
+  return `Mostrando ${totalMostrados} de ${totalGeneral} productos (${partes.join(" | ")})`;
+}
+
+function actualizarTextoResultadoFiltros(totalMostrados, totalGeneral) {
+  const box = document.getElementById("resultadoFiltroInfo");
+  if (!box) return;
+
+  if (!filtroBusqueda && filtroCategoria === "todos") {
+    box.innerText = "Mostrando todos los productos";
+    return;
+  }
+
+  box.innerText = obtenerTextoResultadoFiltros(totalMostrados, totalGeneral);
+}
+
+function configurarFiltrosTienda() {
+  const input = document.getElementById("buscadorProductos");
+  const btnLimpiar = document.getElementById("btnLimpiarBusqueda");
+  const botonesCategoria = document.querySelectorAll(".categoriaBtn");
+
+  if (input) {
+    input.addEventListener("input", function () {
+      filtroBusqueda = this.value || "";
+      renderizarProductosTienda(productosTiendaCache);
+    });
+  }
+
+  if (btnLimpiar) {
+    btnLimpiar.addEventListener("click", function () {
+      filtroBusqueda = "";
+      filtroCategoria = "todos";
+
+      if (input) input.value = "";
+
+      document.querySelectorAll(".categoriaBtn").forEach((btn) => {
+        btn.classList.remove("activo");
+        if (btn.dataset.categoria === "todos") {
+          btn.classList.add("activo");
+        }
+      });
+
+      renderizarProductosTienda(productosTiendaCache);
+    });
+  }
+
+  if (botonesCategoria.length) {
+    botonesCategoria.forEach((btn) => {
+      btn.addEventListener("click", function () {
+        filtroCategoria = this.dataset.categoria || "todos";
+
+        botonesCategoria.forEach((b) => b.classList.remove("activo"));
+        this.classList.add("activo");
+
+        renderizarProductosTienda(productosTiendaCache);
+      });
+    });
+  }
+}
+
+/* =========================
 PRODUCTOS DINAMICOS TIENDA
 ========================= */
 
@@ -1646,26 +1790,44 @@ function renderizarProductosTienda(data) {
 
   if (!data || typeof data !== "object") {
     contenedor.innerHTML = '<div class="cargandoProductos">No hay productos disponibles.</div>';
+    actualizarTextoResultadoFiltros(0, 0);
     return;
   }
 
-  const ids = Object.keys(data).filter((id) => {
+  const idsActivos = Object.keys(data).filter((id) => {
     const item = data[id] || {};
     return item.activo !== false;
   });
 
-  if (ids.length === 0) {
+  if (idsActivos.length === 0) {
     contenedor.innerHTML = '<div class="cargandoProductos">No hay productos activos disponibles.</div>';
+    actualizarTextoResultadoFiltros(0, 0);
     return;
   }
 
-  ids.sort((a, b) => {
+  idsActivos.sort((a, b) => {
     const nombreA = String((data[a] || {}).nombre || a).toLowerCase();
     const nombreB = String((data[b] || {}).nombre || b).toLowerCase();
     return nombreA.localeCompare(nombreB);
   });
 
-  ids.forEach((id) => {
+  const idsFiltrados = idsActivos.filter((id) => {
+    return productoCoincideBusquedaYCategoria(id, data[id] || {});
+  });
+
+  actualizarTextoResultadoFiltros(idsFiltrados.length, idsActivos.length);
+
+  if (idsFiltrados.length === 0) {
+    contenedor.innerHTML = `
+      <div class="sinResultadosBusqueda">
+        <strong>No se encontraron productos</strong>
+        <span>Prueba buscando otro nombre o cambiando la categoría seleccionada.</span>
+      </div>
+    `;
+    return;
+  }
+
+  idsFiltrados.forEach((id) => {
     const item = data[id] || {};
     const nombre = item.nombre || id;
     const precio = Number(item.precio || 0);
@@ -2559,6 +2721,7 @@ INICIO POR PAGINA
 function iniciarPaginaTienda() {
   iniciarSlider();
   verificarUrgenciaOferta();
+  configurarFiltrosTienda();
   cargarProductosTienda();
   escucharClientesHoy();
   escucharVentasProductos();
