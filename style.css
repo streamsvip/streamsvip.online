@@ -3495,14 +3495,3 @@ button:disabled{
     font-size:12.5px;
   }
 }
-/* Cuando el modal esté abierto */
-body.modal-abierto .menuIcon{
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-/* Opcional: evita scroll del fondo al abrir modal */
-body.modal-abierto{
-  overflow: hidden;
-}
