@@ -3322,3 +3322,187 @@ button:disabled{
     right:7px;
   }
 }
+/* =========================================================
+   BUSCADOR Y CATEGORIAS TIENDA
+========================================================= */
+
+.filtrosTienda{
+  width:calc(100% - 230px);
+  margin-left:230px;
+  padding:8px 20px 0;
+}
+
+.filtrosWrap{
+  width:100%;
+  max-width:1200px;
+  margin:0 auto;
+  background:linear-gradient(180deg,#171717,#111111);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 10px 24px rgba(0,0,0,0.28);
+}
+
+.buscadorBox{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  background:#0f0f0f;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px;
+  padding:10px 12px;
+  margin-bottom:14px;
+}
+
+.buscadorIcono{
+  font-size:18px;
+  flex-shrink:0;
+}
+
+.buscadorProductos{
+  flex:1;
+  width:100%;
+  margin:0;
+  border:none;
+  outline:none;
+  background:transparent;
+  color:#fff;
+  font-size:15px;
+  padding:4px 0;
+}
+
+.buscadorProductos::placeholder{
+  color:#8f8f8f;
+}
+
+.btnLimpiarBusqueda{
+  border:none;
+  background:#242424;
+  color:#fff;
+  padding:10px 14px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:700;
+  transition:.25s;
+  white-space:nowrap;
+}
+
+.btnLimpiarBusqueda:hover{
+  background:#333;
+}
+
+.categoriasBox{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+  margin-bottom:12px;
+}
+
+.categoriaBtn{
+  border:none;
+  background:#1d1d1d;
+  color:#eaeaea;
+  padding:10px 16px;
+  border-radius:999px;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  transition:.25s;
+  border:1px solid rgba(255,255,255,0.07);
+}
+
+.categoriaBtn:hover{
+  background:#2a2a2a;
+  transform:translateY(-1px);
+}
+
+.categoriaBtn.activo{
+  background:linear-gradient(180deg,#ff2a2a,#c70f0f);
+  color:#fff;
+  border-color:rgba(255,255,255,0.10);
+  box-shadow:0 10px 20px rgba(255,0,0,0.20);
+}
+
+.resultadoFiltroInfo{
+  text-align:center;
+  color:#c8c8c8;
+  font-size:13px;
+  line-height:1.5;
+}
+
+.sinResultadosBusqueda{
+  width:100%;
+  max-width:700px;
+  margin:10px auto 0;
+  background:linear-gradient(180deg,#1b1b1b,#141414);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:16px;
+  padding:26px 18px;
+  text-align:center;
+  color:#d8d8d8;
+  box-shadow:0 12px 28px rgba(0,0,0,0.26);
+}
+
+.sinResultadosBusqueda strong{
+  display:block;
+  font-size:18px;
+  color:#fff;
+  margin-bottom:8px;
+}
+
+@media (max-width:1024px){
+  .filtrosTienda{
+    width:100%;
+    margin-left:0;
+    padding:10px 14px 0;
+  }
+}
+
+@media (max-width:700px){
+  .filtrosWrap{
+    padding:14px;
+    border-radius:16px;
+  }
+
+  .buscadorBox{
+    flex-wrap:wrap;
+    justify-content:center;
+    padding:12px;
+  }
+
+  .buscadorProductos{
+    min-width:100%;
+    text-align:left;
+  }
+
+  .btnLimpiarBusqueda{
+    width:100%;
+  }
+
+  .categoriasBox{
+    justify-content:center;
+    gap:8px;
+  }
+
+  .categoriaBtn{
+    font-size:13px;
+    padding:9px 13px;
+  }
+
+  .resultadoFiltroInfo{
+    font-size:12.5px;
+  }
+}
+/* Cuando el modal esté abierto */
+body.modal-abierto .menuIcon{
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Opcional: evita scroll del fondo al abrir modal */
+body.modal-abierto{
+  overflow: hidden;
+}
