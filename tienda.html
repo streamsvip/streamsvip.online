@@ -16,7 +16,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
   <link rel="manifest" href="img/site.webmanifest">
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260408">
 </head>
 
 <body>
@@ -81,6 +81,36 @@
       <span class="dot" onclick="currentSlide(2)"></span>
     </div>
   </div>
+
+  <section class="filtrosTienda" id="filtrosTienda">
+    <div class="filtrosWrap">
+      <div class="buscadorBox">
+        <span class="buscadorIcono">🔎</span>
+        <input
+          type="text"
+          id="buscadorProductos"
+          class="buscadorProductos"
+          placeholder="Buscar plataforma por nombre..."
+          autocomplete="off">
+        <button type="button" id="btnLimpiarBusqueda" class="btnLimpiarBusqueda">
+          Limpiar
+        </button>
+      </div>
+
+      <div class="categoriasBox" id="categoriasBox">
+        <button type="button" class="categoriaBtn activo" data-categoria="todos">Todos</button>
+        <button type="button" class="categoriaBtn" data-categoria="streaming">Streaming</button>
+        <button type="button" class="categoriaBtn" data-categoria="musica">Música</button>
+        <button type="button" class="categoriaBtn" data-categoria="diseno">Diseño</button>
+        <button type="button" class="categoriaBtn" data-categoria="ia">IA</button>
+        <button type="button" class="categoriaBtn" data-categoria="licencias">Licencias</button>
+      </div>
+
+      <div class="resultadoFiltroInfo" id="resultadoFiltroInfo">
+        Mostrando todos los productos
+      </div>
+    </div>
+  </section>
 
   <div class="productos" id="contenedorProductos">
     <div class="cargandoProductos" id="cargandoProductos">Cargando productos...</div>
@@ -179,7 +209,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script src="script.js"></script>
+  <script src="script.js?v=20260408"></script>
 
   <script>
     (function () {
@@ -251,11 +281,6 @@
       const btnCerrar = document.getElementById("cerrarAvisoFlotante");
 
       if (!aviso || !btnCerrar) return;
-
-      /* =========================================================
-         CONFIGURACION DEL AVISO
-         CAMBIA SOLO ESTA FECHA/HORA CUANDO QUIERAS ACTIVAR UNO NUEVO
-      ========================================================= */
 
       const inicioAviso = new Date("2026-04-07T18:00:00-05:00").getTime();
       const duracionAviso = 3 * 60 * 60 * 1000;
