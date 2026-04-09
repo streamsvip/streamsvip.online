@@ -17,6 +17,56 @@
   <link rel="manifest" href="img/site.webmanifest">
 
   <link rel="stylesheet" href="style.css?v=20260408">
+
+  <style>
+    .pluginSelectorBox{
+      margin-top:16px;
+      padding:14px;
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+      border:1px solid rgba(255,255,255,0.08);
+      display:none;
+    }
+
+    .pluginSelectorBox.activo{
+      display:block;
+    }
+
+    .pluginSelectorTitulo{
+      margin:0 0 10px;
+      font-size:15px;
+      font-weight:800;
+      color:#fff;
+    }
+
+    .pluginSelectorSub{
+      margin:0 0 12px;
+      font-size:13px;
+      color:rgba(255,255,255,0.72);
+      line-height:1.5;
+    }
+
+    .pluginSelectorControl{
+      width:100%;
+      min-height:46px;
+      border:none;
+      outline:none;
+      border-radius:14px;
+      padding:0 14px;
+      background:#111827;
+      color:#fff;
+      font-size:14px;
+      font-weight:700;
+      border:1px solid rgba(255,255,255,0.10);
+    }
+
+    .pluginSelectorNota{
+      margin-top:10px;
+      font-size:12px;
+      color:rgba(255,255,255,0.58);
+      line-height:1.5;
+    }
+  </style>
 </head>
 
 <body>
@@ -144,6 +194,22 @@
             <p>✔ Garantía durante la duración del servicio</p>
           </div>
 
+          <div id="pluginSelectorBox" class="pluginSelectorBox">
+            <h3 class="pluginSelectorTitulo">Selecciona tu plataforma</h3>
+            <p class="pluginSelectorSub">
+              Este producto se entrega según el sistema operativo que elijas.
+            </p>
+
+            <select id="selectorPlataformaPlugin" class="pluginSelectorControl">
+              <option value="windows">Windows</option>
+              <option value="mac">Mac</option>
+            </select>
+
+            <div class="pluginSelectorNota">
+              Solo se entregará la versión correspondiente a la plataforma seleccionada.
+            </div>
+          </div>
+
           <div class="cantidadBox">
             <span class="etiqueta-cantidad">Cantidad</span>
             <button type="button" onclick="cambiarCantidad(-1)">-</button>
@@ -209,7 +275,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script src="script.js?v=20260408"></script>
+  <script src="script.js?v=202604011"></script>
 
   <script>
     (function () {
@@ -233,6 +299,56 @@
           link.classList.add("activo");
         }
       });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      function actualizarSelectorPluginVisual() {
+        const box = document.getElementById("pluginSelectorBox");
+        const select = document.getElementById("selectorPlataformaPlugin");
+
+        if (!box || !select) return;
+
+        const data = window.productoSeleccionadoData || null;
+        const tipoEntrega = String(data?.tipoEntrega || "").toLowerCase();
+        const categoria = String(data?.categoria || "").toLowerCase();
+
+        const esPlugin =
+          tipoEntrega === "plugin" ||
+          categoria.includes("plugin") ||
+          categoria.includes("musica") ||
+          categoria.includes("música");
+
+        if (esPlugin) {
+          box.classList.add("activo");
+          select.value = "windows";
+        } else {
+          box.classList.remove("activo");
+          select.value = "windows";
+        }
+      }
+
+      const abrirOriginal = window.abrirProductoPorId;
+      if (typeof abrirOriginal === "function") {
+        window.abrirProductoPorId = function(productoId) {
+          abrirOriginal(productoId);
+          setTimeout(actualizarSelectorPluginVisual, 10);
+        };
+      }
+
+      const cerrarOriginal = window.cerrarModal;
+      if (typeof cerrarOriginal === "function") {
+        window.cerrarModal = function() {
+          cerrarOriginal();
+
+          const box = document.getElementById("pluginSelectorBox");
+          const select = document.getElementById("selectorPlataformaPlugin");
+
+          if (box) box.classList.remove("activo");
+          if (select) select.value = "windows";
+        };
+      }
     })();
   </script>
 
