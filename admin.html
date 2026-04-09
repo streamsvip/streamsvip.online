@@ -914,6 +914,37 @@
         </div>
       </div>
 
+      <!-- DESCARGAS ENTREGADAS -->
+      <div class="card collapsibleCard closed">
+        <button class="collapseHeader" type="button" onclick="toggleSection(this)">
+          <span>Descargas entregadas / Plugins vendidos</span>
+          <span class="collapseIcon">▼</span>
+        </button>
+
+        <div class="collapseContent">
+          <div class="tableWrap tableWrapAdminScroll">
+            <table id="tablaDescargasEntregadas" class="hidden">
+              <thead>
+                <tr>
+                  <th>UID</th>
+                  <th>Orden ID</th>
+                  <th>Servicio</th>
+                  <th>Comprador</th>
+                  <th>Precio</th>
+                  <th>Plataforma</th>
+                  <th>Link entrega</th>
+                  <th>Fecha compra</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <div id="descargasEntregadasVacio" class="empty">No hay descargas o plugins vendidos todavía.</div>
+          </div>
+        </div>
+      </div>
+
       <!-- USUARIOS -->
       <div class="card collapsibleCard closed">
         <button class="collapseHeader" type="button" onclick="toggleSection(this)">
@@ -1324,6 +1355,7 @@
       cargarReembolsos();
       cargarCodigos();
       cargarDescargas();
+      cargarDescargasEntregadas();
       escucharNuevasRecargasPendientes();
       iniciarAutoSyncStock();
       recalcularTodoElStockSilencioso();
@@ -2337,6 +2369,123 @@
 
         tabla.classList.remove("hidden");
         vacio.classList.add("hidden");
+      });
+    }
+
+    function esOrdenDescargaOPlugin(item = {}) {
+      const tipoEntrega = String(item.tipoEntrega || "").toLowerCase().trim();
+      const entregaVisual = String(item.entregaVisual || "").toLowerCase().trim();
+      const linkEntrega = String(item.linkEntrega || "").trim();
+
+      return (
+        tipoEntrega === "descarga" ||
+        tipoEntrega === "plugin" ||
+        entregaVisual === "descarga" ||
+        linkEntrega !== ""
+      );
+    }
+
+    function eliminarOrdenDescargaAdmin(uid, ordenId) {
+      if (!uid || !ordenId) return;
+      if (!confirm("¿Seguro que quieres eliminar esta compra de descarga/plugin del panel del usuario?")) return;
+
+      db.ref("ordenes/" + uid + "/" + ordenId).remove()
+        .then(() => {
+          mostrarMensajeDescarga("Compra eliminada correctamente.");
+        })
+        .catch((error) => {
+          mostrarMensajeDescarga("Error al eliminar la compra: " + error.message, true);
+        });
+    }
+
+    function copiarTextoAdmin(texto) {
+      navigator.clipboard.writeText(String(texto || ""))
+        .then(() => {
+          mostrarMensajeDescarga("Link copiado al portapapeles.");
+        })
+        .catch(() => {
+          mostrarMensajeDescarga("No se pudo copiar el link.", true);
+        });
+    }
+
+    function cargarDescargasEntregadas() {
+      db.ref("ordenes").on("value", (snapshot) => {
+        const data = snapshot.val() || {};
+        const tbody = document.querySelector("#tablaDescargasEntregadas tbody");
+        const tabla = document.getElementById("tablaDescargasEntregadas");
+        const vacio = document.getElementById("descargasEntregadasVacio");
+
+        if (!tbody || !tabla || !vacio) return;
+
+        tbody.innerHTML = "";
+
+        const lista = [];
+
+        Object.keys(data).forEach((uid) => {
+          const ordenesUsuario = data[uid] || {};
+
+          Object.keys(ordenesUsuario).forEach((ordenId) => {
+            const item = ordenesUsuario[ordenId] || {};
+
+            if (!esOrdenDescargaOPlugin(item)) return;
+
+            lista.push({
+              uid,
+              ordenId,
+              ...item
+            });
+          });
+        });
+
+        lista.sort((a, b) => {
+          return timestampSeguro(b.fechaCompra) - timestampSeguro(a.fechaCompra);
+        });
+
+        if (!lista.length) {
+          tabla.classList.add("hidden");
+          vacio.classList.remove("hidden");
+          return;
+        }
+
+        lista.forEach((item) => {
+          const plataforma = item.plataformaElegida || "-";
+          const linkEntrega = item.linkEntrega || "";
+          const linkHtml = linkEntrega
+            ? `<a href="${linkEntrega}" target="_blank" rel="noopener noreferrer">Abrir link</a>`
+            : "-";
+
+          tbody.innerHTML += `
+            <tr>
+              <td>${textoSeguro(item.uid)}</td>
+              <td>${textoSeguro(item.ordenId)}</td>
+              <td>${textoSeguro(item.servicio || item.producto)}</td>
+              <td>${textoSeguro(item.comprador)}</td>
+              <td>${formatearDinero(item.precio || 0)}</td>
+              <td>${textoSeguro(plataforma)}</td>
+              <td style="word-break:break-all;">${linkHtml}</td>
+              <td>${formatearFecha(item.fechaCompra)}</td>
+              <td>${badgeEstado(item.estado || "activa")}</td>
+              <td>
+                <div class="actionGroup">
+                  ${linkEntrega ? `<button class="smallBtn btnToggle" onclick="copiarTextoAdmin('${String(linkEntrega).replace(/'/g, "\\'")}')">Copiar link</button>` : ""}
+                  <button class="smallBtn btnDelete" onclick="eliminarOrdenDescargaAdmin('${item.uid}', '${item.ordenId}')">Eliminar</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        });
+
+        tabla.classList.remove("hidden");
+        vacio.classList.add("hidden");
+      }, (error) => {
+        console.error("Error leyendo descargas entregadas:", error);
+        const tabla = document.getElementById("tablaDescargasEntregadas");
+        const vacio = document.getElementById("descargasEntregadasVacio");
+
+        if (tabla) tabla.classList.add("hidden");
+        if (vacio) vacio.classList.remove("hidden");
+
+        mostrarMensajeDescarga("No se pudieron leer las descargas vendidas. Revisa tus rules.", true);
       });
     }
 
