@@ -168,78 +168,20 @@ function normalizarTextoBusqueda(texto) {
     .trim();
 }
 
-function asegurarEstilosPluginsDescarga() {
-  if (document.getElementById("streamsvipEstilosPluginDescarga")) return;
-
-  const style = document.createElement("style");
-  style.id = "streamsvipEstilosPluginDescarga";
-  style.textContent = `
-    .selectorEntregaWrap{
-      margin:14px 0 10px;
-      padding:12px;
-      border-radius:14px;
-      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
-      border:1px solid rgba(255,255,255,.06);
-    }
-
-    .selectorEntregaTitulo{
-      display:block;
-      font-size:13px;
-      font-weight:800;
-      color:#fff;
-      margin-bottom:8px;
-      letter-spacing:.2px;
-    }
-
-    .selectorEntregaSelect{
-      width:100%;
-      min-height:42px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.10);
-      background:#111827;
-      color:#fff;
-      padding:10px 12px;
-      outline:none;
-      font-size:14px;
-      font-weight:700;
-    }
-
-    .selectorEntregaHelp{
-      margin-top:8px;
-      font-size:12px;
-      color:rgba(255,255,255,.65);
-      line-height:1.5;
-    }
-
-    .badgeTipoEntregaModal{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:6px;
-      margin-top:10px;
-      padding:7px 11px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:800;
-      border:1px solid rgba(255,255,255,.10);
-      background:linear-gradient(180deg,#161b22,#0d1117);
-      color:#d8e9ff;
-    }
-  `;
-  document.head.appendChild(style);
+function obtenerNombreSimpleDesdeCorreo(email) {
+  return String(email || "").split("@")[0] || "usuario";
 }
 
-function obtenerTipoEntregaNormalizado(item = {}) {
-  return String(item.tipoEntrega || "")
-    .toLowerCase()
-    .trim();
-}
-
-function esTipoPermanente(item = {}) {
-  const nombre = String(item?.nombre || "").toLowerCase().trim();
-  const dias = Number(item?.duracionDias || 0);
-
-  return dias >= 3650 || dias === 3065 || nombre.includes("permanente");
+function formatearFechaEntregaLocal() {
+  return new Date().toLocaleString("es-PE", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  });
 }
 
 /* =========================
@@ -808,6 +750,111 @@ function mostrarAvisoStockPremium(stockMaximo) {
 }
 
 /* =========================
+MODAL DESCARGA / PLUGIN
+========================= */
+
+function esEntregaDescargaOPlugin(itemProducto = {}) {
+  const tipoEntrega = String(itemProducto?.tipoEntrega || "").toLowerCase().trim();
+  return tipoEntrega === "descarga" || tipoEntrega === "plugin";
+}
+
+function asegurarUIEntregaDescarga() {
+  const modalInfo = document.querySelector(".modalInfo");
+  if (!modalInfo) return;
+
+  let wrap = document.getElementById("bloqueEntregaDescarga");
+  if (wrap) return;
+
+  wrap = document.createElement("div");
+  wrap.id = "bloqueEntregaDescarga";
+  wrap.className = "bloqueEntregaDescarga";
+  wrap.style.display = "none";
+  wrap.innerHTML = `
+    <div class="selectorEntregaBox" style="
+      margin:14px 0 8px;
+      padding:14px;
+      border-radius:16px;
+      background:linear-gradient(180deg,#10141c,#0b0f16);
+      border:1px solid rgba(255,255,255,.08);
+    ">
+      <div style="
+        font-size:12px;
+        font-weight:800;
+        letter-spacing:.5px;
+        text-transform:uppercase;
+        color:#9fb6d9;
+        margin-bottom:8px;
+      ">Plataforma de instalación</div>
+
+      <select id="selectorPlataformaPlugin" style="
+        width:100%;
+        height:46px;
+        border-radius:12px;
+        border:1px solid rgba(255,255,255,.10);
+        background:#0f131b;
+        color:#fff;
+        padding:0 14px;
+        outline:none;
+        font-size:14px;
+        font-weight:700;
+      ">
+        <option value="windows">Windows</option>
+        <option value="mac">Mac</option>
+      </select>
+
+      <div id="textoEntregaPlugin" style="
+        margin-top:10px;
+        font-size:12.5px;
+        line-height:1.5;
+        color:#aeb8c6;
+      ">
+        Selecciona la plataforma donde instalarás el archivo.
+      </div>
+    </div>
+  `;
+
+  const garantiaBox = modalInfo.querySelector(".garantiaBox");
+  if (garantiaBox) {
+    garantiaBox.insertAdjacentElement("beforebegin", wrap);
+  } else {
+    modalInfo.appendChild(wrap);
+  }
+}
+
+function actualizarVisualModalSegunTipoEntrega(itemProducto = {}) {
+  asegurarUIEntregaDescarga();
+
+  const esDescarga = esEntregaDescargaOPlugin(itemProducto);
+  const cantidadBox = document.querySelector(".cantidadBox");
+  const bloqueEntrega = document.getElementById("bloqueEntregaDescarga");
+  const btnComprar = document.querySelector(".btnComprarAhora");
+  const totalTitulo = document.querySelector(".modalInfo h3");
+  const textoEntrega = document.getElementById("textoEntregaPlugin");
+
+  if (cantidadBox) {
+    cantidadBox.style.display = esDescarga ? "none" : "flex";
+  }
+
+  if (bloqueEntrega) {
+    bloqueEntrega.style.display = esDescarga ? "block" : "none";
+  }
+
+  if (btnComprar) {
+    btnComprar.innerText = esDescarga ? "Comprar descarga" : "Comprar ahora";
+  }
+
+  if (totalTitulo) {
+    totalTitulo.style.marginTop = esDescarga ? "10px" : "";
+  }
+
+  if (textoEntrega) {
+    textoEntrega.innerHTML = esDescarga
+      ? "Se entregará el acceso de descarga según la plataforma seleccionada. Verifica si necesitas <strong>Windows</strong> o <strong>Mac</strong> antes de continuar."
+      : "Entrega configurada para acceso estándar.";
+  }
+}
+
+/* =========================
 NORMALIZACION PRODUCTOS
 ========================= */
 
@@ -864,11 +911,9 @@ function obtenerCategoriaVisualProducto(idProducto, itemProducto = {}) {
     categoriaDb.includes("plugin") ||
     categoriaDb.includes("musica") ||
     categoriaDb.includes("música") ||
-    categoriaDb.includes("daw") ||
     nombre.includes("plugin") ||
     nombre.includes("vst") ||
     nombre.includes("au") ||
-    nombre.includes("melodyne") ||
     nombre.includes("spotify")
   ) {
     return "musica";
@@ -912,7 +957,7 @@ function esProductoLicencia(productoId = "", itemProducto = {}) {
   const id = String(productoId || "").toLowerCase();
   const nombre = String(itemProducto.nombre || "").toLowerCase();
   const categoria = String(itemProducto.categoria || "").toLowerCase();
-  const tipoEntrega = obtenerTipoEntregaNormalizado(itemProducto);
+  const tipoEntrega = String(itemProducto.tipoEntrega || "").toLowerCase();
 
   return (
     tipoEntrega === "codigo" ||
@@ -925,22 +970,21 @@ function esProductoLicencia(productoId = "", itemProducto = {}) {
 
 function esProductoDescarga(productoId = "", itemProducto = {}) {
   const nombre = String(itemProducto.nombre || "").toLowerCase();
-  const tipoEntrega = obtenerTipoEntregaNormalizado(itemProducto);
+  const tipoEntrega = String(itemProducto.tipoEntrega || "").toLowerCase();
 
   return (
     tipoEntrega === "descarga" ||
     tipoEntrega === "plugin" ||
     nombre.includes("plugin") ||
     nombre.includes("vst") ||
-    nombre.includes("au") ||
-    nombre.includes("melodyne")
+    nombre.includes("au")
   );
 }
 
 function esProductoCodigo(productoId = "", itemProducto = {}) {
   const nombre = String(itemProducto.nombre || "").toLowerCase();
   const categoria = String(itemProducto.categoria || "").toLowerCase();
-  const tipoEntrega = obtenerTipoEntregaNormalizado(itemProducto);
+  const tipoEntrega = String(itemProducto.tipoEntrega || "").toLowerCase();
 
   return (
     tipoEntrega === "codigo" ||
@@ -981,21 +1025,22 @@ function obtenerImagenProducto(item, idProducto) {
 }
 
 function obtenerDuracionTexto(item) {
-  const tipoEntrega = obtenerTipoEntregaNormalizado(item);
+  const nombre = String(item?.nombre || "").toLowerCase().trim();
+  const tipoEntrega = String(item?.tipoEntrega || "").toLowerCase().trim();
   const dias = Number(item?.duracionDias || 30);
-  const permanente = esTipoPermanente(item);
+  const esPermanente = dias >= 3650 || dias === 3065 || nombre.includes("permanente");
 
   if (tipoEntrega === "descarga" || tipoEntrega === "plugin") {
-    if (permanente) return "Instalación: Permanente";
+    if (esPermanente) return "Instalación: Permanente";
     return "Instalación: " + dias + " días";
   }
 
   if (tipoEntrega === "codigo") {
-    if (permanente) return "Activación: Permanente";
+    if (esPermanente) return "Activación: Permanente";
     return "Activación: " + dias + " días";
   }
 
-  if (permanente) return "Duración: Permanente";
+  if (esPermanente) return "Duración: Permanente";
   if (dias === 365) return "Duración: 1 año";
   if (dias === 180) return "Duración: 6 meses";
   if (dias === 90) return "Duración: 3 meses";
@@ -1026,6 +1071,23 @@ function calcularRepartoVenta(precioUnitario, cantidad, itemProducto = {}) {
 }
 
 function obtenerReglasProducto(productoBase) {
+  const item = productoSeleccionadoData || {};
+  const tipoEntrega = String(item?.tipoEntrega || "").toLowerCase().trim();
+
+  if (tipoEntrega === "descarga" || tipoEntrega === "plugin") {
+    return `
+      <li>Selecciona correctamente la plataforma de instalación: <strong>Windows</strong> o <strong>Mac</strong>.</li>
+      <li>Descarga el archivo completo y espera a que finalice antes de abrirlo.</li>
+      <li>Descomprime el paquete si viene en formato ZIP, RAR o similar.</li>
+      <li>En Windows, ejecuta el instalador <strong>.exe</strong> como administrador cuando sea necesario.</li>
+      <li>En Mac, abre el archivo correspondiente y concede permisos del sistema si el instalador lo solicita.</li>
+      <li>No modifiques la estructura interna de carpetas del paquete entregado.</li>
+      <li>No compartas el enlace recibido ni redistribuyas el contenido descargable.</li>
+      <li>Guarda una copia del instalador en tu equipo para futuras reinstalaciones si aplica.</li>
+      <li>El soporte cubre problemas de entrega o acceso al archivo, no configuraciones avanzadas externas del sistema.</li>
+    `;
+  }
+
   if (productoBase === "Netflix") {
     return `
       <li>Perfil únicamente para un dispositivo.</li>
@@ -1145,6 +1207,13 @@ function obtenerReglasProducto(productoBase) {
 }
 
 function obtenerDescripcionProductoFallback(productoBase) {
+  const item = productoSeleccionadoData || {};
+  const tipoEntrega = String(item?.tipoEntrega || "").toLowerCase().trim();
+
+  if (tipoEntrega === "descarga" || tipoEntrega === "plugin") {
+    return "Producto digital descargable con entrega técnica según la plataforma seleccionada. El acceso se orienta a instalación en Windows o Mac, según disponibilidad configurada para el producto.";
+  }
+
   if (productoBase === "Crunchyroll") {
     return "Suscripción digital Crunchyroll Premium con vigencia de 12 meses. Acceso a catálogo anime en alta definición, simulcast, reproducción sin interrupciones publicitarias y compatibilidad multidispositivo según las condiciones operativas del servicio asignado.";
   }
@@ -1186,22 +1255,6 @@ function obtenerDescripcionProductoFallback(productoBase) {
   }
 
   return "Producto digital disponible.";
-}
-
-function obtenerNombreSimpleDesdeCorreo(email) {
-  return String(email || "").split("@")[0] || "usuario";
-}
-
-function formatearFechaEntregaLocal() {
-  return new Date().toLocaleString("es-PE", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true
-  });
 }
 
 /* =========================
@@ -1920,139 +1973,6 @@ function configurarFiltrosTienda() {
 }
 
 /* =========================
-SELECTOR DESCARGA / PLUGIN
-========================= */
-
-function obtenerOpcionesEntregaDisponibles(itemProducto = {}) {
-  const opciones = itemProducto.opcionesEntrega || {};
-  const disponibles = [];
-
-  const orden = ["windows", "mac", "general"];
-
-  orden.forEach((clave) => {
-    const link = String(opciones?.[clave]?.link || "").trim();
-    const nombre = String(opciones?.[clave]?.nombre || "").trim();
-
-    if (link) {
-      disponibles.push({
-        clave,
-        nombre: nombre || (clave === "windows" ? "Windows" : clave === "mac" ? "Mac" : "General"),
-        link
-      });
-    }
-  });
-
-  if (!disponibles.length) {
-    const linkBase = String(itemProducto.linkDescarga || "").trim();
-    if (linkBase) {
-      disponibles.push({
-        clave: "general",
-        nombre: "General",
-        link: linkBase
-      });
-    }
-  }
-
-  return disponibles;
-}
-
-function limpiarSelectorEntregaPlugin() {
-  const existente = document.getElementById("selectorEntregaPluginWrap");
-  if (existente) existente.remove();
-}
-
-function renderizarSelectorEntregaPlugin(itemProducto = {}) {
-  limpiarSelectorEntregaPlugin();
-
-  if (!esProductoDescarga(productoSeleccionadoId, itemProducto)) return;
-
-  asegurarEstilosPluginsDescarga();
-
-  const totalEl = document.getElementById("precioTotal");
-  if (!totalEl) return;
-
-  const opciones = obtenerOpcionesEntregaDisponibles(itemProducto);
-
-  const wrap = document.createElement("div");
-  wrap.id = "selectorEntregaPluginWrap";
-  wrap.className = "selectorEntregaWrap";
-
-  const titulo = document.createElement("span");
-  titulo.className = "selectorEntregaTitulo";
-  titulo.textContent = "Selecciona tu plataforma de instalación";
-  wrap.appendChild(titulo);
-
-  const badge = document.createElement("div");
-  badge.className = "badgeTipoEntregaModal";
-  badge.textContent = "💾 Descarga digital";
-  wrap.appendChild(badge);
-
-  if (opciones.length <= 1) {
-    const texto = document.createElement("div");
-    texto.className = "selectorEntregaHelp";
-    texto.textContent = opciones.length
-      ? "La descarga disponible será entregada automáticamente."
-      : "Este producto no tiene opciones de descarga configuradas.";
-    wrap.appendChild(texto);
-
-    if (opciones.length === 1) {
-      const hidden = document.createElement("input");
-      hidden.type = "hidden";
-      hidden.id = "selectorPlataformaPlugin";
-      hidden.value = opciones[0].clave;
-      wrap.appendChild(hidden);
-    }
-  } else {
-    const select = document.createElement("select");
-    select.id = "selectorPlataformaPlugin";
-    select.className = "selectorEntregaSelect";
-
-    opciones.forEach((op) => {
-      const option = document.createElement("option");
-      option.value = op.clave;
-      option.textContent = op.nombre;
-      select.appendChild(option);
-    });
-
-    wrap.appendChild(select);
-
-    const texto = document.createElement("div");
-    texto.className = "selectorEntregaHelp";
-    texto.textContent = "El sistema entregará el enlace correspondiente a la plataforma elegida.";
-    wrap.appendChild(texto);
-  }
-
-  const contenedorInfo = totalEl.parentElement;
-  if (contenedorInfo) {
-    contenedorInfo.insertBefore(wrap, totalEl);
-  }
-}
-
-function obtenerPlataformaDescargaSeleccionada() {
-  const select = document.getElementById("selectorPlataformaPlugin");
-  if (!select) return "general";
-
-  const valor = String(select.value || "general").toLowerCase().trim();
-  if (valor === "windows") return "windows";
-  if (valor === "mac") return "mac";
-  return "general";
-}
-
-function obtenerLinkDescargaSegunPlataforma(itemProducto = {}, plataforma = "general") {
-  const opciones = itemProducto.opcionesEntrega || {};
-  const clave = plataforma === "windows" || plataforma === "mac" ? plataforma : "general";
-
-  const linkDirecto = String(opciones?.[clave]?.link || "").trim();
-  if (linkDirecto) return linkDirecto;
-
-  const linkGeneral = String(opciones?.general?.link || "").trim();
-  if (linkGeneral) return linkGeneral;
-
-  const linkBase = String(itemProducto.linkDescarga || "").trim();
-  return linkBase;
-}
-
-/* =========================
 PRODUCTOS DINAMICOS TIENDA
 ========================= */
 
@@ -2125,7 +2045,7 @@ function renderizarProductosTienda(data) {
         <button
           class="btnComprar"
           ${agotado ? "disabled" : ""}
-          onclick="abrirProductoPorId('${escaparHTML(id)}')">
+          onclick="abrirProductoPorId('${String(id).replace(/'/g, "\\'")}')">
           ${agotado ? "AGOTADO" : "🛒Agregar al carrito"}
         </button>
       </div>
@@ -2179,7 +2099,6 @@ function abrirProductoPorId(productoId) {
   const imagen = obtenerImagenProducto(item, productoId);
   const stock = Number(item.stock || 0);
   const proveedorNombre = item.proveedorNombre || "Josking";
-  const tipoEntrega = obtenerTipoEntregaNormalizado(item);
 
   if (stock <= 0) {
     mostrarAvisoSistema("Producto agotado", "Este producto no tiene stock disponible en este momento.", "warn");
@@ -2222,15 +2141,11 @@ function abrirProductoPorId(productoId) {
   if (totalEl) totalEl.innerText = precio.toFixed(2);
   if (lista) lista.innerHTML = obtenerReglasProducto(productoBaseNormalizado);
 
+  actualizarVisualModalSegunTipoEntrega(item);
+
   if (modal) {
     modal.style.display = "flex";
     actualizarEstadoUIOverlay();
-  }
-
-  if (tipoEntrega === "descarga" || tipoEntrega === "plugin") {
-    renderizarSelectorEntregaPlugin(item);
-  } else {
-    limpiarSelectorEntregaPlugin();
   }
 }
 
@@ -2258,7 +2173,6 @@ function cerrarModal() {
     modal.style.display = "none";
     actualizarEstadoUIOverlay();
   }
-  limpiarSelectorEntregaPlugin();
 }
 
 function cambiarCantidad(valor) {
@@ -2567,7 +2481,7 @@ async function marcarItemsVendidos(items, user, nombreComprador, ordenIdsAsignad
     updates[`${base}/ordenId`] = ordenIdAsignado;
   });
 
-  if (!Object.keys(updates).length) return;
+  if (Object.keys(updates).length === 0) return;
   return db.ref().update(updates);
 }
 
@@ -2605,42 +2519,59 @@ async function revertirItemsVendidos(items) {
     updates[`${base}/ordenId`] = null;
   });
 
-  if (!Object.keys(updates).length) return;
   return db.ref().update(updates);
 }
 
 function obtenerDuracionTextoOrden(itemProducto, tipoEntrega) {
+  const nombre = String(itemProducto?.nombre || "").toLowerCase().trim();
   const tipo = String(tipoEntrega || itemProducto?.tipoEntrega || "").toLowerCase().trim();
   const dias = Number(itemProducto?.duracionDias || 0);
-  const permanente = esTipoPermanente(itemProducto);
+  const esPermanente = dias >= 3650 || dias === 3065 || nombre.includes("permanente");
 
   if (tipo === "descarga" || tipo === "plugin") {
-    if (permanente) return "Instalación: Permanente";
+    if (esPermanente) return "Instalación: Permanente";
     return "Instalación: " + dias + " días";
   }
 
   if (tipo === "codigo") {
-    if (permanente) return "Activación: Permanente";
+    if (esPermanente) return "Activación: Permanente";
     return "Activación: " + dias + " días";
   }
 
-  if (permanente) return "Duración: Permanente";
+  if (esPermanente) return "Duración: Permanente";
   return obtenerDuracionTexto(itemProducto);
 }
 
 function obtenerFechaExpiraOrden(itemProducto, tipoEntrega, ahora) {
+  const nombre = String(itemProducto?.nombre || "").toLowerCase().trim();
   const tipo = String(tipoEntrega || itemProducto?.tipoEntrega || "").toLowerCase().trim();
   const dias = Number(itemProducto?.duracionDias || 30);
-  const permanente = esTipoPermanente(itemProducto);
+  const esPermanente = dias >= 3650 || dias === 3065 || nombre.includes("permanente");
 
   if (tipo === "codigo") return "";
-  if (tipo === "descarga" || tipo === "plugin") {
-    if (permanente) return "";
-    return new Date(ahora.getTime() + dias * 24 * 60 * 60 * 1000).toISOString();
-  }
-  if (permanente) return "";
+  if ((tipo === "descarga" || tipo === "plugin") && esPermanente) return "";
+  if (esPermanente) return "";
 
   return new Date(ahora.getTime() + dias * 24 * 60 * 60 * 1000).toISOString();
+}
+
+function obtenerPlataformaDescargaSeleccionada() {
+  const select = document.getElementById("selectorPlataformaPlugin");
+  if (!select) return "windows";
+
+  const valor = String(select.value || "windows").toLowerCase().trim();
+  return valor === "mac" ? "mac" : "windows";
+}
+
+function obtenerLinkDescargaSegunPlataforma(itemProducto = {}, plataforma = "windows") {
+  const opciones = itemProducto.opcionesEntrega || {};
+  const plataformaFinal = plataforma === "mac" ? "mac" : "windows";
+
+  const linkDirecto = String(opciones?.[plataformaFinal]?.link || "").trim();
+  if (linkDirecto) return linkDirecto;
+
+  const linkBase = String(itemProducto.linkDescarga || "").trim();
+  return linkBase;
 }
 
 async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprador) {
@@ -2655,10 +2586,7 @@ async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprad
     const nuevaOrdenRef = db.ref("ordenes/" + uid).push();
 
     const esDescarga = itemObj.tipo === "descarga";
-    const tipoEntrega = esDescarga
-      ? "descarga"
-      : (itemObj.tipo === "codigo" ? "codigo" : "cuenta");
-
+    const tipoEntrega = esDescarga ? "descarga" : (itemObj.tipo === "codigo" ? "codigo" : "cuenta");
     const esCodigo = tipoEntrega === "codigo";
     const esLicencia = esCodigo || esProductoLicencia(productoSeleccionadoId, itemProducto);
 
@@ -2678,7 +2606,7 @@ async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprad
       precio: Number(precioUnitario.toFixed(2)),
       fechaCompra: ahora.toISOString(),
       fechaExpira: fechaExpira,
-      fechaExpiraTexto: (!fechaExpira && duracionTexto.toLowerCase().includes("permanente")) ? "Permanente" : "",
+      fechaExpiraTexto: (!fechaExpira && duracionTexto.includes("Permanente")) ? "Permanente" : "",
       estado: "activa",
       uid: uid,
       soporteNumero: numero,
@@ -2761,25 +2689,30 @@ async function comprarAhora() {
       return;
     }
 
-    if (cantidadProducto < 1) {
-      mostrarAvisoSistema("Cantidad inválida", "La cantidad seleccionada no es válida.", "warn");
-      return;
-    }
-
-    if (cantidadProducto > stockDisponible) {
-      cantidadProducto = Math.max(1, stockDisponible);
-      actualizarVisualCantidadYTotal();
-      mostrarAvisoStockPremium(stockDisponible);
-      return;
-    }
-
     const item = productoSeleccionadoData || {};
-    uid = usuarioActual.uid;
-    totalCompra = Number((Number(precioBase || 0) * Number(cantidadProducto || 1)).toFixed(2));
-
     const productoEsDescarga = esProductoDescarga(productoSeleccionadoId, item);
     const productoEsLicencia = esProductoLicencia(productoSeleccionadoId, item);
     const productoEsCodigo = esProductoCodigo(productoSeleccionadoId, item);
+
+    if (!productoEsDescarga) {
+      if (cantidadProducto < 1) {
+        mostrarAvisoSistema("Cantidad inválida", "La cantidad seleccionada no es válida.", "warn");
+        return;
+      }
+
+      if (cantidadProducto > stockDisponible) {
+        cantidadProducto = Math.max(1, stockDisponible);
+        actualizarVisualCantidadYTotal();
+        mostrarAvisoStockPremium(stockDisponible);
+        return;
+      }
+    } else {
+      cantidadProducto = 1;
+      actualizarVisualCantidadYTotal();
+    }
+
+    uid = usuarioActual.uid;
+    totalCompra = Number((Number(precioBase || 0) * Number(cantidadProducto || 1)).toFixed(2));
 
     const perfil = await obtenerPerfilUsuario(uid);
     const estadoUsuario = String(perfil.estado || "activo").toLowerCase();
@@ -2810,19 +2743,19 @@ async function comprarAhora() {
         return;
       }
 
-      itemsDisponibles = Array.from({ length: cantidadProducto }, (_, index) => ({
+      itemsDisponibles = [{
         tipo: "descarga",
-        key: "descarga_" + Date.now() + "_" + index,
+        key: "descarga_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8),
         ruta: "descarga",
         cuenta: "",
         clave: "",
         perfil: "",
         pin: "",
-        observacion: "Descarga digital",
+        observacion: "Descarga para " + (plataformaElegida === "mac" ? "Mac" : "Windows"),
         plataformaElegida: plataformaElegida,
         linkEntrega: linkEntrega,
         raw: item
-      }));
+      }];
     } else if (productoEsLicencia || productoEsCodigo) {
       itemsDisponibles = await obtenerCodigosDisponibles(productoSeleccionadoId, cantidadProducto);
     } else {
@@ -2832,11 +2765,9 @@ async function comprarAhora() {
     if (itemsDisponibles.length < cantidadProducto) {
       mostrarAvisoSistema(
         "Configuración incompleta",
-        productoEsDescarga
-          ? "Este producto no tiene suficientes enlaces o configuración disponible para la entrega."
-          : (productoEsLicencia || productoEsCodigo)
-            ? "Hay stock visible, pero no hay suficientes códigos disponibles configurados para entregar este producto."
-            : "Hay stock visible, pero no hay suficientes cuentas disponibles configuradas para entregar este producto.",
+        (productoEsLicencia || productoEsCodigo)
+          ? "Hay stock visible, pero no hay suficientes códigos disponibles configurados para entregar este producto."
+          : "Hay stock visible, pero no hay suficientes cuentas disponibles configuradas para entregar este producto.",
         "error"
       );
       return;
@@ -3072,7 +3003,6 @@ function iniciarPaginaGeneralConMenu() {
   insertarBadgeMisComprasSiNoExiste();
   inyectarEstilosAvisoSistema();
   inyectarEstilosUIOverlay();
-  asegurarEstilosPluginsDescarga();
 }
 
 function iniciarFormularioReservado() {
