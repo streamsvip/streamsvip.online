@@ -1073,1485 +1073,553 @@
     let recargasListenerActivo = false;
 
     let stockRecalcTimeout = null;
-    let stockAutoSyncEscuchando = false;
+let stockAutoSyncEscuchando = false;
+let tiempoActivoAdmin = localStorage.getItem("streamsvip_admin_tiempo_activo") === "true";
+let recargaProcesando = false;
 
-    let tiempoActivoAdmin = localStorage.getItem("streamsvip_admin_tiempo_activo") === "true";
+function reembolsoDentroDeTiempo(fechaCompra) {
+  if (!fechaCompra) return false;
+  const compraMs = new Date(fechaCompra).getTime();
+  if (isNaN(compraMs)) return false;
+  return (Date.now() - compraMs) <= LIMITE_REEMBOLSO_MS;
+}
 
-    function reembolsoDentroDeTiempo(fechaCompra) {
-      if (!fechaCompra) return false;
-      const compraMs = new Date(fechaCompra).getTime();
-      if (isNaN(compraMs)) return false;
-      return (Date.now() - compraMs) <= LIMITE_REEMBOLSO_MS;
-    }
+function esProductoCodigoAdmin(productoId, item = {}) {
+  const id = String(productoId || "").toLowerCase();
+  const categoria = String(item.categoria || "").toLowerCase();
+  const nombre = String(item.nombre || "").toLowerCase();
+  const tipoEntrega = String(item.tipoEntrega || "").toLowerCase();
+  return (
+    categoria.includes("licencia") ||
+    tipoEntrega === "codigo" ||
+    id === "windows11pro" ||
+    nombre.includes("windows 11 pro")
+  );
+}
 
-    function esProductoCodigoAdmin(productoId, item = {}) {
-      const id = String(productoId || "").toLowerCase();
-      const categoria = String(item.categoria || "").toLowerCase();
-      const nombre = String(item.nombre || "").toLowerCase();
-      const tipoEntrega = String(item.tipoEntrega || "").toLowerCase();
+function esProductoDescargaAdmin(productoId, item = {}) {
+  const tipoEntrega = String(item.tipoEntrega || "").toLowerCase();
+  return tipoEntrega === "descarga" || tipoEntrega === "plugin";
+}
 
-      return (
-        categoria.includes("licencia") ||
-        tipoEntrega === "codigo" ||
-        id === "windows11pro" ||
-        nombre.includes("windows 11 pro")
-      );
-    }
+function esProductoCuentaAdmin(productoId, item = {}) {
+  return !esProductoCodigoAdmin(productoId, item) && !esProductoDescargaAdmin(productoId, item);
+}
 
-    function esProductoDescargaAdmin(productoId, item = {}) {
-      const tipoEntrega = String(item.tipoEntrega || "").toLowerCase();
-      return tipoEntrega === "descarga" || tipoEntrega === "plugin";
-    }
+function actualizarBotonTiempoActivoAdmin() {
+  if (!toggleTiempoActivoBtn) return;
+  if (tiempoActivoAdmin) {
+    toggleTiempoActivoBtn.textContent = "Tiempo activo: Activado";
+    toggleTiempoActivoBtn.classList.add("btnTiempoActivoOn");
+    toggleTiempoActivoBtn.classList.remove("btnTiempoActivoOff");
+  } else {
+    toggleTiempoActivoBtn.textContent = "Tiempo activo: Desactivado";
+    toggleTiempoActivoBtn.classList.add("btnTiempoActivoOff");
+    toggleTiempoActivoBtn.classList.remove("btnTiempoActivoOn");
+  }
+}
 
-    function esProductoCuentaAdmin(productoId, item = {}) {
-      return !esProductoCodigoAdmin(productoId, item) && !esProductoDescargaAdmin(productoId, item);
-    }
+function toggleTiempoActivoAdmin() {
+  tiempoActivoAdmin = !tiempoActivoAdmin;
+  localStorage.setItem("streamsvip_admin_tiempo_activo", tiempoActivoAdmin ? "true" : "false");
+  actualizarBotonTiempoActivoAdmin();
+  if (tiempoActivoAdmin) limpiarAdminInactividad();
+  else reiniciarAdminInactividad();
+}
 
-    function actualizarBotonTiempoActivoAdmin() {
-      if (!toggleTiempoActivoBtn) return;
+function limpiarAdminInactividad() {
+  if (adminTimeoutLogout) clearTimeout(adminTimeoutLogout);
+  if (adminTimeoutAviso) clearTimeout(adminTimeoutAviso);
+  adminTimeoutLogout = null;
+  adminTimeoutAviso = null;
+}
 
-      if (tiempoActivoAdmin) {
-        toggleTiempoActivoBtn.textContent = "Tiempo activo: Activado";
-        toggleTiempoActivoBtn.classList.add("btnTiempoActivoOn");
-        toggleTiempoActivoBtn.classList.remove("btnTiempoActivoOff");
-      } else {
-        toggleTiempoActivoBtn.textContent = "Tiempo activo: Desactivado";
-        toggleTiempoActivoBtn.classList.add("btnTiempoActivoOff");
-        toggleTiempoActivoBtn.classList.remove("btnTiempoActivoOn");
-      }
-    }
+function avisoAdminInactividad() {
+  if (adminAvisoMostrado) return;
+  adminAvisoMostrado = true;
+  alert("Panel administrador inactivo. La sesión se cerrará en 1 minuto si no realizas ninguna acción.");
+}
 
-    function toggleTiempoActivoAdmin() {
-      tiempoActivoAdmin = !tiempoActivoAdmin;
-      localStorage.setItem("streamsvip_admin_tiempo_activo", tiempoActivoAdmin ? "true" : "false");
-      actualizarBotonTiempoActivoAdmin();
+function cerrarAdminPorInactividad() {
+  limpiarAdminInactividad();
+  adminAvisoMostrado = false;
+  auth.signOut()
+    .then(() => {
+      alert("La sesión del administrador se cerró por inactividad.");
+      window.location.replace("admin.html");
+    })
+    .catch(() => {
+      alert("La sesión del administrador se cerró por inactividad.");
+      window.location.replace("admin.html");
+    });
+}
 
-      if (tiempoActivoAdmin) limpiarAdminInactividad();
-      else reiniciarAdminInactividad();
-    }
+function reiniciarAdminInactividad() {
+  limpiarAdminInactividad();
+  adminAvisoMostrado = false;
+  if (tiempoActivoAdmin) return;
+  adminTimeoutAviso = setTimeout(() => {
+    avisoAdminInactividad();
+  }, TIEMPO_INACTIVIDAD_ADMIN - TIEMPO_AVISO_ADMIN);
+  adminTimeoutLogout = setTimeout(() => {
+    cerrarAdminPorInactividad();
+  }, TIEMPO_INACTIVIDAD_ADMIN);
+}
 
-    function limpiarAdminInactividad() {
-      if (adminTimeoutLogout) clearTimeout(adminTimeoutLogout);
-      if (adminTimeoutAviso) clearTimeout(adminTimeoutAviso);
-      adminTimeoutLogout = null;
-      adminTimeoutAviso = null;
-    }
+function iniciarControlAdminInactividad() {
+  if (adminControlIniciado) {
+    reiniciarAdminInactividad();
+    return;
+  }
+  const eventos = ["mousemove","mousedown","click","scroll","keypress","touchstart","touchmove","keydown"];
+  eventos.forEach((evento) => document.addEventListener(evento, reiniciarAdminInactividad, true));
+  window.addEventListener("focus", reiniciarAdminInactividad);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) reiniciarAdminInactividad();
+  });
+  adminControlIniciado = true;
+  reiniciarAdminInactividad();
+}
 
-    function avisoAdminInactividad() {
-      if (adminAvisoMostrado) return;
-      adminAvisoMostrado = true;
-      alert("Panel administrador inactivo. La sesión se cerrará en 1 minuto si no realizas ninguna acción.");
-    }
+function reproducirSonidoRecarga() {
+  const audio = document.getElementById("audioRecarga");
+  if (!audio) return;
+  audio.currentTime = 0;
+  audio.play().catch(() => {});
+}
 
-    function cerrarAdminPorInactividad() {
-      limpiarAdminInactividad();
-      adminAvisoMostrado = false;
+function normalizarEstadoRecarga(estado) {
+  return String(estado || "pendiente").toLowerCase().trim();
+}
 
-      auth.signOut()
-        .then(() => {
-          alert("La sesión del administrador se cerró por inactividad.");
-          window.location.replace("admin.html");
-        })
-        .catch(() => {
-          alert("La sesión del administrador se cerró por inactividad.");
-          window.location.replace("admin.html");
+function recargaEsFinalizada(estado) {
+  const e = normalizarEstadoRecarga(estado);
+  return e === "aprobada" || e === "rechazada";
+}
+
+function actualizarBotonesModalRecarga(item = {}) {
+  const btnAprobar = document.getElementById("modalBtnAprobar");
+  const btnRechazar = document.getElementById("modalBtnRechazar");
+  const btnEliminar = document.getElementById("modalBtnEliminar");
+  const btnAbrir = document.getElementById("modalBtnAbrirArchivo");
+
+  if (!btnAprobar || !btnRechazar || !btnEliminar || !btnAbrir) return;
+
+  const estado = normalizarEstadoRecarga(item.estado);
+  const finalizada = recargaEsFinalizada(estado);
+  const bloqueado = recargaProcesando || finalizada;
+
+  btnAprobar.disabled = bloqueado;
+  btnRechazar.disabled = bloqueado;
+  btnEliminar.disabled = recargaProcesando;
+
+  btnAprobar.style.opacity = bloqueado ? "0.6" : "1";
+  btnRechazar.style.opacity = bloqueado ? "0.6" : "1";
+  btnEliminar.style.opacity = recargaProcesando ? "0.6" : "1";
+
+  if (estado === "aprobada") {
+    btnAprobar.textContent = "Ya aprobada";
+    btnRechazar.textContent = "Rechazar";
+    btnRechazar.disabled = true;
+    btnRechazar.style.opacity = "0.6";
+  } else if (estado === "rechazada") {
+    btnAprobar.textContent = "Aprobar";
+    btnRechazar.textContent = "Ya rechazada";
+    btnAprobar.disabled = true;
+    btnAprobar.style.opacity = "0.6";
+  } else {
+    btnAprobar.textContent = recargaProcesando ? "Procesando..." : "Aprobar";
+    btnRechazar.textContent = recargaProcesando ? "Procesando..." : "Rechazar";
+  }
+
+  btnAbrir.disabled = !item.comprobanteURL;
+  btnAbrir.style.opacity = item.comprobanteURL ? "1" : "0.6";
+}
+
+function togglePassword() {
+  adminPasswordInput.type = adminPasswordInput.type === "password" ? "text" : "password";
+  toggleBtn.textContent = adminPasswordInput.type === "password" ? "👁️" : "🙈";
+}
+
+function toggleCuentaPassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  input.type = input.type === "password" ? "text" : "password";
+  if (btn) btn.textContent = input.type === "password" ? "👁️" : "🙈";
+}
+
+function toggleSection(button) {
+  const card = button.closest(".collapsibleCard");
+  if (!card) return;
+  card.classList.toggle("closed");
+}
+
+adminEmailInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") loginAdmin();
+});
+
+adminPasswordInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") loginAdmin();
+});
+
+function setLoading(estado) {
+  loginBtn.disabled = estado;
+  loginBtn.textContent = estado ? "Ingresando..." : "Iniciar sesión";
+}
+
+function loginAdmin() {
+  const email = adminEmailInput.value.trim().toLowerCase();
+  const password = adminPasswordInput.value.trim();
+  loginMsg.textContent = "";
+
+  if (!email || !password) {
+    loginMsg.textContent = "Completa correo y contraseña.";
+    return;
+  }
+
+  setLoading(true);
+
+  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+    .then(() => auth.signInWithEmailAndPassword(email, password))
+    .then((userCredential) => {
+      const user = userCredential.user;
+      if (!user || !user.email) {
+        return auth.signOut().then(() => {
+          throw new Error("No se pudo validar el usuario.");
         });
-    }
-
-    function reiniciarAdminInactividad() {
-      limpiarAdminInactividad();
-      adminAvisoMostrado = false;
-
-      if (tiempoActivoAdmin) return;
-
-      adminTimeoutAviso = setTimeout(() => {
-        avisoAdminInactividad();
-      }, TIEMPO_INACTIVIDAD_ADMIN - TIEMPO_AVISO_ADMIN);
-
-      adminTimeoutLogout = setTimeout(() => {
-        cerrarAdminPorInactividad();
-      }, TIEMPO_INACTIVIDAD_ADMIN);
-    }
-
-    function iniciarControlAdminInactividad() {
-      if (adminControlIniciado) {
-        reiniciarAdminInactividad();
-        return;
       }
 
-      const eventos = ["mousemove","mousedown","click","scroll","keypress","touchstart","touchmove","keydown"];
-      eventos.forEach((evento) => document.addEventListener(evento, reiniciarAdminInactividad, true));
-
-      window.addEventListener("focus", reiniciarAdminInactividad);
-
-      document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) reiniciarAdminInactividad();
-      });
-
-      adminControlIniciado = true;
-      reiniciarAdminInactividad();
-    }
-
-    function reproducirSonidoRecarga() {
-      const audio = document.getElementById("audioRecarga");
-      if (!audio) return;
-      audio.currentTime = 0;
-      audio.play().catch(() => {});
-    }
-
-    function togglePassword() {
-      adminPasswordInput.type = adminPasswordInput.type === "password" ? "text" : "password";
-      toggleBtn.textContent = adminPasswordInput.type === "password" ? "👁️" : "🙈";
-    }
-
-    function toggleCuentaPassword(inputId, btn) {
-      const input = document.getElementById(inputId);
-      if (!input) return;
-      input.type = input.type === "password" ? "text" : "password";
-      if (btn) btn.textContent = input.type === "password" ? "👁️" : "🙈";
-    }
-
-    function toggleSection(button) {
-      const card = button.closest(".collapsibleCard");
-      if (!card) return;
-      card.classList.toggle("closed");
-    }
-
-    adminEmailInput.addEventListener("keydown", e => { if (e.key === "Enter") loginAdmin(); });
-    adminPasswordInput.addEventListener("keydown", e => { if (e.key === "Enter") loginAdmin(); });
-
-    function setLoading(estado) {
-      loginBtn.disabled = estado;
-      loginBtn.textContent = estado ? "Ingresando..." : "Iniciar sesión";
-    }
-
-    function loginAdmin() {
-      const email = adminEmailInput.value.trim().toLowerCase();
-      const password = adminPasswordInput.value.trim();
-
-      loginMsg.textContent = "";
-
-      if (!email || !password) {
-        loginMsg.textContent = "Completa correo y contraseña.";
-        return;
+      if (user.email.toLowerCase() !== ADMIN_EMAIL) {
+        return auth.signOut().then(() => {
+          throw new Error("Acceso denegado. Este usuario no es administrador.");
+        });
       }
 
-      setLoading(true);
+      return db.ref("usuarios/" + user.uid).once("value").then((snap) => {
+        const data = snap.val() || {};
+        const rol = data.rol || "";
+        const estado = String(data.estado || "activo").toLowerCase();
 
-      auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
-        .then(() => auth.signInWithEmailAndPassword(email, password))
-        .then((userCredential) => {
-          const user = userCredential.user;
-
-          if (!user || !user.email) {
-            return auth.signOut().then(() => {
-              throw new Error("No se pudo validar el usuario.");
-            });
-          }
-
-          if (user.email.toLowerCase() !== ADMIN_EMAIL) {
-            return auth.signOut().then(() => {
-              throw new Error("Acceso denegado. Este usuario no es administrador.");
-            });
-          }
-
-          return db.ref("usuarios/" + user.uid).once("value").then((snap) => {
-            const data = snap.val() || {};
-            const rol = data.rol || "";
-            const estado = String(data.estado || "activo").toLowerCase();
-
-            if (rol !== "admin") {
-              return auth.signOut().then(() => {
-                throw new Error("Tu cuenta no tiene rol administrador.");
-              });
-            }
-
-            if (estado === "bloqueado") {
-              return auth.signOut().then(() => {
-                throw new Error("Tu cuenta administrativa está bloqueada.");
-              });
-            }
+        if (rol !== "admin") {
+          return auth.signOut().then(() => {
+            throw new Error("Tu cuenta no tiene rol administrador.");
           });
-        })
-        .then(() => setLoading(false))
-        .catch((error) => {
-          setLoading(false);
-
-          if (error.code === "auth/user-not-found") {
-            loginMsg.textContent = "Ese correo no existe en Firebase Authentication.";
-          } else if (error.code === "auth/wrong-password") {
-            loginMsg.textContent = "La contraseña es incorrecta.";
-          } else {
-            loginMsg.textContent = error.message || "Correo o contraseña incorrectos.";
-          }
-        });
-    }
-
-    function cerrarSesion() {
-      limpiarAdminInactividad();
-      auth.signOut()
-        .then(() => window.location.replace("admin.html"))
-        .catch(() => window.location.replace("admin.html"));
-    }
-
-    auth.onAuthStateChanged(async (user) => {
-      if (user && user.email && user.email.toLowerCase() === ADMIN_EMAIL) {
-        try {
-          const snap = await db.ref("usuarios/" + user.uid).once("value");
-          const data = snap.val() || {};
-          const rol = data.rol || "";
-          const estado = String(data.estado || "activo").toLowerCase();
-
-          if (rol !== "admin" || estado === "bloqueado") {
-            await auth.signOut();
-            loginSection.classList.remove("hidden");
-            panelSection.classList.add("hidden");
-            loginMsg.textContent = "Acceso denegado.";
-            setLoading(false);
-            return;
-          }
-
-          loginSection.classList.add("hidden");
-          panelSection.classList.remove("hidden");
-          adminInfo.textContent = user.email;
-          actualizarBotonTiempoActivoAdmin();
-
-          if (!panelAdminYaCargado) {
-            cargarPanel();
-            panelAdminYaCargado = true;
-          }
-
-          iniciarControlAdminInactividad();
-
-        } catch (error) {
-          console.error("Error verificando admin:", error);
-          await auth.signOut();
-          loginSection.classList.remove("hidden");
-          panelSection.classList.add("hidden");
-          loginMsg.textContent = "No se pudo validar el acceso.";
-          setLoading(false);
         }
+
+        if (estado === "bloqueado") {
+          return auth.signOut().then(() => {
+            throw new Error("Tu cuenta administrativa está bloqueada.");
+          });
+        }
+      });
+    })
+    .then(() => setLoading(false))
+    .catch((error) => {
+      setLoading(false);
+      if (error.code === "auth/user-not-found") {
+        loginMsg.textContent = "Ese correo no existe en Firebase Authentication.";
+      } else if (error.code === "auth/wrong-password") {
+        loginMsg.textContent = "La contraseña es incorrecta.";
       } else {
-        limpiarAdminInactividad();
-        panelAdminYaCargado = false;
-        recargasInicializadas = false;
-        recargasPendientesCache = {};
-        recargasCacheAdmin = {};
-        loginSection.classList.remove("hidden");
-        panelSection.classList.add("hidden");
-        setLoading(false);
+        loginMsg.textContent = error.message || "Correo o contraseña incorrectos.";
       }
     });
+}
 
-    function cargarPanel() {
-      cargarVentas();
-      cargarComprasHoy();
-      cargarStock();
-      cargarProductos();
-      cargarProductosEnSelects();
-      cargarCuentas();
-      cargarUsuarios();
-      cargarRecargas();
-      cargarReembolsos();
-      cargarCodigos();
-      cargarDescargas();
-      cargarDescargasEntregadas();
-      escucharNuevasRecargasPendientes();
-      iniciarAutoSyncStock();
-      recalcularTodoElStockSilencioso();
-    }
+function cerrarSesion() {
+  limpiarAdminInactividad();
+  auth.signOut()
+    .then(() => window.location.replace("admin.html"))
+    .catch(() => window.location.replace("admin.html"));
+}
 
-    function badgeEstado(texto) {
-      texto = (texto || "").toString().toLowerCase();
+auth.onAuthStateChanged(async (user) => {
+  if (user && user.email && user.email.toLowerCase() === ADMIN_EMAIL) {
+    try {
+      const snap = await db.ref("usuarios/" + user.uid).once("value");
+      const data = snap.val() || {};
+      const rol = data.rol || "";
+      const estado = String(data.estado || "activo").toLowerCase();
 
-      if (texto.includes("desactiv")) return '<span class="badge off">desactivado</span>';
-      if (texto.includes("aprob") || texto.includes("activo") || texto.includes("complet") || texto === "true" || texto === "disponible" || texto === "activa") {
-        return '<span class="badge ok">' + texto + '</span>';
-      }
-      if (texto.includes("pend")) return '<span class="badge warn">' + texto + '</span>';
-      return '<span class="badge bad">' + texto + '</span>';
-    }
-
-    function textoSeguro(valor, fallback = "-") {
-      if (valor === undefined || valor === null || valor === "") return fallback;
-      return valor;
-    }
-
-    function formatearDinero(valor) {
-      return "S/ " + Number(valor || 0).toFixed(2);
-    }
-
-    function formatearFecha(valor) {
-      if (valor === undefined || valor === null || valor === "") return "-";
-
-      if (typeof valor === "number") {
-        const d = new Date(valor);
-        if (isNaN(d.getTime())) return String(valor);
-        return d.toLocaleString("es-PE");
-      }
-
-      const d = new Date(valor);
-      if (!isNaN(d.getTime())) return d.toLocaleString("es-PE");
-
-      return String(valor);
-    }
-
-    function timestampSeguro(valor) {
-      if (typeof valor === "number") return valor;
-      const ms = new Date(valor || "").getTime();
-      return isNaN(ms) ? 0 : ms;
-    }
-
-    function obtenerDuracionTextoAdmin(dias) {
-      const n = Number(dias || 0);
-
-      if (n >= 3650) return "Permanente";
-      if (n === 365) return "1 año";
-      if (n === 180) return "6 meses";
-      if (n === 90) return "3 meses";
-      if (n === 60) return "2 meses";
-      if (n === 30) return "1 mes";
-      if (n === 15) return "15 días";
-      if (n === 7) return "7 días";
-      if (n === 1) return "1 día";
-
-      return n + " días";
-    }
-
-    function sumarDias(fechaBase, dias) {
-      const base = new Date(fechaBase);
-      if (isNaN(base.getTime())) return "";
-      base.setDate(base.getDate() + Number(dias || 0));
-      return base.toISOString();
-    }
-
-    function mostrarMensajeStock(texto, error = false) {
-      stockMsg.textContent = texto;
-      stockMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
-      clearTimeout(window.stockMsgTimeout);
-      window.stockMsgTimeout = setTimeout(() => stockMsg.textContent = "", 3000);
-    }
-
-    function mostrarMensajeProducto(texto, error = false) {
-      productoMsg.textContent = texto;
-      productoMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
-      clearTimeout(window.productoMsgTimeout);
-      window.productoMsgTimeout = setTimeout(() => productoMsg.textContent = "", 3000);
-    }
-
-    function mostrarMensajeCuenta(texto, error = false) {
-      const cuentaMsg = document.getElementById("cuentaMsg");
-      cuentaMsg.textContent = texto;
-      cuentaMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
-      clearTimeout(window.cuentaMsgTimeout);
-      window.cuentaMsgTimeout = setTimeout(() => cuentaMsg.textContent = "", 3000);
-    }
-
-    function mostrarMensajeRecarga(texto, error = false) {
-      const recargaMsg = document.getElementById("recargaMsg");
-      recargaMsg.textContent = texto;
-      recargaMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
-      clearTimeout(window.recargaMsgTimeout);
-      window.recargaMsgTimeout = setTimeout(() => recargaMsg.textContent = "", 3500);
-    }
-
-    function mostrarMensajeReembolso(texto, error = false) {
-      const reembolsoMsg = document.getElementById("reembolsoMsg");
-      reembolsoMsg.textContent = texto;
-      reembolsoMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
-      clearTimeout(window.reembolsoMsgTimeout);
-      window.reembolsoMsgTimeout = setTimeout(() => reembolsoMsg.textContent = "", 3000);
-    }
-
-    function mostrarMensajeCodigo(texto, error = false) {
-      if (!codigoMsg) return;
-      codigoMsg.textContent = texto;
-      codigoMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
-      clearTimeout(window.codigoMsgTimeout);
-      window.codigoMsgTimeout = setTimeout(() => codigoMsg.textContent = "", 3000);
-    }
-
-    function mostrarMensajeDescarga(texto, error = false) {
-      const descargaMsg = document.getElementById("descargaMsg");
-      if (!descargaMsg) return;
-      descargaMsg.textContent = texto;
-      descargaMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
-      clearTimeout(window.descargaMsgTimeout);
-      window.descargaMsgTimeout = setTimeout(() => descargaMsg.textContent = "", 3000);
-    }
-
-    function cambiarCantidadInput(producto, cambio) {
-      const input = document.getElementById("stockInput_" + producto);
-      if (!input) return;
-      let valor = parseInt(input.value) || 0;
-      valor += cambio;
-      if (valor < 0) valor = 0;
-      input.value = valor;
-    }
-
-    function guardarStock(producto) {
-      const input = document.getElementById("stockInput_" + producto);
-      if (!input) return;
-
-      const nuevoStock = parseInt(input.value);
-      if (isNaN(nuevoStock) || nuevoStock < 0) {
-        mostrarMensajeStock("El stock de " + producto + " no es válido.", true);
+      if (rol !== "admin" || estado === "bloqueado") {
+        await auth.signOut();
+        loginSection.classList.remove("hidden");
+        panelSection.classList.add("hidden");
+        loginMsg.textContent = "Acceso denegado.";
+        setLoading(false);
         return;
       }
 
-      const updates = {};
-      updates["stock/" + producto] = nuevoStock;
-      updates["productos/" + producto + "/stock"] = nuevoStock;
+      loginSection.classList.add("hidden");
+      panelSection.classList.remove("hidden");
+      adminInfo.textContent = user.email;
+      actualizarBotonTiempoActivoAdmin();
 
-      db.ref().update(updates)
-        .then(() => mostrarMensajeStock("Stock actualizado: " + producto + " = " + nuevoStock))
-        .catch((error) => mostrarMensajeStock("Error: " + error.message, true));
-    }
-
-    function agotarProducto(producto) {
-      const updates = {};
-      updates["stock/" + producto] = 0;
-      updates["productos/" + producto + "/stock"] = 0;
-
-      db.ref().update(updates)
-        .then(() => mostrarMensajeStock("Producto agotado: " + producto))
-        .catch((error) => mostrarMensajeStock("Error: " + error.message, true));
-    }
-
-    function crearProducto() {
-      const id = document.getElementById("nuevoIdProducto").value.trim().toLowerCase();
-      const nombre = document.getElementById("nuevoNombreProducto").value.trim();
-      const precio = parseFloat(document.getElementById("nuevoPrecioProducto").value);
-      const stock = parseInt(document.getElementById("nuevoStockProducto").value);
-      const duracionDias = parseInt(document.getElementById("nuevaDuracionProducto").value);
-      const categoria = document.getElementById("nuevaCategoriaProducto").value.trim();
-      const imagen = document.getElementById("nuevaImagenProducto").value.trim();
-      const tipoEntrega = document.getElementById("nuevoTipoEntregaProducto").value.trim().toLowerCase();
-      const linkDescarga = document.getElementById("nuevoLinkDescargaProducto").value.trim();
-      const descripcion = document.getElementById("nuevaDescripcionProducto").value.trim();
-
-      if (!id || !nombre) return mostrarMensajeProducto("Completa el ID y nombre del producto.", true);
-      if (isNaN(precio) || precio < 0) return mostrarMensajeProducto("El precio no es válido.", true);
-      if (isNaN(stock) || stock < 0) return mostrarMensajeProducto("El stock no es válido.", true);
-      if (isNaN(duracionDias) || duracionDias < 1) return mostrarMensajeProducto("La duración en días no es válida.", true);
-
-      const tipoEntregaFinal = tipoEntrega || "cuenta";
-
-      const productoData = {
-        nombre,
-        precio,
-        stock,
-        duracionDias,
-        activo: true,
-        categoria: categoria || "general",
-        descripcion: descripcion || "",
-        imagen: imagen || "",
-        tipoEntrega: tipoEntregaFinal,
-        linkDescarga: linkDescarga || "",
-        proveedorId: "admin_principal",
-        proveedorNombre: "Josking",
-        proveedorTipo: "admin",
-        comisionProveedor: 96,
-        comisionPlataforma: 4,
-        fechaCreacion: Date.now()
-      };
-
-      if (tipoEntregaFinal === "plugin" || tipoEntregaFinal === "descarga") {
-        productoData.opcionesEntrega = {
-          windows: { nombre: "Windows", link: "" },
-          mac: { nombre: "Mac", link: "" },
-          general: { nombre: "General", link: linkDescarga || "" }
-        };
+      if (!panelAdminYaCargado) {
+        cargarPanel();
+        panelAdminYaCargado = true;
       }
 
-      const updates = {};
-      updates["productos/" + id] = productoData;
-      updates["stock/" + id] = stock;
-
-      db.ref().update(updates)
-        .then(() => {
-          mostrarMensajeProducto("Producto creado correctamente.");
-          document.getElementById("nuevoIdProducto").value = "";
-          document.getElementById("nuevoNombreProducto").value = "";
-          document.getElementById("nuevoPrecioProducto").value = "";
-          document.getElementById("nuevoStockProducto").value = "";
-          document.getElementById("nuevaDuracionProducto").value = "";
-          document.getElementById("nuevaCategoriaProducto").value = "";
-          document.getElementById("nuevaImagenProducto").value = "";
-          document.getElementById("nuevoTipoEntregaProducto").value = "";
-          document.getElementById("nuevoLinkDescargaProducto").value = "";
-          document.getElementById("nuevaDescripcionProducto").value = "";
-        })
-        .catch((error) => mostrarMensajeProducto(error.message, true));
+      iniciarControlAdminInactividad();
+    } catch (error) {
+      console.error("Error verificando admin:", error);
+      await auth.signOut();
+      loginSection.classList.remove("hidden");
+      panelSection.classList.add("hidden");
+      loginMsg.textContent = "No se pudo validar el acceso.";
+      setLoading(false);
     }
+  } else {
+    limpiarAdminInactividad();
+    panelAdminYaCargado = false;
+    recargasInicializadas = false;
+    recargasPendientesCache = {};
+    recargasCacheAdmin = {};
+    loginSection.classList.remove("hidden");
+    panelSection.classList.add("hidden");
+    setLoading(false);
+  }
+});
 
-    function guardarProducto(id) {
-      const nombre = document.getElementById("prodNombre_" + id).value.trim();
-      const precio = parseFloat(document.getElementById("prodPrecio_" + id).value);
-      const duracionDias = parseInt(document.getElementById("prodDuracion_" + id).value);
-      const categoria = document.getElementById("prodCategoria_" + id).value.trim();
-      const imagen = document.getElementById("prodImagen_" + id).value.trim();
-      const tipoEntrega = document.getElementById("prodTipoEntrega_" + id).value.trim().toLowerCase();
-      const linkDescarga = document.getElementById("prodLinkDescarga_" + id).value.trim();
-      const descripcion = document.getElementById("prodDescripcion_" + id).value.trim();
+function cargarPanel() {
+  cargarVentas();
+  cargarComprasHoy();
+  cargarStock();
+  cargarProductos();
+  cargarProductosEnSelects();
+  cargarCuentas();
+  cargarUsuarios();
+  cargarRecargas();
+  cargarReembolsos();
+  cargarCodigos();
+  cargarDescargas();
+  cargarDescargasEntregadas();
+  escucharNuevasRecargasPendientes();
+  iniciarAutoSyncStock();
+  recalcularTodoElStockSilencioso();
+}
 
-      if (!nombre) return mostrarMensajeProducto("El nombre no puede estar vacío.", true);
-      if (isNaN(precio) || precio < 0) return mostrarMensajeProducto("Precio inválido en " + id, true);
-      if (isNaN(duracionDias) || duracionDias < 1) return mostrarMensajeProducto("Duración inválida en " + id, true);
+function badgeEstado(texto) {
+  texto = (texto || "").toString().toLowerCase();
+  if (texto.includes("desactiv")) return '<span class="badge off">desactivado</span>';
+  if (texto.includes("aprob") || texto.includes("activo") || texto.includes("complet") || texto === "true" || texto === "disponible" || texto === "activa") {
+    return '<span class="badge ok">' + texto + '</span>';
+  }
+  if (texto.includes("pend")) return '<span class="badge warn">' + texto + '</span>';
+  return '<span class="badge bad">' + texto + '</span>';
+}
 
-      db.ref("productos/" + id).once("value")
-        .then((snapshot) => {
-          const actual = snapshot.val() || {};
-          const updateData = {
-            nombre,
-            precio,
-            stock: Number(actual.stock || 0),
-            duracionDias,
-            categoria: categoria || "general",
-            descripcion: descripcion || "",
-            imagen: imagen || "",
-            tipoEntrega: tipoEntrega || "cuenta",
-            linkDescarga: linkDescarga || "",
-            proveedorId: actual.proveedorId || "admin_principal",
-            proveedorNombre: actual.proveedorNombre || "Josking",
-            proveedorTipo: actual.proveedorTipo || "admin",
-            comisionProveedor: Number(actual.comisionProveedor ?? 96),
-            comisionPlataforma: Number(actual.comisionPlataforma ?? 4)
-          };
+function textoSeguro(valor, fallback = "-") {
+  if (valor === undefined || valor === null || valor === "") return fallback;
+  return valor;
+}
 
-          if (updateData.tipoEntrega === "plugin" || updateData.tipoEntrega === "descarga") {
-            updateData.opcionesEntrega = actual.opcionesEntrega || {
-              windows: { nombre: "Windows", link: "" },
-              mac: { nombre: "Mac", link: "" },
-              general: { nombre: "General", link: linkDescarga || "" }
-            };
-          }
+function formatearDinero(valor) {
+  return "S/ " + Number(valor || 0).toFixed(2);
+}
 
-          return db.ref("productos/" + id).update(updateData);
-        })
-        .then(() => mostrarMensajeProducto("Producto actualizado: " + id))
-        .catch((error) => mostrarMensajeProducto("Error: " + error.message, true));
-    }
+function formatearFecha(valor) {
+  if (valor === undefined || valor === null || valor === "") return "-";
+  if (typeof valor === "number") {
+    const d = new Date(valor);
+    if (isNaN(d.getTime())) return String(valor);
+    return d.toLocaleString("es-PE");
+  }
+  const d = new Date(valor);
+  if (!isNaN(d.getTime())) return d.toLocaleString("es-PE");
+  return String(valor);
+}
 
-    function toggleProductoActivo(id, estadoActual) {
-      db.ref("productos/" + id + "/activo").set(!estadoActual)
-        .then(() => mostrarMensajeProducto("Estado actualizado: " + id))
-        .catch((error) => mostrarMensajeProducto("Error: " + error.message, true));
-    }
+function timestampSeguro(valor) {
+  if (typeof valor === "number") return valor;
+  const ms = new Date(valor || "").getTime();
+  return isNaN(ms) ? 0 : ms;
+}
 
-    function eliminarProducto(id) {
-      if (!confirm("¿Seguro que quieres eliminar el producto '" + id + "'?")) return;
+function obtenerDuracionTextoAdmin(dias) {
+  const n = Number(dias || 0);
+  if (n >= 3650) return "Permanente";
+  if (n === 365) return "1 año";
+  if (n === 180) return "6 meses";
+  if (n === 90) return "3 meses";
+  if (n === 60) return "2 meses";
+  if (n === 30) return "1 mes";
+  if (n === 15) return "15 días";
+  if (n === 7) return "7 días";
+  if (n === 1) return "1 día";
+  return n + " días";
+}
 
-      Promise.all([
-        db.ref("productos/" + id).remove(),
-        db.ref("stock/" + id).remove()
-      ])
-      .then(() => mostrarMensajeProducto("Producto eliminado: " + id))
-      .catch((error) => mostrarMensajeProducto("Error: " + error.message, true));
-    }
+function sumarDias(fechaBase, dias) {
+  const base = new Date(fechaBase);
+  if (isNaN(base.getTime())) return "";
+  base.setDate(base.getDate() + Number(dias || 0));
+  return base.toISOString();
+}
 
-    function renderStock() {
-      const tbody = document.querySelector("#tablaStock tbody");
-      const tabla = document.getElementById("tablaStock");
-      const vacio = document.getElementById("stockVacio");
+function mostrarMensajeStock(texto, error = false) {
+  stockMsg.textContent = texto;
+  stockMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
+  clearTimeout(window.stockMsgTimeout);
+  window.stockMsgTimeout = setTimeout(() => stockMsg.textContent = "", 3000);
+}
 
-      tbody.innerHTML = "";
+function mostrarMensajeProducto(texto, error = false) {
+  productoMsg.textContent = texto;
+  productoMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
+  clearTimeout(window.productoMsgTimeout);
+  window.productoMsgTimeout = setTimeout(() => productoMsg.textContent = "", 3000);
+}
 
-      const keys = Object.keys(stockCache || {});
-      if (!keys.length) {
-        tabla.classList.add("hidden");
-        vacio.classList.remove("hidden");
-        document.getElementById("totalStock").textContent = "0";
-        return;
-      }
+function mostrarMensajeCuenta(texto, error = false) {
+  const cuentaMsg = document.getElementById("cuentaMsg");
+  cuentaMsg.textContent = texto;
+  cuentaMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
+  clearTimeout(window.cuentaMsgTimeout);
+  window.cuentaMsgTimeout = setTimeout(() => cuentaMsg.textContent = "", 3000);
+}
 
-      document.getElementById("totalStock").textContent = keys.reduce((acc, key) => acc + Number(stockCache[key] || 0), 0);
+function mostrarMensajeRecarga(texto, error = false) {
+  const recargaMsg = document.getElementById("recargaMsg");
+  recargaMsg.textContent = texto;
+  recargaMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
+  clearTimeout(window.recargaMsgTimeout);
+  window.recargaMsgTimeout = setTimeout(() => recargaMsg.textContent = "", 3500);
+}
 
-      keys.sort().forEach((producto) => {
-        const valor = stockCache[producto];
-        let stockNum = 0;
+function mostrarMensajeReembolso(texto, error = false) {
+  const reembolsoMsg = document.getElementById("reembolsoMsg");
+  reembolsoMsg.textContent = texto;
+  reembolsoMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
+  clearTimeout(window.reembolsoMsgTimeout);
+  window.reembolsoMsgTimeout = setTimeout(() => reembolsoMsg.textContent = "", 3000);
+}
 
-        if (typeof valor === "number") stockNum = valor;
-        else if (typeof valor === "object" && valor !== null) stockNum = Number(valor.stock || valor.cantidad || 0);
-        else stockNum = Number(valor || 0);
+function mostrarMensajeCodigo(texto, error = false) {
+  if (!codigoMsg) return;
+  codigoMsg.textContent = texto;
+  codigoMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
+  clearTimeout(window.codigoMsgTimeout);
+  window.codigoMsgTimeout = setTimeout(() => codigoMsg.textContent = "", 3000);
+}
 
-        const productoInfo = productosCache[producto] || {};
-        const activo = productoInfo.activo !== false;
+function mostrarMensajeDescarga(texto, error = false) {
+  const descargaMsg = document.getElementById("descargaMsg");
+  if (!descargaMsg) return;
+  descargaMsg.textContent = texto;
+  descargaMsg.style.color = error ? "#ff8a8a" : "#9fe3b8";
+  clearTimeout(window.descargaMsgTimeout);
+  window.descargaMsgTimeout = setTimeout(() => descargaMsg.textContent = "", 3000);
+}
 
-        let estado = "agotado";
-        if (!activo) estado = "desactivado";
-        else if (stockNum > 0) estado = "activo";
+function aprobarRecarga(id) {
+  if (recargaProcesando) return;
+  recargaProcesando = true;
 
-        tbody.innerHTML += `
-          <tr>
-            <td>${producto}</td>
-            <td>${stockNum}</td>
-            <td>${badgeEstado(estado)}</td>
-            <td>
-              <div class="stockControls">
-                <button class="stockBtn" onclick="cambiarCantidadInput('${producto}', -1)">-</button>
-                <input type="number" min="0" id="stockInput_${producto}" class="stockInput" value="${stockNum}">
-                <button class="stockBtn" onclick="cambiarCantidadInput('${producto}', 1)">+</button>
-                <button class="saveStockBtn" onclick="guardarStock('${producto}')">Guardar</button>
-                <button class="smallBtn btnDangerSoft" onclick="agotarProducto('${producto}')">Agotar</button>
-              </div>
-            </td>
-          </tr>
-        `;
-      });
+  const cacheItem = recargasCacheAdmin[id] || {};
+  actualizarBotonesModalRecarga(cacheItem);
 
-      tabla.classList.remove("hidden");
-      vacio.classList.add("hidden");
-    }
+  db.ref("recargas/" + id).once("value")
+    .then((snap) => {
+      const item = snap.val();
+      if (!item || typeof item !== "object") throw new Error("La recarga no existe.");
 
-    function cargarStock() {
-      db.ref("stock").on("value", (snapshot) => {
-        stockCache = snapshot.val() || {};
-        renderStock();
-      }, () => {
-        stockCache = {};
-        renderStock();
-        mostrarMensajeStock("No se pudo leer stock. Revisa tus rules.", true);
-      });
+      const uid = item.uidUsuario || item.uid || "";
+      const monto = Number(item.monto || 0);
+      const estadoActual = normalizarEstadoRecarga(item.estado);
 
-      db.ref("productos").on("value", (snapshot) => {
-        productosCache = snapshot.val() || {};
-        renderStock();
-      }, () => {
-        productosCache = {};
-        renderStock();
-      });
-    }
+      if (!uid) throw new Error("La recarga no tiene uidUsuario o uid.");
+      if (isNaN(monto) || monto <= 0) throw new Error("El monto de la recarga no es válido.");
+      if (estadoActual === "aprobada") throw new Error("Esta recarga ya fue aprobada.");
+      if (estadoActual === "rechazada") throw new Error("Esta recarga ya fue rechazada.");
 
-    function recalcularTodoElStock(mostrarMensaje = true) {
-      Promise.all([
-        db.ref("productos").once("value"),
-        db.ref("cuentas").once("value"),
-        db.ref("codigos").once("value"),
-        db.ref("stock").once("value")
-      ])
-      .then(([productosSnap, cuentasSnap, codigosSnap, stockSnap]) => {
-        const productos = productosSnap.val() || {};
-        const cuentas = cuentasSnap.val() || {};
-        const codigos = codigosSnap.val() || {};
-        const stockActual = stockSnap.val() || {};
+      return db.ref("usuarios/" + uid).once("value").then((snapshot) => {
+        const usuario = snapshot.val();
+        if (!usuario) throw new Error("No existe el usuario en /usuarios/" + uid);
+
+        const saldoActual = Number(usuario.saldo || 0);
+        const nuevoSaldo = Number((saldoActual + monto).toFixed(2));
+        const ahora = Date.now();
 
         const updates = {};
-
-        Object.keys(productos).forEach((productoId) => {
-          const productoData = productos[productoId] || {};
-
-          if (esProductoCodigoAdmin(productoId, productoData)) {
-            let stockReal = 0;
-
-            Object.keys(codigos).forEach((codigoId) => {
-              const item = codigos[codigoId] || {};
-              const mismoProducto = String(item.producto || "").toLowerCase() === String(productoId).toLowerCase();
-              const disponible = item.activo !== false && item.usado !== true;
-
-              if (mismoProducto && disponible) stockReal++;
-            });
-
-            updates["stock/" + productoId] = stockReal;
-            updates["productos/" + productoId + "/stock"] = stockReal;
-            return;
-          }
-
-          if (esProductoDescargaAdmin(productoId, productoData)) {
-            const stockManual = Number(stockActual[productoId] ?? productoData.stock ?? 0);
-            updates["stock/" + productoId] = stockManual;
-            updates["productos/" + productoId + "/stock"] = stockManual;
-            return;
-          }
-
-          let stockReal = 0;
-          const rutasCompatibles = [
-            String(productoId),
-            String(productoId).toLowerCase(),
-            String(productoId).charAt(0).toUpperCase() + String(productoId).slice(1)
-          ];
-
-          const rutasProcesadas = new Set();
-
-          rutasCompatibles.forEach((ruta) => {
-            if (!ruta || rutasProcesadas.has(ruta)) return;
-            rutasProcesadas.add(ruta);
-
-            const cuentasProducto = cuentas[ruta] || {};
-            Object.keys(cuentasProducto).forEach((cuentaId) => {
-              const item = cuentasProducto[cuentaId] || {};
-              if (String(item.estado || "").toLowerCase() === "disponible") {
-                stockReal++;
-              }
-            });
-          });
-
-          updates["stock/" + productoId] = stockReal;
-          updates["productos/" + productoId + "/stock"] = stockReal;
-        });
+        updates["usuarios/" + uid + "/saldo"] = nuevoSaldo;
+        updates["recargas/" + id + "/estado"] = "aprobada";
+        updates["recargas/" + id + "/fechaAprobacion"] = ahora;
+        updates["recargas/" + id + "/updatedAt"] = ahora;
 
         return db.ref().update(updates);
-      })
-      .then(() => {
-        if (mostrarMensaje) mostrarMensajeStock("Stock recalculado correctamente.");
-      })
-      .catch((error) => {
-        if (mostrarMensaje) mostrarMensajeStock("Error al recalcular stock: " + error.message, true);
       });
-    }
+    })
+    .then(() => {
+      mostrarMensajeRecarga("Recarga aprobada y saldo sumado correctamente.");
+      recargaProcesando = false;
 
-    function recalcularTodoElStockSilencioso() {
-      recalcularTodoElStock(false);
-    }
-
-    function programarRecalculoStockSilencioso() {
-      clearTimeout(stockRecalcTimeout);
-      stockRecalcTimeout = setTimeout(() => {
-        recalcularTodoElStockSilencioso();
-      }, 700);
-    }
-
-    function iniciarAutoSyncStock() {
-      if (stockAutoSyncEscuchando) return;
-      stockAutoSyncEscuchando = true;
-
-      db.ref("cuentas").on("value", () => programarRecalculoStockSilencioso());
-      db.ref("codigos").on("value", () => programarRecalculoStockSilencioso());
-      db.ref("productos").on("value", () => programarRecalculoStockSilencioso());
-      db.ref("stock").on("value", () => programarRecalculoStockSilencioso());
-    }
-
-    function cargarProductos() {
-      db.ref("productos").on("value", (snapshot) => {
-        const data = snapshot.val();
-        productosCache = data || {};
-
-        const tbody = document.querySelector("#tablaProductos tbody");
-        const tabla = document.getElementById("tablaProductos");
-        const vacio = document.getElementById("productosVacio");
-
-        tbody.innerHTML = "";
-
-        if (!data || typeof data !== "object") {
-          tabla.classList.add("hidden");
-          vacio.classList.remove("hidden");
-          return;
-        }
-
-        Object.keys(data).sort().forEach((id) => {
-          const item = data[id] || {};
-          const estadoVisual = item.activo === false ? "desactivado" : "activo";
-
-          tbody.innerHTML += `
-            <tr>
-              <td>${id}</td>
-              <td><input id="prodNombre_${id}" class="tableInput tableInputWide" value="${item.nombre || ""}"></td>
-              <td><input id="prodPrecio_${id}" class="tableInput" type="number" min="0" step="0.01" value="${Number(item.precio || 0)}"></td>
-              <td><input id="prodStock_${id}" class="tableInput tableInputReadonly" type="number" value="${Number(item.stock || 0)}" readonly></td>
-              <td><input id="prodDuracion_${id}" class="tableInput" type="number" min="1" value="${Number(item.duracionDias || 30)}"></td>
-              <td>${badgeEstado(estadoVisual)}</td>
-              <td><input id="prodCategoria_${id}" class="tableInput tableInputWide" value="${item.categoria || "general"}"></td>
-              <td><input id="prodImagen_${id}" class="tableInput tableInputWide" value="${item.imagen || ""}" placeholder="https://..."></td>
-              <td><input id="prodTipoEntrega_${id}" class="tableInput" value="${item.tipoEntrega || "cuenta"}" placeholder="cuenta / codigo / descarga / plugin"></td>
-              <td><input id="prodLinkDescarga_${id}" class="tableInput tableInputWide" value="${item.linkDescarga || ""}" placeholder="https://..."></td>
-              <td>${textoSeguro(item.proveedorNombre, "Josking")}</td>
-              <td>${Number(item.comisionProveedor ?? 96)}%</td>
-              <td>${Number(item.comisionPlataforma ?? 4)}%</td>
-              <td><textarea id="prodDescripcion_${id}" class="tableInputDesc">${item.descripcion || ""}</textarea></td>
-              <td>
-                <div class="actionGroup">
-                  <button class="smallBtn btnSave" onclick="guardarProducto('${id}')">Guardar</button>
-                  <button class="smallBtn btnToggle" onclick="toggleProductoActivo('${id}', ${!!item.activo})">${item.activo ? "Desactivar" : "Activar"}</button>
-                  <button class="smallBtn btnDelete" onclick="eliminarProducto('${id}')">Eliminar</button>
-                </div>
-              </td>
-            </tr>
-          `;
-        });
-
-        tabla.classList.remove("hidden");
-        vacio.classList.add("hidden");
-      }, () => {
-        const tabla = document.getElementById("tablaProductos");
-        const vacio = document.getElementById("productosVacio");
-        tabla.classList.add("hidden");
-        vacio.classList.remove("hidden");
-        mostrarMensajeProducto("No se pudieron leer productos. Revisa tus rules.", true);
-      });
-    }
-
-    function cargarProductosEnSelects() {
-      const selectCuenta = document.getElementById("cuentaProducto");
-      const selectCodigo = document.getElementById("codigoProducto");
-      const selectDescarga = document.getElementById("descargaProducto");
-
-      db.ref("productos").on("value", (snapshot) => {
-        const data = snapshot.val() || {};
-
-        selectCuenta.innerHTML = '<option value="">Selecciona producto</option>';
-        selectCodigo.innerHTML = '<option value="">Selecciona producto</option>';
-        selectDescarga.innerHTML = '<option value="">Selecciona producto</option>';
-
-        const ids = Object.keys(data).sort();
-
-        if (!ids.length) {
-          selectCuenta.innerHTML = '<option value="">Primero crea un producto</option>';
-          selectCodigo.innerHTML = '<option value="">Primero crea un producto</option>';
-          selectDescarga.innerHTML = '<option value="">Primero crea un producto</option>';
-          return;
-        }
-
-        ids.forEach((id) => {
-          const item = data[id] || {};
-          const label = `${item.nombre || id} (${id})`;
-
-          if (esProductoCuentaAdmin(id, item)) {
-            selectCuenta.innerHTML += `<option value="${id}">${label}</option>`;
-          }
-
-          if (esProductoCodigoAdmin(id, item)) {
-            selectCodigo.innerHTML += `<option value="${id}">${label}</option>`;
-          }
-
-          if (esProductoDescargaAdmin(id, item)) {
-            selectDescarga.innerHTML += `<option value="${id}">${label}</option>`;
-          }
-        });
-
-        if (selectCuenta.options.length === 1) {
-          selectCuenta.innerHTML += `<option value="" disabled>No hay productos tipo cuenta</option>`;
-        }
-
-        if (selectCodigo.options.length === 1) {
-          selectCodigo.innerHTML += `<option value="" disabled>No hay productos tipo código</option>`;
-        }
-
-        if (selectDescarga.options.length === 1) {
-          selectDescarga.innerHTML += `<option value="" disabled>No hay productos tipo descarga/plugin</option>`;
-        }
-      });
-    }
-
-    function crearCuenta() {
-      const producto = document.getElementById("cuentaProducto").value.trim().toLowerCase();
-      const correo = document.getElementById("cuentaCorreo").value.trim();
-      const clave = document.getElementById("cuentaClave").value.trim();
-      const perfil = document.getElementById("cuentaPerfil").value.trim();
-      const pin = document.getElementById("cuentaPin").value.trim();
-      const observacion = document.getElementById("cuentaObservacion").value.trim();
-
-      if (!producto) return mostrarMensajeCuenta("Selecciona un producto tipo cuenta.", true);
-
-      db.ref("productos/" + producto).once("value")
-        .then((productoSnap) => {
-          const productoData = productoSnap.val() || {};
-
-          if (!esProductoCuentaAdmin(producto, productoData)) {
-            throw new Error("Ese producto no pertenece a la sección Cuentas.");
-          }
-
-          if (!correo || !clave) {
-            throw new Error("Completa correo/usuario y contraseña de la cuenta.");
-          }
-
-          const duracionDias = Number(productoData.duracionDias || 30);
-          const fechaCreacionISO = new Date().toISOString();
-          const fechaVencimientoISO = sumarDias(fechaCreacionISO, duracionDias);
-          const cuentaRef = db.ref("cuentas/" + producto).push();
-
-          return cuentaRef.set({
-            correo,
-            clave,
-            perfil: perfil || "",
-            pin: pin || "",
-            observacion: observacion || "",
-            estado: "disponible",
-            duracionDias,
-            fechaCreacion: fechaCreacionISO,
-            fechaVencimiento: fechaVencimientoISO,
-            comprador: "",
-            uidUsuario: "",
-            fechaEntrega: "",
-            ordenId: ""
-          });
-        })
-        .then(() => {
-          programarRecalculoStockSilencioso();
-          mostrarMensajeCuenta("Cuenta guardada correctamente.");
-          document.getElementById("cuentaProducto").value = "";
-          document.getElementById("cuentaCorreo").value = "";
-          document.getElementById("cuentaClave").value = "";
-          document.getElementById("cuentaPerfil").value = "";
-          document.getElementById("cuentaPin").value = "";
-          document.getElementById("cuentaObservacion").value = "";
-        })
-        .catch((error) => mostrarMensajeCuenta("Error: " + error.message, true));
-    }
-
-    function crearCodigo() {
-      const producto = document.getElementById("codigoProducto").value.trim().toLowerCase();
-      const codigo = document.getElementById("nuevoCodigoValor").value.trim();
-      const observacion = document.getElementById("nuevoCodigoObservacion").value.trim();
-
-      if (!producto) return mostrarMensajeCodigo("Selecciona un producto tipo código.", true);
-      if (!codigo) return mostrarMensajeCodigo("Ingresa el código.", true);
-
-      db.ref("productos/" + producto).once("value")
-        .then((snap) => {
-          const prod = snap.val() || {};
-
-          if (!esProductoCodigoAdmin(producto, prod)) {
-            throw new Error("Ese producto no pertenece a la sección Códigos.");
-          }
-
-          const tipoEntrega = String(prod.tipoEntrega || "").toLowerCase() || "codigo";
-          const codigoRef = db.ref("codigos").push();
-
-          return codigoRef.set({
-            producto: producto,
-            codigo: codigo,
-            observacion: observacion || "",
-            tipoEntrega: tipoEntrega,
-            activo: true,
-            usado: false,
-            fechaCreacion: Date.now(),
-            fechaUso: "",
-            uidUsuario: "",
-            comprador: ""
-          });
-        })
-        .then(() => {
-          programarRecalculoStockSilencioso();
-          mostrarMensajeCodigo("Código guardado correctamente.");
-          document.getElementById("codigoProducto").value = "";
-          document.getElementById("nuevoCodigoValor").value = "";
-          document.getElementById("nuevoCodigoObservacion").value = "";
-        })
-        .catch((error) => mostrarMensajeCodigo("Error: " + error.message, true));
-    }
-
-    function guardarDescargaProducto() {
-      const producto = document.getElementById("descargaProducto").value.trim().toLowerCase();
-      const plataforma = document.getElementById("descargaPlataforma").value.trim().toLowerCase();
-      const nombre = document.getElementById("descargaNombre").value.trim();
-      const link = document.getElementById("descargaLink").value.trim();
-
-      if (!producto) return mostrarMensajeDescarga("Selecciona un producto tipo descarga/plugin.", true);
-      if (!plataforma) return mostrarMensajeDescarga("Selecciona una plataforma.", true);
-      if (!link) return mostrarMensajeDescarga("Ingresa el link de descarga.", true);
-
-      db.ref("productos/" + producto).once("value")
-        .then((snap) => {
-          const prod = snap.val() || {};
-
-          if (!esProductoDescargaAdmin(producto, prod)) {
-            throw new Error("Ese producto no pertenece a la sección Plugins / DAW / Descargas.");
-          }
-
-          const updates = {};
-          updates["productos/" + producto + "/opcionesEntrega/" + plataforma + "/nombre"] = nombre || (plataforma === "windows" ? "Windows" : plataforma === "mac" ? "Mac" : "General");
-          updates["productos/" + producto + "/opcionesEntrega/" + plataforma + "/link"] = link;
-
-          if (plataforma === "general") {
-            updates["productos/" + producto + "/linkDescarga"] = link;
-          }
-
-          return db.ref().update(updates);
-        })
-        .then(() => {
-          mostrarMensajeDescarga("Descarga guardada correctamente.");
-          document.getElementById("descargaProducto").value = "";
-          document.getElementById("descargaPlataforma").value = "windows";
-          document.getElementById("descargaNombre").value = "";
-          document.getElementById("descargaLink").value = "";
-        })
-        .catch((error) => mostrarMensajeDescarga("Error: " + error.message, true));
-    }
-
-    function eliminarDescargaProducto(productoId, plataforma) {
-      if (!confirm("¿Seguro que quieres eliminar esta opción de descarga?")) return;
-
-      const updates = {};
-      updates["productos/" + productoId + "/opcionesEntrega/" + plataforma] = null;
-
-      if (plataforma === "general") {
-        updates["productos/" + productoId + "/linkDescarga"] = "";
+      if (recargasCacheAdmin[id]) {
+        recargasCacheAdmin[id].estado = "aprobada";
+        recargasCacheAdmin[id].fechaAprobacion = Date.now();
       }
 
-      db.ref().update(updates)
-        .then(() => mostrarMensajeDescarga("Opción de descarga eliminada correctamente."))
-        .catch((error) => mostrarMensajeDescarga("Error: " + error.message, true));
-    }
+      if (modalRecargaActual && modalRecargaActual.id === id) {
+        modalRecargaActual.estado = "aprobada";
+        document.getElementById("modalRecargaEstado").textContent = "aprobada";
+        actualizarBotonesModalRecarga(modalRecargaActual);
+      }
+    })
+    .catch((error) => {
+      recargaProcesando = false;
+      if (modalRecargaActual && modalRecargaActual.id === id) {
+        actualizarBotonesModalRecarga(modalRecargaActual);
+      }
+      mostrarMensajeRecarga("Error al aprobar recarga: " + error.message, true);
+    });
+}
 
-    function eliminarCuenta(producto, cuentaId) {
-      if (!confirm("¿Seguro que quieres eliminar esta cuenta?")) return;
+function rechazarRecarga(id) {
+  if (recargaProcesando) return;
+  recargaProcesando = true;
 
-      db.ref("cuentas/" + producto + "/" + cuentaId).remove()
-        .then(() => {
-          programarRecalculoStockSilencioso();
-          mostrarMensajeCuenta("Cuenta eliminada correctamente.");
-        })
-        .catch((error) => mostrarMensajeCuenta("Error: " + error.message, true));
-    }
+  const cacheItem = recargasCacheAdmin[id] || {};
+  actualizarBotonesModalRecarga(cacheItem);
 
-    function eliminarCodigo(codigoId) {
-      if (!confirm("¿Seguro que quieres eliminar este código?")) return;
+  db.ref("recargas/" + id).once("value")
+    .then((snap) => {
+      const item = snap.val();
+      if (!item || typeof item !== "object") throw new Error("La recarga no existe.");
 
-      db.ref("codigos/" + codigoId).remove()
-        .then(() => {
-          programarRecalculoStockSilencioso();
-          mostrarMensajeCodigo("Código eliminado correctamente.");
-        })
-        .catch((error) => mostrarMensajeCodigo("Error: " + error.message, true));
-    }
+      const estadoActual = normalizarEstadoRecarga(item.estado);
 
-    function toggleCodigoActivo(codigoId, nuevoEstado) {
-      db.ref("codigos/" + codigoId + "/activo").set(nuevoEstado)
-        .then(() => {
-          programarRecalculoStockSilencioso();
-          mostrarMensajeCodigo("Estado del código actualizado.");
-        })
-        .catch((error) => mostrarMensajeCodigo("Error: " + error.message, true));
-    }
+      if (estadoActual === "aprobada") throw new Error("No puedes rechazar una recarga ya aprobada.");
+      if (estadoActual === "rechazada") throw new Error("Esta recarga ya fue rechazada.");
 
-    function marcarCuentaUsadaManual(producto, cuentaId) {
-      db.ref("cuentas/" + producto + "/" + cuentaId).update({
-        estado: "usada",
-        fechaEntrega: new Date().toISOString()
-      })
-      .then(() => {
-        programarRecalculoStockSilencioso();
-        mostrarMensajeCuenta("Cuenta marcada como usada y stock actualizado.");
-      })
-      .catch((error) => mostrarMensajeCuenta("Error: " + error.message, true));
-    }
-
-    function guardarCuentaUsada(producto, cuentaId) {
-      const correo = document.getElementById("usedCorreo_" + producto + "_" + cuentaId)?.value.trim() || "";
-      const clave = document.getElementById("usedClave_" + producto + "_" + cuentaId)?.value.trim() || "";
-      const perfil = document.getElementById("usedPerfil_" + producto + "_" + cuentaId)?.value.trim() || "";
-      const pin = document.getElementById("usedPin_" + producto + "_" + cuentaId)?.value.trim() || "";
-      const observacion = document.getElementById("usedObs_" + producto + "_" + cuentaId)?.value.trim() || "";
-
-      if (!correo) return mostrarMensajeCuenta("El correo no puede quedar vacío.", true);
-
-      db.ref("cuentas/" + producto + "/" + cuentaId).once("value")
-        .then((snap) => {
-          const cuentaActual = snap.val() || {};
-          if (!cuentaActual || typeof cuentaActual !== "object") throw new Error("La cuenta usada no existe.");
-
-          const uidUsuario = cuentaActual.uidUsuario || "";
-          const ordenId = cuentaActual.ordenId || "";
-
-          const updates = {};
-          updates["cuentas/" + producto + "/" + cuentaId + "/correo"] = correo;
-          updates["cuentas/" + producto + "/" + cuentaId + "/clave"] = clave;
-          updates["cuentas/" + producto + "/" + cuentaId + "/perfil"] = perfil;
-          updates["cuentas/" + producto + "/" + cuentaId + "/pin"] = pin;
-          updates["cuentas/" + producto + "/" + cuentaId + "/observacion"] = observacion;
-          updates["cuentas/" + producto + "/" + cuentaId + "/fechaActualizacionAdmin"] = Date.now();
-
-          if (uidUsuario && ordenId) {
-            updates["ordenes/" + uidUsuario + "/" + ordenId + "/cuenta"] = correo;
-            updates["ordenes/" + uidUsuario + "/" + ordenId + "/clave"] = clave;
-            updates["ordenes/" + uidUsuario + "/" + ordenId + "/perfil"] = perfil;
-            updates["ordenes/" + uidUsuario + "/" + ordenId + "/pin"] = pin;
-            updates["ordenes/" + uidUsuario + "/" + ordenId + "/observacion"] = observacion;
-            updates["ordenes/" + uidUsuario + "/" + ordenId + "/fechaActualizacionAdmin"] = Date.now();
-          }
-
-          return db.ref().update(updates);
-        })
-        .then(() => {
-          mostrarMensajeCuenta("Cuenta usada actualizada correctamente y reflejada en Mis Compras.");
-        })
-        .catch((error) => {
-          mostrarMensajeCuenta("Error al actualizar la cuenta usada: " + error.message, true);
-        });
-    }
-
-    function cargarCuentas() {
-      db.ref("cuentas").on("value", (snapshot) => {
-        const data = snapshot.val();
-
-        const tbodyDisponibles = document.querySelector("#tablaCuentasDisponibles tbody");
-        const tablaDisponibles = document.getElementById("tablaCuentasDisponibles");
-        const vacioDisponibles = document.getElementById("cuentasDisponiblesVacio");
-
-        const tbodyUsadas = document.querySelector("#tablaCuentasUsadas tbody");
-        const tablaUsadas = document.getElementById("tablaCuentasUsadas");
-        const vacioUsadas = document.getElementById("cuentasUsadasVacio");
-
-        tbodyDisponibles.innerHTML = "";
-        tbodyUsadas.innerHTML = "";
-
-        let hayDisponibles = false;
-        let hayUsadas = false;
-
-        if (!data) {
-          tablaDisponibles.classList.add("hidden");
-          vacioDisponibles.classList.remove("hidden");
-          tablaUsadas.classList.add("hidden");
-          vacioUsadas.classList.remove("hidden");
-          return;
-        }
-
-        const disponiblesLista = [];
-        const usadasLista = [];
-
-        Object.keys(data).forEach((producto) => {
-          const cuentasProducto = data[producto] || {};
-
-          Object.keys(cuentasProducto).forEach((cuentaId) => {
-            const item = cuentasProducto[cuentaId] || {};
-            const estado = String(item.estado || "").toLowerCase().trim();
-
-            const fechaCreacionMs = timestampSeguro(item.fechaCreacion);
-            const fechaEntregaMs = timestampSeguro(item.fechaEntrega);
-
-            const registro = {
-              producto,
-              cuentaId,
-              item,
-              fechaCreacionMs,
-              fechaEntregaMs
-            };
-
-            if (estado === "disponible") {
-              disponiblesLista.push(registro);
-            } else {
-              usadasLista.push(registro);
-            }
-          });
-        });
-
-        disponiblesLista.sort((a, b) => b.fechaCreacionMs - a.fechaCreacionMs);
-
-        usadasLista.sort((a, b) => {
-          const fechaA = a.fechaEntregaMs || a.fechaCreacionMs;
-          const fechaB = b.fechaEntregaMs || b.fechaCreacionMs;
-          return fechaB - fechaA;
-        });
-
-        disponiblesLista.forEach(({ producto, cuentaId, item }) => {
-          hayDisponibles = true;
-
-          tbodyDisponibles.innerHTML += `
-            <tr>
-              <td>${producto}</td>
-              <td>${textoSeguro(item.correo)}</td>
-              <td>
-                <div class="accountPassWrap">
-                  <input type="password" id="clave_${producto}_${cuentaId}" class="accountPassInput" value="${textoSeguro(item.clave, "")}" readonly>
-                  <button class="accountEye" onclick="toggleCuentaPassword('clave_${producto}_${cuentaId}', this)">👁️</button>
-                </div>
-              </td>
-              <td>${textoSeguro(item.perfil)}</td>
-              <td>${textoSeguro(item.pin)}</td>
-              <td>${obtenerDuracionTextoAdmin(item.duracionDias)}</td>
-              <td>${formatearFecha(item.fechaCreacion)}</td>
-              <td>${formatearFecha(item.fechaVencimiento)}</td>
-              <td>${textoSeguro(item.observacion)}</td>
-              <td>${badgeEstado("disponible")}</td>
-              <td>
-                <div class="actionGroup">
-                  <button class="smallBtn btnDangerSoft" onclick="marcarCuentaUsadaManual('${producto}', '${cuentaId}')">Marcar usada</button>
-                  <button class="smallBtn btnDelete" onclick="eliminarCuenta('${producto}', '${cuentaId}')">Eliminar</button>
-                </div>
-              </td>
-            </tr>
-          `;
-        });
-
-        usadasLista.forEach(({ producto, cuentaId, item }) => {
-          hayUsadas = true;
-
-          tbodyUsadas.innerHTML += `
-            <tr>
-              <td>${producto}</td>
-              <td><input id="usedCorreo_${producto}_${cuentaId}" class="tableInput tableInputWide" value="${textoSeguro(item.correo, "")}"></td>
-              <td>
-                <div class="accountPassWrap">
-                  <input type="password" id="usedClave_${producto}_${cuentaId}" class="accountPassInput" value="${textoSeguro(item.clave, "")}">
-                  <button class="accountEye" onclick="toggleCuentaPassword('usedClave_${producto}_${cuentaId}', this)">👁️</button>
-                </div>
-              </td>
-              <td><input id="usedPerfil_${producto}_${cuentaId}" class="tableInput" value="${textoSeguro(item.perfil, "")}"></td>
-              <td>${textoSeguro(item.comprador)}</td>
-              <td>${textoSeguro(item.uidUsuario)}</td>
-              <td>${obtenerDuracionTextoAdmin(item.duracionDias)}</td>
-              <td>${formatearFecha(item.fechaCreacion)}</td>
-              <td>${formatearFecha(item.fechaEntrega)}</td>
-              <td>${formatearFecha(item.fechaVencimiento)}</td>
-              <td><input id="usedPin_${producto}_${cuentaId}" class="tableInput" value="${textoSeguro(item.pin, "")}"></td>
-              <td><input id="usedObs_${producto}_${cuentaId}" class="tableInput tableInputWide" value="${textoSeguro(item.observacion, "")}"></td>
-              <td>${badgeEstado(item.estado || "usada")}</td>
-              <td>
-                <div class="actionGroup">
-                  <button class="smallBtn btnSave" onclick="guardarCuentaUsada('${producto}', '${cuentaId}')">Guardar cambios</button>
-                  <button class="smallBtn btnDelete" onclick="eliminarCuenta('${producto}', '${cuentaId}')">Eliminar</button>
-                </div>
-              </td>
-            </tr>
-          `;
-        });
-
-        if (hayDisponibles) {
-          tablaDisponibles.classList.remove("hidden");
-          vacioDisponibles.classList.add("hidden");
-        } else {
-          tablaDisponibles.classList.add("hidden");
-          vacioDisponibles.classList.remove("hidden");
-        }
-
-        if (hayUsadas) {
-          tablaUsadas.classList.remove("hidden");
-          vacioUsadas.classList.add("hidden");
-        } else {
-          tablaUsadas.classList.add("hidden");
-          vacioUsadas.classList.remove("hidden");
-        }
-      }, () => {
-        mostrarMensajeCuenta("No se pudieron leer cuentas. Revisa tus rules.", true);
+      return db.ref("recargas/" + id).update({
+        estado: "rechazada",
+        fechaRechazo: Date.now(),
+        updatedAt: Date.now()
       });
-    }
+    })
+    .then(() => {
+      mostrarMensajeRecarga("Recarga rechazada correctamente.");
+      recargaProcesando = false;
 
-    function cargarDescargas() {
-      db.ref("productos").on("value", (snapshot) => {
-        const data = snapshot.val() || {};
-        const tbody = document.querySelector("#tablaDescargas tbody");
-        const tabla = document.getElementById("tablaDescargas");
-        const vacio = document.getElementById("descargasVacio");
+      if (recargasCacheAdmin[id]) {
+        recargasCacheAdmin[id].estado = "rechazada";
+        recargasCacheAdmin[id].fechaRechazo = Date.now();
+      }
 
-        tbody.innerHTML = "";
-
-        const ids = Object.keys(data).filter((id) => esProductoDescargaAdmin(id, data[id] || {}));
-
-        if (!ids.length) {
-          tabla.classList.add("hidden");
-          vacio.classList.remove("hidden");
-          return;
-        }
-
-        ids.sort().forEach((id) => {
-          const item = data[id] || {};
-          const opciones = item.opcionesEntrega || {};
-          const win = opciones.windows || {};
-          const mac = opciones.mac || {};
-          const general = opciones.general || {};
-
-          tbody.innerHTML += `
-            <tr>
-              <td>${textoSeguro(item.nombre, id)} (${id})</td>
-              <td><span class="downloadTag">${textoSeguro(item.tipoEntrega, "descarga")}</span></td>
-              <td>
-                <div><strong>${textoSeguro(win.nombre, "-")}</strong></div>
-                <div style="margin-top:6px; word-break:break-all;">${textoSeguro(win.link, "-")}</div>
-              </td>
-              <td>
-                <div><strong>${textoSeguro(mac.nombre, "-")}</strong></div>
-                <div style="margin-top:6px; word-break:break-all;">${textoSeguro(mac.link, "-")}</div>
-              </td>
-              <td>
-                <div><strong>${textoSeguro(general.nombre, "-")}</strong></div>
-                <div style="margin-top:6px; word-break:break-all;">${textoSeguro(general.link || item.linkDescarga, "-")}</div>
-              </td>
-              <td>
-                <div class="actionGroup">
-                  <button class="smallBtn btnDelete" onclick="eliminarDescargaProducto('${id}','windows')">Quitar Win</button>
-                  <button class="smallBtn btnDelete" onclick="eliminarDescargaProducto('${id}','mac')">Quitar Mac</button>
-                  <button class="smallBtn btnDelete" onclick="eliminarDescargaProducto('${id}','general')">Quitar General</button>
-                </div>
-              </td>
-            </tr>
-          `;
-        });
-
-        tabla.classList.remove("hidden");
-        vacio.classList.add("hidden");
-      });
-    }
-
-    function esOrdenDescargaOPlugin(item = {}) {
-      const tipoEntrega = String(item.tipoEntrega || "").toLowerCase().trim();
-      const entregaVisual = String(item.entregaVisual || "").toLowerCase().trim();
-      const linkEntrega = String(item.linkEntrega || "").trim();
-
-      return (
-        tipoEntrega === "descarga" ||
-        tipoEntrega === "plugin" ||
-        entregaVisual === "descarga" ||
-        linkEntrega !== ""
-      );
-    }
-
-    function eliminarOrdenDescargaAdmin(uid, ordenId) {
-      if (!uid || !ordenId) return;
-      if (!confirm("¿Seguro que quieres eliminar esta compra de descarga/plugin del panel del usuario?")) return;
-
-      db.ref("ordenes/" + uid + "/" + ordenId).remove()
-        .then(() => {
-          mostrarMensajeDescarga("Compra eliminada correctamente.");
-        })
-        .catch((error) => {
-          mostrarMensajeDescarga("Error al eliminar la compra: " + error.message, true);
-        });
-    }
-
-    function copiarTextoAdmin(texto) {
-      navigator.clipboard.writeText(String(texto || ""))
-        .then(() => {
-          mostrarMensajeDescarga("Link copiado al portapapeles.");
-        })
-        .catch(() => {
-          mostrarMensajeDescarga("No se pudo copiar el link.", true);
-        });
-    }
-
-    function cargarDescargasEntregadas() {
-      db.ref("ordenes").on("value", (snapshot) => {
-        const data = snapshot.val() || {};
-        const tbody = document.querySelector("#tablaDescargasEntregadas tbody");
-        const tabla = document.getElementById("tablaDescargasEntregadas");
-        const vacio = document.getElementById("descargasEntregadasVacio");
-
-        if (!tbody || !tabla || !vacio) return;
-
-        tbody.innerHTML = "";
-
-        const lista = [];
-
-        Object.keys(data).forEach((uid) => {
-          const ordenesUsuario = data[uid] || {};
-
-          Object.keys(ordenesUsuario).forEach((ordenId) => {
-            const item = ordenesUsuario[ordenId] || {};
-
-            if (!esOrdenDescargaOPlugin(item)) return;
-
-            lista.push({
-              uid,
-              ordenId,
-              ...item
-            });
-          });
-        });
-
-        lista.sort((a, b) => {
-          return timestampSeguro(b.fechaCompra) - timestampSeguro(a.fechaCompra);
-        });
-
-        if (!lista.length) {
-          tabla.classList.add("hidden");
-          vacio.classList.remove("hidden");
-          return;
-        }
-
-        lista.forEach((item) => {
-          const plataforma = item.plataformaElegida || "-";
-          const linkEntrega = item.linkEntrega || "";
-          const linkHtml = linkEntrega
-            ? `<a href="${linkEntrega}" target="_blank" rel="noopener noreferrer">Abrir link</a>`
-            : "-";
-
-          tbody.innerHTML += `
-            <tr>
-              <td>${textoSeguro(item.uid)}</td>
-              <td>${textoSeguro(item.ordenId)}</td>
-              <td>${textoSeguro(item.servicio || item.producto)}</td>
-              <td>${textoSeguro(item.comprador)}</td>
-              <td>${formatearDinero(item.precio || 0)}</td>
-              <td>${textoSeguro(plataforma)}</td>
-              <td style="word-break:break-all;">${linkHtml}</td>
-              <td>${formatearFecha(item.fechaCompra)}</td>
-              <td>${badgeEstado(item.estado || "activa")}</td>
-              <td>
-                <div class="actionGroup">
-                  ${linkEntrega ? `<button class="smallBtn btnToggle" onclick="copiarTextoAdmin('${String(linkEntrega).replace(/'/g, "\\'")}')">Copiar link</button>` : ""}
-                  <button class="smallBtn btnDelete" onclick="eliminarOrdenDescargaAdmin('${item.uid}', '${item.ordenId}')">Eliminar</button>
-                </div>
-              </td>
-            </tr>
-          `;
-        });
-
-        tabla.classList.remove("hidden");
-        vacio.classList.add("hidden");
-      }, (error) => {
-        console.error("Error leyendo descargas entregadas:", error);
-        const tabla = document.getElementById("tablaDescargasEntregadas");
-        const vacio = document.getElementById("descargasEntregadasVacio");
-
-        if (tabla) tabla.classList.add("hidden");
-        if (vacio) vacio.classList.remove("hidden");
-
-        mostrarMensajeDescarga("No se pudieron leer las descargas vendidas. Revisa tus rules.", true);
-      });
-    }
-
-    function toggleUsuarioEstado(uid, nuevoEstado) {
-      db.ref("usuarios/" + uid + "/estado").set(nuevoEstado)
-        .catch((error) => {
-          alert("No se pudo cambiar estado: " + error.message);
-        });
-    }
-
-    function aprobarRecarga(id) {
-      db.ref("recargas/" + id).once("value")
-      .then((snap) => {
-        const item = snap.val();
-        if (!item || typeof item !== "object") throw new Error("La recarga no existe.");
-
-        const uid = item.uidUsuario || item.uid || "";
-        const monto = Number(item.monto || 0);
-        const estadoActual = String(item.estado || "").toLowerCase();
-
-        if (!uid) throw new Error("La recarga no tiene uidUsuario o uid.");
-        if (isNaN(monto) || monto <= 0) throw new Error("El monto de la recarga no es válido.");
-        if (estadoActual === "aprobada") throw new Error("Esta recarga ya fue aprobada.");
-        if (estadoActual === "rechazada") throw new Error("Esta recarga ya fue rechazada.");
-
-        return db.ref("usuarios/" + uid).once("value")
-        .then((snapshot) => {
-          const usuario = snapshot.val();
-          if (!usuario) throw new Error("No existe el usuario en /usuarios/" + uid);
-
-          const saldoActual = Number(usuario.saldo || 0);
-          const nuevoSaldo = saldoActual + monto;
-
-          const updates = {};
-          updates["usuarios/" + uid + "/saldo"] = nuevoSaldo;
-          updates["recargas/" + id + "/estado"] = "aprobada";
-          updates["recargas/" + id + "/fechaAprobacion"] = Date.now();
-          updates["recargas/" + id + "/updatedAt"] = Date.now();
-
-          return db.ref().update(updates);
-        });
-      })
-      .then(() => {
-        mostrarMensajeRecarga("Recarga aprobada y saldo sumado correctamente.");
-        if (modalRecargaActual && modalRecargaActual.id === id) cerrarModalRecarga();
-      })
-      .catch((error) => mostrarMensajeRecarga("Error al aprobar recarga: " + error.message, true));
-    }
-
-    function rechazarRecarga(id) {
-      db.ref("recargas/" + id).once("value")
-      .then((snap) => {
-        const item = snap.val();
-        if (!item || typeof item !== "object") throw new Error("La recarga no existe.");
-
-        const estadoActual = String(item.estado || "").toLowerCase();
-
-        if (estadoActual === "aprobada") throw new Error("No puedes rechazar una recarga ya aprobada.");
-        if (estadoActual === "rechazada") throw new Error("Esta recarga ya fue rechazada.");
-
-        return db.ref("recargas/" + id).update({
-          estado: "rechazada",
-          fechaRechazo: Date.now(),
-          updatedAt: Date.now()
-        });
-      })
+      if (modalRecargaActual && modalRecargaActual.id === id) {
+        modalRecargaActual.estado = "rechazada";
+        document.getElementById("modalRecargaEstado").textContent = "rechazada";
+        actualizarBotonesModalRecarga(modalRecargaActual);
+      }
+    })
+    .catch((error) => {
+      recargaProcesando = false;
+      if (modalRecargaActual && modalRecargaActual.id === id) {
+        actualizarBotonesModalRecarga(modalRecargaActual);
+      }
+      mostrarMensajeRecarga("Error al rechazar recarga: " + error.message, true);
+    });
+}
       .then(() => {
         mostrarMensajeRecarga("Recarga rechazada correctamente.");
         if (modalRecargaActual && modalRecargaActual.id === id) cerrarModalRecarga();
