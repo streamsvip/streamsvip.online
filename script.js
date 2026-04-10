@@ -981,6 +981,11 @@ function esProductoDescarga(productoId = "", itemProducto = {}) {
   );
 }
 
+function esProductoStockIlimitado(productoId = "", itemProducto = {}) {
+  const tipoEntrega = String(itemProducto.tipoEntrega || "").toLowerCase().trim();
+  return tipoEntrega === "descarga" || tipoEntrega === "plugin";
+}
+
 function esProductoCodigo(productoId = "", itemProducto = {}) {
   const nombre = String(itemProducto.nombre || "").toLowerCase();
   const categoria = String(itemProducto.categoria || "").toLowerCase();
@@ -2029,7 +2034,9 @@ function renderizarProductosTienda(data) {
     const proveedorNombre = item.proveedorNombre || "Josking";
     const imagen = obtenerImagenProducto(item, id);
     const duracionTexto = obtenerDuracionTexto(item);
-    const agotado = stock <= 0;
+    const stockIlimitado = esProductoStockIlimitado(id, item);
+    const agotado = !stockIlimitado && stock <= 0;
+    const textoStock = stockIlimitado ? "Ilimitado" : String(stock);
 
     const html = `
       <div class="producto" id="producto_${escaparHTML(id)}">
@@ -2040,7 +2047,7 @@ function renderizarProductosTienda(data) {
           <span class="productoProveedorNombre">🛡 ${escaparHTML(proveedorNombre)}</span>
         </div>
         <p class="precio">${escaparHTML(formatearPrecioProducto(precio))}</p>
-        <p class="stock">Stock: <span id="stock_${escaparHTML(id)}">${stock}</span></p>
+        <p class="stock">Stock: <span id="stock_${escaparHTML(id)}">${escaparHTML(textoStock)}</span></p>
         <p class="duracionServicio">${escaparHTML(duracionTexto)}</p>
         <button
           class="btnComprar"
@@ -2099,8 +2106,9 @@ function abrirProductoPorId(productoId) {
   const imagen = obtenerImagenProducto(item, productoId);
   const stock = Number(item.stock || 0);
   const proveedorNombre = item.proveedorNombre || "Josking";
+  const stockIlimitado = esProductoStockIlimitado(productoId, item);
 
-  if (stock <= 0) {
+  if (!stockIlimitado && stock <= 0) {
     mostrarAvisoSistema("Producto agotado", "Este producto no tiene stock disponible en este momento.", "warn");
     return;
   }
@@ -2110,7 +2118,7 @@ function abrirProductoPorId(productoId) {
   productoActual = nombre;
   precioBase = precio;
   cantidadProducto = 1;
-  stockDisponible = stock;
+  stockDisponible = stockIlimitado ? 999999 : stock;
   productoBaseActual = productoBaseNormalizado;
 
   const modal = document.getElementById("modalCompra");
@@ -2176,6 +2184,15 @@ function cerrarModal() {
 }
 
 function cambiarCantidad(valor) {
+  const item = productoSeleccionadoData || {};
+  const stockIlimitado = esProductoStockIlimitado(productoSeleccionadoId, item);
+
+  if (stockIlimitado) {
+    cantidadProducto = 1;
+    actualizarVisualCantidadYTotal();
+    return;
+  }
+
   let nuevaCantidad = cantidadProducto + valor;
 
   if (nuevaCantidad < 1) nuevaCantidad = 1;
@@ -2776,8 +2793,10 @@ async function comprarAhora() {
     await descontarSaldoUsuario(uid, totalCompra);
     saldoDescontado = true;
 
-    await descontarStockProducto(productoSeleccionadoId, cantidadProducto);
-    stockDescontado = true;
+    if (!productoEsDescarga) {
+      await descontarStockProducto(productoSeleccionadoId, cantidadProducto);
+      stockDescontado = true;
+    }
 
     const ordenesGeneradas = await guardarOrdenesUsuario(item, itemsDisponibles, nombreComprador);
     const ordenIds = ordenesGeneradas.map((o) => o.ordenId);
