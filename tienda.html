@@ -151,6 +151,8 @@
         <button type="button" class="categoriaBtn activo" data-categoria="todos">Todos</button>
         <button type="button" class="categoriaBtn" data-categoria="streaming">Streaming</button>
         <button type="button" class="categoriaBtn" data-categoria="musica">Música</button>
+        <button type="button" class="categoriaBtn" data-categoria="plugin">Plugin</button>
+        <button type="button" class="categoriaBtn" data-categoria="daw">DAW</button>
         <button type="button" class="categoriaBtn" data-categoria="diseno">Diseño</button>
         <button type="button" class="categoriaBtn" data-categoria="ia">IA</button>
         <button type="button" class="categoriaBtn" data-categoria="licencias">Licencias</button>
@@ -313,14 +315,19 @@
         const data = window.productoSeleccionadoData || null;
         const tipoEntrega = String(data?.tipoEntrega || "").toLowerCase();
         const categoria = String(data?.categoria || "").toLowerCase();
+        const nombre = String(data?.nombre || "").toLowerCase();
 
-        const esPlugin =
+        const esPluginODaw =
           tipoEntrega === "plugin" ||
+          tipoEntrega === "descarga" ||
           categoria.includes("plugin") ||
-          categoria.includes("musica") ||
-          categoria.includes("música");
+          categoria.includes("daw") ||
+          nombre.includes("plugin") ||
+          nombre.includes("daw") ||
+          nombre.includes("vst") ||
+          nombre.includes("au");
 
-        if (esPlugin) {
+        if (esPluginODaw) {
           box.classList.add("activo");
           select.value = "windows";
         } else {
