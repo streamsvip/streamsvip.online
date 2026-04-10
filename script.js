@@ -755,7 +755,14 @@ MODAL DESCARGA / PLUGIN
 
 function esEntregaDescargaOPlugin(itemProducto = {}) {
   const tipoEntrega = String(itemProducto?.tipoEntrega || "").toLowerCase().trim();
-  return tipoEntrega === "descarga" || tipoEntrega === "plugin";
+  const categoria = String(itemProducto?.categoria || "").toLowerCase().trim();
+
+  return (
+    tipoEntrega === "descarga" ||
+    tipoEntrega === "plugin" ||
+    categoria === "plugin" ||
+    categoria === "daw"
+  );
 }
 
 function asegurarUIEntregaDescarga() {
@@ -906,14 +913,33 @@ function obtenerCategoriaVisualProducto(idProducto, itemProducto = {}) {
   }
 
   if (
-    tipoEntrega === "descarga" ||
-    tipoEntrega === "plugin" ||
+    categoriaDb === "plugin" ||
     categoriaDb.includes("plugin") ||
-    categoriaDb.includes("musica") ||
-    categoriaDb.includes("música") ||
+    tipoEntrega === "plugin" ||
     nombre.includes("plugin") ||
     nombre.includes("vst") ||
-    nombre.includes("au") ||
+    nombre.includes("au")
+  ) {
+    return "plugin";
+  }
+
+  if (
+    categoriaDb === "daw" ||
+    categoriaDb.includes("daw") ||
+    nombre.includes("fl studio") ||
+    nombre.includes("ableton") ||
+    nombre.includes("cubase") ||
+    nombre.includes("logic pro") ||
+    nombre.includes("reaper") ||
+    nombre.includes("pro tools") ||
+    nombre.includes("studio one")
+  ) {
+    return "daw";
+  }
+
+  if (
+    categoriaDb.includes("musica") ||
+    categoriaDb.includes("música") ||
     nombre.includes("spotify")
   ) {
     return "musica";
@@ -970,20 +996,37 @@ function esProductoLicencia(productoId = "", itemProducto = {}) {
 
 function esProductoDescarga(productoId = "", itemProducto = {}) {
   const nombre = String(itemProducto.nombre || "").toLowerCase();
+  const categoria = String(itemProducto.categoria || "").toLowerCase();
   const tipoEntrega = String(itemProducto.tipoEntrega || "").toLowerCase();
 
   return (
     tipoEntrega === "descarga" ||
     tipoEntrega === "plugin" ||
+    categoria.includes("plugin") ||
+    categoria.includes("daw") ||
     nombre.includes("plugin") ||
     nombre.includes("vst") ||
-    nombre.includes("au")
+    nombre.includes("au") ||
+    nombre.includes("fl studio") ||
+    nombre.includes("ableton") ||
+    nombre.includes("cubase") ||
+    nombre.includes("logic pro") ||
+    nombre.includes("reaper") ||
+    nombre.includes("pro tools") ||
+    nombre.includes("studio one")
   );
 }
 
 function esProductoStockIlimitado(productoId = "", itemProducto = {}) {
   const tipoEntrega = String(itemProducto.tipoEntrega || "").toLowerCase().trim();
-  return tipoEntrega === "descarga" || tipoEntrega === "plugin";
+  const categoria = String(itemProducto.categoria || "").toLowerCase().trim();
+
+  return (
+    tipoEntrega === "descarga" ||
+    tipoEntrega === "plugin" ||
+    categoria === "plugin" ||
+    categoria === "daw"
+  );
 }
 
 function esProductoCodigo(productoId = "", itemProducto = {}) {
@@ -1078,8 +1121,14 @@ function calcularRepartoVenta(precioUnitario, cantidad, itemProducto = {}) {
 function obtenerReglasProducto(productoBase) {
   const item = productoSeleccionadoData || {};
   const tipoEntrega = String(item?.tipoEntrega || "").toLowerCase().trim();
+  const categoria = String(item?.categoria || "").toLowerCase().trim();
 
-  if (tipoEntrega === "descarga" || tipoEntrega === "plugin") {
+  if (
+    tipoEntrega === "descarga" ||
+    tipoEntrega === "plugin" ||
+    categoria === "plugin" ||
+    categoria === "daw"
+  ) {
     return `
       <li>Selecciona correctamente la plataforma de instalación: <strong>Windows</strong> o <strong>Mac</strong>.</li>
       <li>Descarga el archivo completo y espera a que finalice antes de abrirlo.</li>
@@ -1214,8 +1263,14 @@ function obtenerReglasProducto(productoBase) {
 function obtenerDescripcionProductoFallback(productoBase) {
   const item = productoSeleccionadoData || {};
   const tipoEntrega = String(item?.tipoEntrega || "").toLowerCase().trim();
+  const categoria = String(item?.categoria || "").toLowerCase().trim();
 
-  if (tipoEntrega === "descarga" || tipoEntrega === "plugin") {
+  if (
+    tipoEntrega === "descarga" ||
+    tipoEntrega === "plugin" ||
+    categoria === "plugin" ||
+    categoria === "daw"
+  ) {
     return "Producto digital descargable con entrega técnica según la plataforma seleccionada. El acceso se orienta a instalación en Windows o Mac, según disponibilidad configurada para el producto.";
   }
 
