@@ -99,6 +99,7 @@ LOGIN
 .inputWrap{
   position:relative;
   margin:10px 0;
+  width:100%;
 }
 
 .noMargin{
@@ -123,6 +124,7 @@ LOGIN
   font-size:18px;
   cursor:pointer;
   transition:0.25s;
+  z-index:2;
 }
 
 .togglePass:hover{
@@ -929,7 +931,7 @@ TABLE WRAPS
 }
 
 .tableWrapAdminScroll table{
-  min-width:1650px;
+  min-width:1800px;
 }
 
 table{
@@ -1061,6 +1063,180 @@ td a:hover{
 #tablaUsuarios td:nth-child(3){
   min-width:220px;
   word-break:break-word;
+}
+
+/* =========================
+MEJORA COLUMNA CLAVE EN CUENTAS
+========================= */
+
+#tablaCuentasDisponibles,
+#tablaCuentasUsadas{
+  min-width:1900px;
+}
+
+#tablaCuentasDisponibles th:nth-child(1),
+#tablaCuentasDisponibles td:nth-child(1){
+  min-width:180px;
+}
+
+#tablaCuentasDisponibles th:nth-child(2),
+#tablaCuentasDisponibles td:nth-child(2){
+  min-width:240px;
+  word-break:break-word;
+}
+
+#tablaCuentasDisponibles th:nth-child(3),
+#tablaCuentasDisponibles td:nth-child(3){
+  min-width:260px;
+  width:260px;
+  white-space:nowrap;
+}
+
+#tablaCuentasDisponibles th:nth-child(4),
+#tablaCuentasDisponibles td:nth-child(4){
+  min-width:130px;
+}
+
+#tablaCuentasDisponibles th:nth-child(5),
+#tablaCuentasDisponibles td:nth-child(5){
+  min-width:95px;
+}
+
+#tablaCuentasDisponibles th:nth-child(6),
+#tablaCuentasDisponibles td:nth-child(6){
+  min-width:105px;
+}
+
+#tablaCuentasDisponibles th:nth-child(7),
+#tablaCuentasDisponibles td:nth-child(7),
+#tablaCuentasDisponibles th:nth-child(8),
+#tablaCuentasDisponibles td:nth-child(8){
+  min-width:150px;
+}
+
+#tablaCuentasDisponibles th:nth-child(9),
+#tablaCuentasDisponibles td:nth-child(9){
+  min-width:190px;
+  word-break:break-word;
+}
+
+#tablaCuentasDisponibles th:nth-child(10),
+#tablaCuentasDisponibles td:nth-child(10){
+  min-width:110px;
+}
+
+#tablaCuentasDisponibles th:nth-child(11),
+#tablaCuentasDisponibles td:nth-child(11){
+  min-width:220px;
+}
+
+#tablaCuentasUsadas th:nth-child(1),
+#tablaCuentasUsadas td:nth-child(1){
+  min-width:160px;
+}
+
+#tablaCuentasUsadas th:nth-child(2),
+#tablaCuentasUsadas td:nth-child(2){
+  min-width:240px;
+  word-break:break-word;
+}
+
+#tablaCuentasUsadas th:nth-child(3),
+#tablaCuentasUsadas td:nth-child(3){
+  min-width:260px;
+  width:260px;
+  white-space:nowrap;
+}
+
+#tablaCuentasUsadas th:nth-child(4),
+#tablaCuentasUsadas td:nth-child(4){
+  min-width:120px;
+}
+
+#tablaCuentasUsadas th:nth-child(5),
+#tablaCuentasUsadas td:nth-child(5){
+  min-width:170px;
+  word-break:break-word;
+}
+
+#tablaCuentasUsadas th:nth-child(6),
+#tablaCuentasUsadas td:nth-child(6){
+  min-width:230px;
+  word-break:break-word;
+}
+
+#tablaCuentasUsadas th:nth-child(7),
+#tablaCuentasUsadas td:nth-child(7){
+  min-width:100px;
+}
+
+#tablaCuentasUsadas th:nth-child(8),
+#tablaCuentasUsadas td:nth-child(8),
+#tablaCuentasUsadas th:nth-child(9),
+#tablaCuentasUsadas td:nth-child(9),
+#tablaCuentasUsadas th:nth-child(10),
+#tablaCuentasUsadas td:nth-child(10){
+  min-width:150px;
+}
+#tablaCuentasUsadas th:nth-child(11),
+#tablaCuentasUsadas td:nth-child(11){
+  min-width:95px;
+}
+
+#tablaCuentasUsadas th:nth-child(12),
+#tablaCuentasUsadas td:nth-child(12){
+  min-width:180px;
+  word-break:break-word;
+}
+
+#tablaCuentasUsadas th:nth-child(13),
+#tablaCuentasUsadas td:nth-child(13){
+  min-width:110px;
+}
+
+#tablaCuentasUsadas th:nth-child(14),
+#tablaCuentasUsadas td:nth-child(14){
+  min-width:220px;
+}
+
+#tablaCuentasDisponibles td:nth-child(3) input,
+#tablaCuentasUsadas td:nth-child(3) input,
+#tablaCuentasDisponibles td:nth-child(3) .tableInput,
+#tablaCuentasUsadas td:nth-child(3) .tableInput,
+#tablaCuentasDisponibles td:nth-child(3) .accountPassInput,
+#tablaCuentasUsadas td:nth-child(3) .accountPassInput,
+#tablaCuentasDisponibles td:nth-child(3) .passwordInput,
+#tablaCuentasUsadas td:nth-child(3) .passwordInput{
+  width:100%;
+  min-width:220px;
+  padding-right:48px !important;
+  text-align:left;
+  font-family:inherit;
+  letter-spacing:0.2px;
+}
+
+#tablaCuentasDisponibles td:nth-child(3) .accountPassWrap,
+#tablaCuentasUsadas td:nth-child(3) .accountPassWrap,
+#tablaCuentasDisponibles td:nth-child(3) .inputWrap,
+#tablaCuentasUsadas td:nth-child(3) .inputWrap{
+  width:100%;
+  min-width:220px;
+  max-width:none;
+}
+
+#tablaCuentasDisponibles .actionGroup,
+#tablaCuentasUsadas .actionGroup{
+  min-width:180px;
+}
+
+#tablaCuentasDisponibles td,
+#tablaCuentasUsadas td{
+  white-space:normal;
+}
+
+#tablaCuentasDisponibles td:nth-child(3),
+#tablaCuentasUsadas td:nth-child(3){
+  white-space:nowrap;
 }
 
 /* =========================
@@ -1670,6 +1846,11 @@ RESPONSIVE
 
   #tablaStock{
     min-width:860px;
+  }
+
+  #tablaCuentasDisponibles,
+  #tablaCuentasUsadas{
+    min-width:1600px;
   }
 
   #tablaStock td{
