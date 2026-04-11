@@ -1683,15 +1683,24 @@ auth.onAuthStateChanged((user) => {
   usuarioPerfilRef.on("value", (snap) => {
     const data = snap.val() || {};
     const estado = String(data.estado || "activo").toLowerCase();
-    const rol = String(data.rol || "");
+    const rol = String(data.rol || "").toLowerCase();
 
     if (estado === "bloqueado") {
       cerrarSesionPorBloqueo();
       return;
     }
 
+    if (rol === "proveedor" && pagina !== "streampro.html") {
+      window.location.replace("streampro.html");
+      return;
+    }
+
     if (pagina === "admin.html" && rol !== "admin") {
-      window.location.href = "tienda.html";
+      if (rol === "proveedor") {
+        window.location.replace("streampro.html");
+      } else {
+        window.location.replace("tienda.html");
+      }
       return;
     }
 
