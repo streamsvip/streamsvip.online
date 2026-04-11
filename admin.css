@@ -11,8 +11,10 @@
   --card-2:#1d1f23;
   --line:#2a2d33;
   --line-soft:rgba(255,255,255,0.06);
+  --line-strong:rgba(255,255,255,0.09);
   --text:#ffffff;
   --muted:#a7adb8;
+  --muted-2:#8e96a3;
   --green:#2eea7a;
   --green-2:#1fb95a;
   --green-soft:rgba(46,234,122,0.12);
@@ -45,13 +47,17 @@ body{
 
 .container{
   width:100%;
-  max-width:1360px;
+  max-width:1420px;
   margin:auto;
 }
 
 .hidden{
   display:none !important;
 }
+
+/* =========================
+CARDS
+========================= */
 
 .card{
   background:linear-gradient(180deg,rgba(28,29,33,0.98),rgba(20,21,24,0.98));
@@ -81,6 +87,10 @@ h1,h2,h3{
   margin-bottom:15px;
 }
 
+/* =========================
+LOGIN
+========================= */
+
 .loginBox{
   max-width:430px;
   margin:60px auto;
@@ -98,6 +108,31 @@ h1,h2,h3{
 .passwordInput{
   padding-right:52px !important;
 }
+
+.togglePass{
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
+  width:36px;
+  height:36px;
+  border:none;
+  border-radius:10px;
+  background:transparent;
+  color:#cfcfcf;
+  font-size:18px;
+  cursor:pointer;
+  transition:0.25s;
+}
+
+.togglePass:hover{
+  background:rgba(255,255,255,0.06);
+  color:#fff;
+}
+
+/* =========================
+INPUTS / SELECTS / TEXTAREAS
+========================= */
 
 .createGrid input,
 .createGrid textarea,
@@ -178,7 +213,7 @@ textarea::placeholder{
 .codigoGrid input,
 .downloadGrid input,
 select{
-  min-height:42px;
+  min-height:44px;
   border-radius:12px;
   padding:10px 12px;
 }
@@ -187,7 +222,7 @@ input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="number"]{
-  min-height:42px;
+  min-height:44px;
   padding:10px 12px;
   border-radius:12px;
 }
@@ -200,32 +235,63 @@ input[type="number"]{
 .tableInputDesc,
 .createGrid textarea,
 textarea{
-  min-height:92px;
+  min-height:96px;
   border-radius:12px;
   padding:10px 12px;
   resize:vertical;
 }
 
-.togglePass{
-  position:absolute;
-  right:10px;
-  top:50%;
-  transform:translateY(-50%);
-  width:36px;
-  height:36px;
-  border:none;
-  border-radius:10px;
-  background:transparent;
-  color:#cfcfcf;
-  font-size:18px;
-  cursor:pointer;
-  transition:0.25s;
+/* Inputs de tabla mejorados */
+.tableInput{
+  width:100%;
+  min-width:92px;
+  background:#25282e;
+  color:#fff;
+  border:1px solid rgba(255,255,255,0.05);
+  outline:none;
+  border-radius:12px;
+  padding:10px 12px;
+  font-size:14px;
 }
 
-.togglePass:hover{
-  background:rgba(255,255,255,0.06);
+.tableInputWide{
+  min-width:170px;
+}
+
+.tableInputDesc{
+  width:100%;
+  min-width:220px;
+  background:#25282e;
+  color:#fff;
+  border:1px solid rgba(255,255,255,0.05);
+  outline:none;
+  border-radius:12px;
+  padding:10px 12px;
+  font-size:14px;
+  resize:vertical;
+}
+
+.tableInputReadonly{
+  background:#101010 !important;
+  color:#d6d6d6 !important;
+  cursor:not-allowed;
+  opacity:0.95;
+}
+
+.selectDark{
+  width:100%;
+  padding:14px;
+  border:1px solid rgba(255,255,255,0.05);
+  border-radius:12px;
+  outline:none;
+  font-size:15px;
+  background:#23262b;
   color:#fff;
 }
+
+/* =========================
+BUTTONS
+========================= */
 
 .btn,
 .smallBtn,
@@ -283,7 +349,7 @@ textarea{
   align-items:center;
   justify-content:center;
   gap:8px;
-  min-height:40px;
+  min-height:42px;
   padding:10px 14px;
   border:none;
   border-radius:12px;
@@ -413,6 +479,10 @@ a.smallBtn{
   text-decoration:none;
 }
 
+/* =========================
+MESSAGES
+========================= */
+
 .mensaje{
   margin-top:12px;
   text-align:center;
@@ -430,6 +500,10 @@ a.smallBtn{
   color:#9fe3b8;
   min-height:20px;
 }
+
+/* =========================
+TOP BAR
+========================= */
 
 .topBar{
   display:flex;
@@ -456,6 +530,7 @@ a.smallBtn{
 
 .topBar .info p{
   color:#bbb;
+  word-break:break-word;
 }
 
 .adminTopActions{
@@ -527,6 +602,10 @@ a.smallBtn{
   transform:translateY(-1px);
 }
 
+/* =========================
+MINI CARDS
+========================= */
+
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
@@ -568,6 +647,10 @@ a.smallBtn{
   line-height:1.2;
   word-break:break-word;
 }
+
+/* =========================
+COLLAPSIBLE
+========================= */
 
 .sectionTitle{
   margin-bottom:15px;
@@ -636,7 +719,7 @@ a.smallBtn{
 .downloadGrid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:10px;
+  gap:12px;
   margin-bottom:15px;
 }
 
@@ -647,10 +730,18 @@ a.smallBtn{
   grid-column:1 / -1;
 }
 
+.topSpacing{
+  margin-top:18px;
+}
+
+/* =========================
+TABLE WRAPS
+========================= */
+
 .tableWrap{
   overflow-x:auto;
   overflow-y:auto;
-  max-height:530px;
+  max-height:560px;
   border-radius:18px;
   border:1px solid rgba(255,255,255,0.05);
   background:#141518;
@@ -659,7 +750,7 @@ a.smallBtn{
 }
 
 .tableWrapAdminScroll{
-  max-height:620px;
+  max-height:640px;
   overflow:auto;
   border-radius:18px;
   border:1px solid rgba(255,255,255,0.06);
@@ -669,13 +760,13 @@ a.smallBtn{
 }
 
 .tableWrapAdminScroll table{
-  min-width:1500px;
+  min-width:1650px;
 }
 
 table{
   width:100%;
   border-collapse:collapse;
-  min-width:1050px;
+  min-width:1180px;
 }
 
 th,
@@ -691,14 +782,119 @@ th{
   position:sticky;
   top:0;
   z-index:2;
-  background:#1e2025;
+  background:linear-gradient(180deg,#1e2025,#1a1d22);
   color:var(--green);
   white-space:nowrap;
+  box-shadow:inset 0 -1px 0 rgba(255,255,255,0.03);
 }
 
-tr:hover{
+tbody tr{
+  transition:background 0.2s ease;
+}
+
+tbody tr:hover{
   background:#1a1c21;
 }
+
+td{
+  color:#f2f3f5;
+}
+
+td a{
+  color:#8ec5ff;
+  text-decoration:none;
+}
+
+td a:hover{
+  text-decoration:underline;
+}
+
+/* Anchuras más cómodas en tablas */
+#tablaProductos td:nth-child(2){
+  min-width:190px;
+}
+
+#tablaProductos td:nth-child(3){
+  min-width:120px;
+}
+
+#tablaProductos td:nth-child(4){
+  min-width:110px;
+}
+
+#tablaProductos td:nth-child(5){
+  min-width:110px;
+}
+
+#tablaProductos td:nth-child(7){
+  min-width:170px;
+}
+
+#tablaProductos td:nth-child(8){
+  min-width:190px;
+}
+
+#tablaProductos td:nth-child(9){
+  min-width:130px;
+}
+
+#tablaProductos td:nth-child(10){
+  min-width:190px;
+}
+
+#tablaProductos td:nth-child(14),
+#tablaProductos td:nth-child(15){
+  min-width:240px;
+}
+
+#tablaCodigos td:nth-child(2){
+  min-width:220px;
+  word-break:break-word;
+}
+
+#tablaCodigos td:nth-child(3){
+  min-width:200px;
+  word-break:break-all;
+}
+
+#tablaCodigos td:nth-child(4),
+#tablaCodigos td:nth-child(5){
+  min-width:180px;
+  white-space:normal;
+}
+
+#tablaDescargas td:nth-child(1){
+  min-width:240px;
+}
+
+#tablaDescargas td:nth-child(3),
+#tablaDescargas td:nth-child(4),
+#tablaDescargas td:nth-child(5){
+  min-width:240px;
+  white-space:normal;
+  word-break:break-word;
+}
+
+#tablaVentas td:nth-child(2),
+#tablaComprasHoy td:nth-child(2){
+  min-width:220px;
+}
+
+#tablaVentas td:nth-child(4),
+#tablaComprasHoy td:nth-child(4){
+  min-width:170px;
+  word-break:break-word;
+}
+
+#tablaUsuarios td:nth-child(2),
+#tablaUsuarios td:nth-child(3){
+  min-width:220px;
+  word-break:break-word;
+}
+
+/* =========================
+BADGES
+========================= */
 
 .badge{
   display:inline-flex;
@@ -739,6 +935,23 @@ tr:hover{
   border:1px solid rgba(255,95,95,0.12);
 }
 
+.downloadTag{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:6px 10px;
+  border-radius:999px;
+  background:rgba(96,88,238,0.18);
+  color:#c8c4ff;
+  font-weight:700;
+  font-size:12px;
+  text-transform:capitalize;
+}
+
+/* =========================
+EMPTY STATES
+========================= */
+
 .empty{
   padding:18px;
   border-radius:14px;
@@ -749,11 +962,64 @@ tr:hover{
 }
 
 /* =========================
-STOCK PROFESIONAL MEJORADO
+ACTION GROUPS
+========================= */
+
+.actionGroup{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+
+/* =========================
+ACCOUNT PASSWORD
+========================= */
+
+.accountPassWrap{
+  position:relative;
+  width:170px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.accountPassInput{
+  width:170px;
+  min-height:44px;
+  border-radius:12px;
+  padding:8px 38px 8px 10px;
+  background:#25282e;
+  color:#fff;
+  border:1px solid #2c2c2c;
+  font-size:14px;
+}
+
+.accountEye{
+  position:absolute;
+  right:6px;
+  top:50%;
+  transform:translateY(-50%);
+  width:30px;
+  height:30px;
+  border:none;
+  border-radius:8px;
+  background:transparent;
+  color:#ddd;
+  cursor:pointer;
+  font-size:14px;
+}
+
+.accountEye:hover{
+  background:rgba(255,255,255,0.08);
+}
+
+/* =========================
+STOCK PROFESIONAL
 ========================= */
 
 #tablaStock{
-  min-width:1000px;
+  min-width:1100px;
 }
 
 #tablaStock th{
@@ -790,7 +1056,7 @@ STOCK PROFESIONAL MEJORADO
 }
 
 #tablaStock td:nth-child(4){
-  min-width:360px;
+  min-width:390px;
 }
 
 #tablaStock td:first-child{
@@ -815,7 +1081,7 @@ STOCK PROFESIONAL MEJORADO
 
 .stockControls{
   display:grid;
-  grid-template-columns:44px minmax(110px, 130px) 44px auto auto;
+  grid-template-columns:44px minmax(110px,130px) 44px auto auto;
   align-items:center;
   gap:10px;
   background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
@@ -910,113 +1176,9 @@ STOCK PROFESIONAL MEJORADO
   font-weight:900;
 }
 
-.selectDark{
-  width:100%;
-  padding:14px;
-  border:1px solid rgba(255,255,255,0.05);
-  border-radius:12px;
-  outline:none;
-  font-size:15px;
-  background:#23262b;
-  color:#fff;
-}
-
-.topSpacing{
-  margin-top:18px;
-}
-
-.tableInput{
-  width:100px;
-  background:#25282e;
-  color:#fff;
-  border:1px solid rgba(255,255,255,0.05);
-  outline:none;
-  border-radius:10px;
-  padding:8px 10px;
-  font-size:14px;
-}
-
-.tableInputWide{
-  width:150px;
-}
-
-.tableInputDesc{
-  width:240px;
-  min-height:72px;
-  background:#25282e;
-  color:#fff;
-  border:1px solid rgba(255,255,255,0.05);
-  outline:none;
-  border-radius:10px;
-  padding:10px;
-  font-size:14px;
-  resize:vertical;
-}
-
-.tableInputReadonly{
-  background:#101010 !important;
-  color:#d6d6d6 !important;
-  cursor:not-allowed;
-  opacity:0.95;
-}
-
-.actionGroup{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  align-items:center;
-}
-
-.accountPassWrap{
-  position:relative;
-  width:150px;
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-
-.accountPassInput{
-  width:150px;
-  min-height:42px;
-  border-radius:12px;
-  padding:8px 38px 8px 10px;
-  background:#25282e;
-  color:#fff;
-  border:1px solid #2c2c2c;
-  font-size:14px;
-}
-
-.accountEye{
-  position:absolute;
-  right:6px;
-  top:50%;
-  transform:translateY(-50%);
-  width:30px;
-  height:30px;
-  border:none;
-  border-radius:8px;
-  background:transparent;
-  color:#ddd;
-  cursor:pointer;
-  font-size:14px;
-}
-
-.accountEye:hover{
-  background:rgba(255,255,255,0.08);
-}
-
-.downloadTag{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding:6px 10px;
-  border-radius:999px;
-  background:rgba(96,88,238,0.18);
-  color:#c8c4ff;
-  font-weight:700;
-  font-size:12px;
-  text-transform:capitalize;
-}
+/* =========================
+MODAL
+========================= */
 
 .adminModal{
   position:fixed;
@@ -1160,40 +1322,9 @@ STOCK PROFESIONAL MEJORADO
   margin-top:18px;
 }
 
-#tablaRecargas td,
-#tablaRecargas th{
-  white-space:nowrap;
-}
-
-#tablaRecargas td:nth-child(1){
-  min-width:210px;
-}
-
-#tablaRecargas td:nth-child(3){
-  min-width:190px;
-}
-
-#tablaRecargas td:nth-child(9){
-  white-space:normal;
-  min-width:140px;
-}
-
-#tablaRecargas .actionGroup{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-}
-
-#tablaCodigos td:nth-child(2){
-  min-width:220px;
-  word-break:break-word;
-}
-
-#tablaCodigos td:nth-child(4),
-#tablaCodigos td:nth-child(5){
-  min-width:180px;
-  white-space:normal;
-}
+/* =========================
+SCROLLBARS
+========================= */
 
 .tableWrap::-webkit-scrollbar,
 .adminModalCard::-webkit-scrollbar,
@@ -1214,6 +1345,10 @@ STOCK PROFESIONAL MEJORADO
 .tableWrapAdminScroll::-webkit-scrollbar-track{
   background:#15171b;
 }
+
+/* =========================
+RESPONSIVE
+========================= */
 
 @media (max-width: 980px){
   .adminModalGrid{
@@ -1304,6 +1439,10 @@ STOCK PROFESIONAL MEJORADO
     font-size:19px;
   }
 
+  table{
+    min-width:980px;
+  }
+
   #tablaStock{
     min-width:860px;
   }
@@ -1327,11 +1466,11 @@ STOCK PROFESIONAL MEJORADO
   }
 
   .tableInputWide{
-    width:130px;
+    min-width:150px;
   }
 
   .tableInputDesc{
-    width:200px;
+    min-width:220px;
   }
 
   .collapseHeader{
@@ -1348,7 +1487,7 @@ STOCK PROFESIONAL MEJORADO
   }
 
   .smallBtn{
-    min-height:34px;
+    min-height:36px;
     padding:8px 12px;
     font-size:12px;
   }
