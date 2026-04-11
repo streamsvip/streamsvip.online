@@ -9,7 +9,7 @@ const firebaseConfig = {
   authDomain: "streamsvip-b7d91.firebaseapp.com",
   databaseURL: "https://streamsvip-b7d91-default-rtdb.firebaseio.com",
   projectId: "streamsvip-b7d91",
-  storageBucket: "streamsvip-b7d91.appspot.com",
+  storageBucket: "streamsvip-b7d91.firebasestorage.app",
   messagingSenderId: "440618225611",
   appId: "1:440618225611:web:eeb4230a10499e1dfff04e"
 };
@@ -77,6 +77,14 @@ function mostrarMensajeSalidaEnLogin() {
   } catch (e) {}
 }
 
+function obtenerRutaPorRol(rol) {
+  const rolFinal = String(rol || "").toLowerCase();
+
+  if (rolFinal === "admin") return "admin.html";
+  if (rolFinal === "proveedor") return "streampro.html";
+  return "tienda.html";
+}
+
 /* =========================
 CONTROL DE SESIÓN EN LOGIN / REGISTRO
 ========================= */
@@ -90,6 +98,7 @@ auth.onAuthStateChanged(async (user) => {
     const snap = await db.ref("usuarios/" + user.uid).once("value");
     const dataUsuario = snap.val() || {};
     const estado = String(dataUsuario.estado || "activo").toLowerCase();
+    const rol = String(dataUsuario.rol || "cliente").toLowerCase();
 
     if (estado === "bloqueado") {
       try {
@@ -102,7 +111,8 @@ auth.onAuthStateChanged(async (user) => {
     }
 
     if (pagina === "index.html" || pagina === "registro.html") {
-      window.location.replace("tienda.html");
+      window.location.replace(obtenerRutaPorRol(rol));
+      return;
     }
 
   } catch (error) {
@@ -324,6 +334,7 @@ function iniciarSesion() {
       const snap = await db.ref("usuarios/" + user.uid).once("value");
       const dataUsuario = snap.val() || {};
       const estado = String(dataUsuario.estado || "activo").toLowerCase();
+      const rol = String(dataUsuario.rol || "cliente").toLowerCase();
 
       if (estado === "bloqueado") {
         try {
@@ -337,7 +348,7 @@ function iniciarSesion() {
       mostrarMensajeAuth("Inicio de sesión correcto.", "#00e676");
 
       setTimeout(() => {
-        window.location.replace("tienda.html");
+        window.location.replace(obtenerRutaPorRol(rol));
       }, 700);
     })
     .catch((error) => {
