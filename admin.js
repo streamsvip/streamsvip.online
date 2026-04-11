@@ -1652,6 +1652,7 @@ function cargarDescargasEntregadas() {
     vacio.classList.add("hidden");
   }, (error) => {
     console.error("Error leyendo descargas entregadas:", error);
+    const tablaDescargasEntregadas = document.getElementById("tablaDescargasEntregadas");
     if (tablaDescargasEntregadas) tablaDescargasEntregadas.classList.add("hidden");
     mostrarMensajeDescarga("No se pudieron leer las descargas vendidas. Revisa tus rules.", true);
   });
@@ -1665,6 +1666,26 @@ function toggleUsuarioEstado(uid, nuevoEstado) {
   db.ref("usuarios/" + uid + "/estado").set(nuevoEstado)
     .catch((error) => {
       alert("No se pudo cambiar estado: " + error.message);
+    });
+}
+
+function guardarSaldoUsuarioAdmin(uid) {
+  const input = document.getElementById("saldoUser_" + safeDomKey(uid));
+  if (!input) return;
+
+  const nuevoSaldo = Number(input.value);
+
+  if (isNaN(nuevoSaldo) || nuevoSaldo < 0) {
+    alert("El saldo no es válido.");
+    return;
+  }
+
+  db.ref("usuarios/" + uid + "/saldo").set(redondearMonto(nuevoSaldo))
+    .then(() => {
+      mostrarMensajeProducto("Saldo actualizado correctamente.");
+    })
+    .catch((error) => {
+      alert("No se pudo actualizar el saldo: " + error.message);
     });
 }
 
@@ -1695,13 +1716,27 @@ function cargarUsuarios() {
 
     usuariosLista.forEach(({ id, item }) => {
       const estado = item.estado || "activo";
+      const key = safeDomKey(id);
 
       tbody.innerHTML += `
         <tr>
           <td>${escaparHTML(id)}</td>
           <td>${escaparHTML(textoSeguro(item.nombreCompleto || item.nombre || item.usuario))}</td>
           <td>${escaparHTML(textoSeguro(item.correo || item.email))}</td>
-          <td>${formatearDinero(item.saldo || 0)}</td>
+          <td>
+            <div style="display:flex; gap:8px; align-items:center; min-width:220px;">
+              <input
+                id="saldoUser_${key}"
+                class="tableInput"
+                type="number"
+                min="0"
+                step="0.01"
+                value="${Number(item.saldo || 0)}"
+                style="max-width:120px;"
+              >
+              <button class="smallBtn btnSave" onclick="guardarSaldoUsuarioAdmin('${escaparParaJS(id)}')">Guardar</button>
+            </div>
+          </td>
           <td>${escaparHTML(formatearFecha(item.fechaRegistro || item.fecha))}</td>
           <td>${badgeEstado(estado)}</td>
           <td>
@@ -1725,7 +1760,6 @@ function cargarUsuarios() {
     document.getElementById("totalUsuarios").textContent = "0";
   });
 }
-
 /* =========================
 RECARGAS
 ========================= */
@@ -1931,7 +1965,7 @@ function rechazarRecarga(id) {
       mostrarMensajeRecarga("Recarga rechazada correctamente.");
 
       if (modalRecargaActual && modalRecargaActual.id === id) {
-        actualizarContenidoModalRecarga(actualizado, id);
+        actualizarContenidoModalRecarga(actualizado, modalRecargaActual.id);
       }
     })
     .catch((error) => {
