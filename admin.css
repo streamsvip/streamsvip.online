@@ -1060,9 +1060,25 @@ td a:hover{
 }
 
 #tablaUsuarios td:nth-child(2),
-#tablaUsuarios td:nth-child(3){
+#tablaUsuarios td:nth-child(3),
+#tablaProveedores td:nth-child(2),
+#tablaProveedores td:nth-child(3),
+#tablaProveedores td:nth-child(4){
   min-width:220px;
   word-break:break-word;
+}
+
+#tablaProveedores td:nth-child(5){
+  min-width:130px;
+}
+
+#tablaProveedores td:nth-child(6){
+  min-width:160px;
+}
+
+#tablaProveedores td:nth-child(7),
+#tablaProveedores td:nth-child(8){
+  min-width:120px;
 }
 
 /* =========================
@@ -1178,6 +1194,7 @@ MEJORA COLUMNA CLAVE EN CUENTAS
 #tablaCuentasUsadas td:nth-child(10){
   min-width:150px;
 }
+
 #tablaCuentasUsadas th:nth-child(11),
 #tablaCuentasUsadas td:nth-child(11){
   min-width:95px;
