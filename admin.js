@@ -90,6 +90,59 @@ function redondearMonto(valor) {
   return Number(Number(valor || 0).toFixed(2));
 }
 
+function permitirSoloNumerosDecimales(input) {
+  if (!input) return;
+
+  let valor = String(input.value || "");
+  valor = valor.replace(/,/g, ".");
+  valor = valor.replace(/[^0-9.]/g, "");
+  valor = valor.replace(/(\..*)\./g, "$1");
+
+  input.value = valor;
+}
+
+function inicializarFiltroMontoRecarga() {
+  const montoEditable = document.getElementById("modalRecargaMontoEditable");
+  if (!montoEditable) return;
+
+  montoEditable.setAttribute("type", "text");
+  montoEditable.setAttribute("inputmode", "decimal");
+  montoEditable.setAttribute("autocomplete", "off");
+
+  if (!montoEditable.dataset.filtroNumericoInicializado) {
+    montoEditable.addEventListener("input", function () {
+      permitirSoloNumerosDecimales(this);
+    });
+
+    montoEditable.addEventListener("paste", function () {
+      setTimeout(() => permitirSoloNumerosDecimales(this), 0);
+    });
+
+    montoEditable.addEventListener("keypress", function (e) {
+      const tecla = e.key;
+      const esControl =
+        tecla === "Backspace" ||
+        tecla === "Delete" ||
+        tecla === "ArrowLeft" ||
+        tecla === "ArrowRight" ||
+        tecla === "Tab" ||
+        tecla === "Enter";
+
+      if (esControl) return;
+
+      if (!/[0-9.]/.test(tecla)) {
+        e.preventDefault();
+      }
+
+      if (tecla === "." && this.value.includes(".")) {
+        e.preventDefault();
+      }
+    });
+
+    montoEditable.dataset.filtroNumericoInicializado = "true";
+  }
+}
+
 function formatearFecha(valor) {
   if (valor === undefined || valor === null || valor === "") return "-";
 
@@ -556,6 +609,7 @@ CARGA PANEL
 ========================= */
 
 function cargarPanel() {
+  inicializarFiltroMontoRecarga();
   cargarVentas();
   cargarComprasHoy();
   cargarStock();
@@ -1760,6 +1814,7 @@ function cargarUsuarios() {
     document.getElementById("totalUsuarios").textContent = "0";
   });
 }
+
 /* =========================
 RECARGAS
 ========================= */
@@ -1818,7 +1873,10 @@ function actualizarContenidoModalRecarga(item, id) {
   badgeEstadoRecargaModal(item.estado);
 
   const montoEditable = document.getElementById("modalRecargaMontoEditable");
-  montoEditable.value = Number(item.montoAprobado ?? item.monto ?? 0);
+  if (montoEditable) {
+    montoEditable.value = Number(item.montoAprobado ?? item.monto ?? 0);
+    permitirSoloNumerosDecimales(montoEditable);
+  }
 
   const wrap = document.getElementById("recargaPreviewWrap");
   if (item.comprobanteURL) {
@@ -1871,6 +1929,8 @@ function aprobarRecarga(id) {
   recargaProcesando = true;
 
   const montoEditableInput = document.getElementById("modalRecargaMontoEditable");
+  permitirSoloNumerosDecimales(montoEditableInput);
+
   let montoEditable = Number(montoEditableInput?.value || 0);
 
   if (recargasCacheAdmin[id]) actualizarBotonesModalRecarga(recargasCacheAdmin[id]);
