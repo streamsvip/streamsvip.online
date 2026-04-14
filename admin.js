@@ -35,6 +35,7 @@ let recargasCacheAdmin = {};
 let ventasCache = {};
 let comprasHoyCache = {};
 let ordenesCache = {};
+let usuariosCache = {};
 let modalRecargaActual = null;
 let recargaProcesando = false;
 
@@ -97,7 +98,6 @@ function permitirSoloNumerosDecimales(input) {
   valor = valor.replace(/,/g, ".");
   valor = valor.replace(/[^0-9.]/g, "");
   valor = valor.replace(/(\..*)\./g, "$1");
-
   input.value = valor;
 }
 
@@ -129,18 +129,59 @@ function inicializarFiltroMontoRecarga() {
         tecla === "Enter";
 
       if (esControl) return;
-
-      if (!/[0-9.]/.test(tecla)) {
-        e.preventDefault();
-      }
-
-      if (tecla === "." && this.value.includes(".")) {
-        e.preventDefault();
-      }
+      if (!/[0-9.]/.test(tecla)) e.preventDefault();
+      if (tecla === "." && this.value.includes(".")) e.preventDefault();
     });
 
     montoEditable.dataset.filtroNumericoInicializado = "true";
   }
+}
+
+function inicializarFiltroSaldoUsuarios() {
+  if (document.body.dataset.filtroSaldoUsuariosInicializado === "true") return;
+
+  document.addEventListener("input", function (e) {
+    const target = e.target;
+    if (!target || !target.id) return;
+    if (target.id.startsWith("saldoUser_")) permitirSoloNumerosDecimales(target);
+  });
+
+  document.addEventListener("paste", function (e) {
+    const target = e.target;
+    if (!target || !target.id) return;
+    if (target.id.startsWith("saldoUser_")) {
+      setTimeout(() => permitirSoloNumerosDecimales(target), 0);
+    }
+  });
+
+  document.addEventListener("keypress", function (e) {
+    const target = e.target;
+    if (!target || !target.id) return;
+    if (!target.id.startsWith("saldoUser_")) return;
+
+    const tecla = e.key;
+    const esControl =
+      tecla === "Backspace" ||
+      tecla === "Delete" ||
+      tecla === "ArrowLeft" ||
+      tecla === "ArrowRight" ||
+      tecla === "Tab" ||
+      tecla === "Enter";
+
+    if (esControl) return;
+    if (!/[0-9.]/.test(tecla)) e.preventDefault();
+    if (tecla === "." && target.value.includes(".")) e.preventDefault();
+  });
+
+  document.body.dataset.filtroSaldoUsuariosInicializado = "true";
+}
+
+function prepararInputSaldoUsuario(input) {
+  if (!input) return;
+  input.setAttribute("type", "text");
+  input.setAttribute("inputmode", "decimal");
+  input.setAttribute("autocomplete", "off");
+  permitirSoloNumerosDecimales(input);
 }
 
 function formatearFecha(valor) {
@@ -598,6 +639,7 @@ auth.onAuthStateChanged(async (user) => {
     recargasInicializadas = false;
     recargasPendientesCache = {};
     recargasCacheAdmin = {};
+    usuariosCache = {};
     loginSection.classList.remove("hidden");
     panelSection.classList.add("hidden");
     setLoading(false);
@@ -610,6 +652,7 @@ CARGA PANEL
 
 function cargarPanel() {
   inicializarFiltroMontoRecarga();
+  inicializarFiltroSaldoUsuarios();
   cargarVentas();
   cargarComprasHoy();
   cargarStock();
@@ -617,6 +660,7 @@ function cargarPanel() {
   cargarProductosEnSelects();
   cargarCuentas();
   cargarUsuarios();
+  cargarProveedores();
   cargarRecargas();
   cargarReembolsos();
   cargarCodigos();
@@ -1727,7 +1771,15 @@ function guardarSaldoUsuarioAdmin(uid) {
   const input = document.getElementById("saldoUser_" + safeDomKey(uid));
   if (!input) return;
 
-  const nuevoSaldo = Number(input.value);
+  permitirSoloNumerosDecimales(input);
+  const valorLimpio = String(input.value || "").trim();
+
+  if (valorLimpio === "") {
+    alert("El saldo no es válido.");
+    return;
+  }
+
+  const nuevoSaldo = Number(valorLimpio);
 
   if (isNaN(nuevoSaldo) || nuevoSaldo < 0) {
     alert("El saldo no es válido.");
@@ -1746,6 +1798,7 @@ function guardarSaldoUsuarioAdmin(uid) {
 function cargarUsuarios() {
   db.ref("usuarios").on("value", (snapshot) => {
     const data = snapshot.val();
+    usuariosCache = data || {};
     const tbody = document.querySelector("#tablaUsuarios tbody");
     const tabla = document.getElementById("tablaUsuarios");
     const vacio = document.getElementById("usuariosVacio");
@@ -1756,17 +1809,23 @@ function cargarUsuarios() {
     if (!data) {
       tabla.classList.add("hidden");
       vacio.classList.remove("hidden");
-      document.getElementById("totalUsuarios").textContent = "0";
+      const totalUsuarios = document.getElementById("totalUsuarios");
+      if (totalUsuarios) totalUsuarios.textContent = "0";
+      renderProveedores();
       return;
     }
 
-    const usuariosLista = Object.keys(data).map((id) => {
-      const item = data[id] || {};
-      return { id, item, fechaOrden: timestampSeguro(item.fechaRegistro || item.fecha || 0) };
-    });
+    const usuariosLista = Object.keys(data)
+      .map((id) => {
+        const item = data[id] || {};
+        return { id, item, fechaOrden: timestampSeguro(item.fechaRegistro || item.fecha || 0) };
+      })
+      .filter(({ item }) => String(item.rol || "").toLowerCase() !== "proveedor");
+
+    const totalUsuarios = document.getElementById("totalUsuarios");
+    if (totalUsuarios) totalUsuarios.textContent = usuariosLista.length;
 
     usuariosLista.sort((a, b) => b.fechaOrden - a.fechaOrden);
-    document.getElementById("totalUsuarios").textContent = usuariosLista.length;
 
     usuariosLista.forEach(({ id, item }) => {
       const estado = item.estado || "activo";
@@ -1782,9 +1841,9 @@ function cargarUsuarios() {
               <input
                 id="saldoUser_${key}"
                 class="tableInput"
-                type="number"
-                min="0"
-                step="0.01"
+                type="text"
+                inputmode="decimal"
+                autocomplete="off"
                 value="${Number(item.saldo || 0)}"
                 style="max-width:120px;"
               >
@@ -1804,15 +1863,88 @@ function cargarUsuarios() {
       `;
     });
 
+    tbody.querySelectorAll('input[id^="saldoUser_"]').forEach(prepararInputSaldoUsuario);
+
     tabla.classList.remove("hidden");
     vacio.classList.add("hidden");
+    renderProveedores();
   }, () => {
     const tabla = document.getElementById("tablaUsuarios");
     const vacio = document.getElementById("usuariosVacio");
     if (tabla) tabla.classList.add("hidden");
     if (vacio) vacio.classList.remove("hidden");
-    document.getElementById("totalUsuarios").textContent = "0";
+    const totalUsuarios = document.getElementById("totalUsuarios");
+    if (totalUsuarios) totalUsuarios.textContent = "0";
+    usuariosCache = {};
+    renderProveedores();
   });
+}
+
+/* =========================
+PROVEEDORES
+========================= */
+
+function renderProveedores() {
+  const totalEl = document.getElementById("totalProveedoresActivos");
+  const tabla = document.getElementById("tablaProveedores");
+  const tbody = document.querySelector("#tablaProveedores tbody");
+  const vacio = document.getElementById("proveedoresVacio");
+
+  const data = usuariosCache || {};
+  const proveedoresLista = Object.keys(data)
+    .map((id) => {
+      const item = data[id] || {};
+      return { id, item, fechaOrden: timestampSeguro(item.fechaRegistro || item.fecha || 0) };
+    })
+    .filter(({ item }) => String(item.rol || "").toLowerCase() === "proveedor");
+
+  const proveedoresActivos = proveedoresLista.filter(({ item }) => {
+    return String(item.estado || "activo").toLowerCase() !== "bloqueado";
+  });
+
+  if (totalEl) totalEl.textContent = String(proveedoresActivos.length);
+
+  if (!tabla || !tbody || !vacio) return;
+
+  tbody.innerHTML = "";
+
+  if (!proveedoresLista.length) {
+    tabla.classList.add("hidden");
+    vacio.classList.remove("hidden");
+    return;
+  }
+
+  proveedoresLista.sort((a, b) => b.fechaOrden - a.fechaOrden);
+
+  proveedoresLista.forEach(({ id, item }) => {
+    const estado = String(item.estado || "activo").toLowerCase();
+    const nombre = item.nombreCompleto || item.nombre || item.usuario || "-";
+    const correo = item.correo || item.email || "-";
+    const usuario = item.usuario ? "@" + item.usuario : "-";
+    const saldo = Number(item.saldo || 0);
+    const fecha = item.fechaRegistro || item.fecha || "";
+    const rol = item.rol || "proveedor";
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${escaparHTML(id)}</td>
+        <td>${escaparHTML(textoSeguro(nombre))}</td>
+        <td>${escaparHTML(textoSeguro(correo))}</td>
+        <td>${escaparHTML(textoSeguro(usuario))}</td>
+        <td>${formatearDinero(saldo)}</td>
+        <td>${escaparHTML(formatearFecha(fecha))}</td>
+        <td>${badgeEstado(estado)}</td>
+        <td>${badgeEstado(rol)}</td>
+      </tr>
+    `;
+  });
+
+  tabla.classList.remove("hidden");
+  vacio.classList.add("hidden");
+}
+
+function cargarProveedores() {
+  renderProveedores();
 }
 
 /* =========================
@@ -2165,6 +2297,51 @@ function cargarRecargas() {
 REEMBOLSOS
 ========================= */
 
+function restaurarCuentaPorReembolso(uid, ordenId, orden = {}) {
+  const producto = String(orden.producto || orden.servicio || "").trim().toLowerCase();
+  if (!uid || !ordenId || !producto) {
+    return Promise.resolve(false);
+  }
+
+  return db.ref("cuentas/" + producto).once("value")
+    .then((snapshot) => {
+      const cuentasProducto = snapshot.val() || {};
+      let cuentaIdEncontrada = null;
+      let cuentaData = null;
+
+      Object.keys(cuentasProducto).forEach((cuentaId) => {
+        if (cuentaIdEncontrada) return;
+
+        const item = cuentasProducto[cuentaId] || {};
+        const mismoUid = String(item.uidUsuario || "") === String(uid);
+        const mismaOrden = String(item.ordenId || "") === String(ordenId);
+
+        if (mismoUid && mismaOrden) {
+          cuentaIdEncontrada = cuentaId;
+          cuentaData = item;
+        }
+      });
+
+      if (!cuentaIdEncontrada || !cuentaData) {
+        return false;
+      }
+
+      const duracionDias = Number(cuentaData.duracionDias || orden.duracionDias || 30);
+      const nuevaFechaCreacion = new Date().toISOString();
+      const nuevaFechaVencimiento = sumarDias(nuevaFechaCreacion, duracionDias);
+
+      return db.ref("cuentas/" + producto + "/" + cuentaIdEncontrada).update({
+        estado: "disponible",
+        comprador: "",
+        uidUsuario: "",
+        fechaEntrega: "",
+        ordenId: "",
+        fechaCreacion: nuevaFechaCreacion,
+        fechaVencimiento: nuevaFechaVencimiento
+      }).then(() => true);
+    });
+}
+
 function aprobarReembolso(id) {
   db.ref("reembolsos/" + id).once("value")
     .then((snap) => {
@@ -2218,17 +2395,31 @@ function aprobarReembolso(id) {
           montoReembolsado: monto
         };
 
-        const updates = {};
-        updates["usuarios/" + uid + "/saldo"] = nuevoSaldo;
-        updates["ordenesReembolsadas/" + uid + "/" + ordenId] = historialReembolso;
-        updates["reembolsos/" + id + "/estado"] = "aprobado";
-        updates["reembolsos/" + id + "/fechaAprobacion"] = ahora;
-        updates["ordenes/" + uid + "/" + ordenId] = null;
+        return restaurarCuentaPorReembolso(uid, ordenId, orden).then((cuentaRestaurada) => {
+          const updates = {};
+          updates["usuarios/" + uid + "/saldo"] = nuevoSaldo;
+          updates["ordenesReembolsadas/" + uid + "/" + ordenId] = {
+            ...historialReembolso,
+            cuentaRestaurada: !!cuentaRestaurada
+          };
+          updates["reembolsos/" + id + "/estado"] = "aprobado";
+          updates["reembolsos/" + id + "/fechaAprobacion"] = ahora;
+          updates["reembolsos/" + id + "/cuentaRestaurada"] = !!cuentaRestaurada;
+          updates["ordenes/" + uid + "/" + ordenId] = null;
 
-        return db.ref().update(updates);
+          return db.ref().update(updates).then(() => cuentaRestaurada);
+        });
       });
     })
-    .then(() => mostrarMensajeReembolso("Reembolso aprobado, saldo devuelto y compra eliminada de Mis Compras."))
+    .then((cuentaRestaurada) => {
+      programarRecalculoStockSilencioso();
+
+      if (cuentaRestaurada) {
+        mostrarMensajeReembolso("Reembolso aprobado, saldo devuelto, compra eliminada y cuenta restaurada automáticamente al stock.");
+      } else {
+        mostrarMensajeReembolso("Reembolso aprobado y saldo devuelto. No se encontró la cuenta vinculada para restaurarla automáticamente.", true);
+      }
+    })
     .catch((error) => mostrarMensajeReembolso("Error al aprobar reembolso: " + error.message, true));
 }
 
