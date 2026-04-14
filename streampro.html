@@ -163,7 +163,14 @@
     }
 
     .gridStats{
-      display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:14px;margin-bottom:20px;
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:14px;
+      margin-bottom:20px;
+    }
+
+    .gridStats.twoCols{
+      grid-template-columns:repeat(2, minmax(0,1fr));
     }
 
     .statCard{
@@ -501,6 +508,7 @@
 
     @media (max-width: 1200px){
       .gridStats{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .gridStats.twoCols{grid-template-columns:repeat(2,minmax(0,1fr))}
       .gridTwo,.gridWallet{grid-template-columns:1fr}
       .quickCards{grid-template-columns:1fr}
       .tiendaGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -515,7 +523,8 @@
       .sidebar.show{left:0}
       .mobileMenuBtn{display:inline-grid;place-items:center}
       .main{width:100%;padding:16px}
-      .gridStats{grid-template-columns:1fr}
+      .gridStats,
+      .gridStats.twoCols{grid-template-columns:1fr}
       .formGrid,.salesFilters,.compactFormGrid{grid-template-columns:1fr}
       .miniStatsRow{grid-template-columns:1fr}
       table{min-width:980px}
@@ -617,33 +626,33 @@
         </div>
       </div>
 
-      <div class="gridStats">
-        <div class="statCard">
-          <span>Saldo disponible</span>
-          <strong id="statSaldo">S/ 0.00</strong>
-          <small>Dinero disponible para solicitar retiro.</small>
-        </div>
-
-        <div class="statCard">
-          <span>Ventas hoy</span>
-          <strong id="statVentasHoy">0</strong>
-          <small>Total de ventas registradas hoy.</small>
-        </div>
-
-        <div class="statCard">
-          <span>Ventas totales</span>
-          <strong id="statVentasTotales">0</strong>
-          <small>Historial general de ventas del proveedor.</small>
-        </div>
-
-        <div class="statCard">
-          <span>Retiros pendientes</span>
-          <strong id="statRetirosPendientes">0</strong>
-          <small>Solicitudes enviadas pendientes de revisión.</small>
-        </div>
-      </div>
-
       <section class="section active" id="section-resumen">
+        <div class="gridStats">
+          <div class="statCard">
+            <span>Saldo disponible</span>
+            <strong id="statSaldoResumen">S/ 0.00</strong>
+            <small>Dinero disponible para solicitar retiro.</small>
+          </div>
+
+          <div class="statCard">
+            <span>Ventas hoy</span>
+            <strong id="statVentasHoyResumen">0</strong>
+            <small>Total de ventas registradas hoy.</small>
+          </div>
+
+          <div class="statCard">
+            <span>Ventas totales</span>
+            <strong id="statVentasTotalesResumen">0</strong>
+            <small>Historial general de ventas del proveedor.</small>
+          </div>
+
+          <div class="statCard">
+            <span>Retiros pendientes</span>
+            <strong id="statRetirosPendientesResumen">0</strong>
+            <small>Solicitudes enviadas pendientes de revisión.</small>
+          </div>
+        </div>
+
         <div class="gridWallet">
           <div class="panelCard">
             <div class="walletHero">
@@ -954,6 +963,7 @@
                     <th>Producto</th>
                     <th>Cuenta</th>
                     <th>Perfil</th>
+                    <th>PIN</th>
                     <th>Comprador</th>
                     <th>UID comprador</th>
                     <th>Fecha venta</th>
@@ -963,7 +973,7 @@
                 </thead>
                 <tbody id="tablaCuentasUsadas">
                   <tr>
-                    <td colspan="8"><div class="emptyState">No hay cuentas usadas todavía.</div></td>
+                    <td colspan="9"><div class="emptyState">No hay cuentas usadas todavía.</div></td>
                   </tr>
                 </tbody>
               </table>
@@ -1033,8 +1043,21 @@
           </div>
         </div>
       </section>
+            <section class="section" id="section-descargas">
+        <div class="gridStats" id="statsDescargas" style="display:none;">
+          <div class="statCard">
+            <span>Descargas registradas</span>
+            <strong id="statDescargasTotal">0</strong>
+            <small>Total de entregas digitales registradas.</small>
+          </div>
 
-      <section class="section" id="section-descargas">
+          <div class="statCard">
+            <span>Productos digitales</span>
+            <strong id="statProductosDigitales">0</strong>
+            <small>Productos tipo descarga, plugin o DAW.</small>
+          </div>
+        </div>
+
         <div class="panelCard">
           <div class="panelHeader">
             <div>
@@ -1117,6 +1140,20 @@
       </section>
 
       <section class="section" id="section-ventas">
+        <div class="gridStats twoCols">
+          <div class="statCard">
+            <span>Ventas hoy</span>
+            <strong id="statVentasHoy">0</strong>
+            <small>Total de ventas registradas hoy.</small>
+          </div>
+
+          <div class="statCard">
+            <span>Ventas totales</span>
+            <strong id="statVentasTotales">0</strong>
+            <small>Historial general de ventas del proveedor.</small>
+          </div>
+        </div>
+
         <div class="panelCard">
           <div class="panelHeader">
             <div>
@@ -1176,6 +1213,20 @@
       </section>
 
       <section class="section" id="section-retiros">
+        <div class="gridStats twoCols">
+          <div class="statCard">
+            <span>Saldo disponible</span>
+            <strong id="statSaldo">S/ 0.00</strong>
+            <small>Dinero disponible para solicitar retiro.</small>
+          </div>
+
+          <div class="statCard">
+            <span>Retiros pendientes</span>
+            <strong id="statRetirosPendientes">0</strong>
+            <small>Solicitudes enviadas pendientes de revisión.</small>
+          </div>
+        </div>
+
         <div class="gridTwo">
           <div class="panelCard">
             <div class="panelHeader">
@@ -1499,6 +1550,7 @@
       if (button) button.classList.add("active");
 
       actualizarCabeceraSeccion(nombre);
+      actualizarStatsVisibles(nombre);
       cerrarMenuMovil();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -1516,6 +1568,18 @@
       const info = map[nombre] || map.resumen;
       document.getElementById("pageTitle").textContent = info.titulo;
       document.getElementById("pageSubtitle").textContent = info.subtitulo;
+    }
+
+    function actualizarStatsVisibles(nombre){
+      const resumen = document.querySelector("#section-resumen .gridStats");
+      const ventas = document.querySelector("#section-ventas .gridStats");
+      const retiros = document.querySelector("#section-retiros .gridStats");
+      const descargas = document.getElementById("statsDescargas");
+
+      if (resumen) resumen.style.display = nombre === "resumen" ? "grid" : "none";
+      if (ventas) ventas.style.display = nombre === "ventas" ? "grid" : "none";
+      if (retiros) retiros.style.display = nombre === "retiros" ? "grid" : "none";
+      if (descargas) descargas.style.display = nombre === "descargas" ? "grid" : "none";
     }
 
     function esVentaDeHoy(venta){
@@ -1603,8 +1667,7 @@
         btn.textContent = "Tiempo activo: OFF";
       }
     }
-
-    function limpiarTemporizadorInactividad(){
+        function limpiarTemporizadorInactividad(){
       if (temporizadorInactividad) {
         clearTimeout(temporizadorInactividad);
         temporizadorInactividad = null;
@@ -1723,8 +1786,13 @@
       document.getElementById("resumenCorreo").textContent = correo;
       document.getElementById("resumenRol").textContent = (datosProveedorActual.rol || "proveedor") + " | 4% plataforma";
 
-      document.getElementById("statSaldo").textContent = formatearMoneda(saldo);
-      document.getElementById("walletHeroSaldo").textContent = formatearMoneda(saldo);
+      const statSaldoResumen = document.getElementById("statSaldoResumen");
+      const statSaldo = document.getElementById("statSaldo");
+      const walletHeroSaldo = document.getElementById("walletHeroSaldo");
+
+      if (statSaldoResumen) statSaldoResumen.textContent = formatearMoneda(saldo);
+      if (statSaldo) statSaldo.textContent = formatearMoneda(saldo);
+      if (walletHeroSaldo) walletHeroSaldo.textContent = formatearMoneda(saldo);
     }
 
     function mostrarModoEdicionCuenta(infoCuenta){
@@ -1924,12 +1992,33 @@
       const ventasTotales = ventasProveedor.length;
       const retirosPendientes = retirosProveedor.filter(r => String(r.estado || "").toLowerCase() === "pendiente").length;
 
-      document.getElementById("statSaldo").textContent = formatearMoneda(saldo);
-      document.getElementById("walletHeroSaldo").textContent = formatearMoneda(saldo);
-      document.getElementById("sidebarSaldo").textContent = formatearMoneda(saldo);
-      document.getElementById("statVentasHoy").textContent = ventasHoy;
-      document.getElementById("statVentasTotales").textContent = ventasTotales;
-      document.getElementById("statRetirosPendientes").textContent = retirosPendientes;
+      const stats = {
+        statSaldoResumen: formatearMoneda(saldo),
+        statSaldo: formatearMoneda(saldo),
+        statVentasHoyResumen: ventasHoy,
+        statVentasTotalesResumen: ventasTotales,
+        statRetirosPendientesResumen: retirosPendientes,
+        statVentasHoy: ventasHoy,
+        statVentasTotales: ventasTotales,
+        statRetirosPendientes: retirosPendientes,
+        statDescargasTotal: descargasProveedor.length,
+        statProductosDigitales: productosProveedor.filter(p => {
+          const cat = String(p.categoria || "").toLowerCase();
+          const tipo = String(p.tipoEntrega || "").toLowerCase();
+          return cat === "descarga" || cat === "plugin" || cat === "daw" || tipo === "descarga";
+        }).length
+      };
+
+      Object.keys(stats).forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = stats[id];
+      });
+
+      const walletHeroSaldo = document.getElementById("walletHeroSaldo");
+      const sidebarSaldo = document.getElementById("sidebarSaldo");
+
+      if (walletHeroSaldo) walletHeroSaldo.textContent = formatearMoneda(saldo);
+      if (sidebarSaldo) sidebarSaldo.textContent = formatearMoneda(saldo);
     }
 
     async function guardarProductoProveedor(e){
@@ -2015,6 +2104,7 @@
         renderTablaProductos();
         poblarSelectsProductos();
         renderTablasCuentas();
+        renderStats();
 
         alert("Producto guardado correctamente.");
       } catch(error){
@@ -2062,12 +2152,12 @@
         .concat(productosProveedor.map(prod => `<option value="${prod.id}">${escaparHTML(prod.nombre || "Sin nombre")}</option>`))
         .join("");
 
-      selectCodigo.innerHTML = opcionesBase;
-      selectDescarga.innerHTML = opcionesBase;
-      selectCuenta.innerHTML = opcionesBase;
+      if (selectCodigo) selectCodigo.innerHTML = opcionesBase;
+      if (selectDescarga) selectDescarga.innerHTML = opcionesBase;
+      if (selectCuenta) selectCuenta.innerHTML = opcionesBase;
 
       const guardado = obtenerProductoSeleccionadoCuentaGuardado();
-      if (guardado && productosProveedor.some(p => p.id === guardado)) {
+      if (guardado && productosProveedor.some(p => p.id === guardado) && selectCuenta) {
         selectCuenta.value = guardado;
       }
     }
@@ -2118,6 +2208,7 @@
 
         await cargarProductosProveedor();
         renderTablaProductos();
+        renderStats();
         alert("Estado del producto actualizado.");
       }catch(error){
         console.error("Error cambiando estado del producto:", error);
@@ -2141,6 +2232,7 @@
         renderTablaProductos();
         poblarSelectsProductos();
         renderTablasCuentas();
+        renderStats();
 
         alert("Producto eliminado correctamente.");
       }catch(error){
@@ -2286,13 +2378,14 @@
       }
 
       if (!usadas.length) {
-        usadasTbody.innerHTML = `<tr><td colspan="8"><div class="emptyState">No hay cuentas usadas todavía.</div></td></tr>`;
+        usadasTbody.innerHTML = `<tr><td colspan="9"><div class="emptyState">No hay cuentas usadas todavía.</div></td></tr>`;
       } else {
         usadasTbody.innerHTML = usadas.map(item => `
           <tr>
             <td>${escaparHTML(item.productoNombre || "-")}</td>
             <td>${escaparHTML(item.cuenta || item.correo || item.email || item.usuario || "-")}</td>
             <td>${escaparHTML(item.perfil || "-")}</td>
+            <td>${escaparHTML(item.pin || "-")}</td>
             <td>${escaparHTML(item.compradorNombre || item.comprador || "-")}</td>
             <td>${escaparHTML(item.uidComprador || item.uidUsuario || "-")}</td>
             <td>${item.fechaVenta ? formatearFechaHora(item.fechaVenta) : (item.fechaEntrega || "-")}</td>
@@ -2474,6 +2567,7 @@
         document.getElementById("formDescarga").reset();
         await cargarDescargasProveedor();
         renderTablaDescargas();
+        renderStats();
 
         alert("Descarga guardada correctamente.");
       } catch(error){
@@ -2823,6 +2917,7 @@
         actualizarBotonTiempoActivo();
         iniciarControlInactividad();
         await cargarTodoPanel();
+        actualizarStatsVisibles("resumen");
 
       } catch (error) {
         console.error("Error cargando proveedor:", error);
