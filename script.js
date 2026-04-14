@@ -118,7 +118,8 @@ function esPaginaPrivadaInterna() {
     "recargas.html",
     "ofertas.html",
     "como-comprar.html",
-    "admin.html"
+    "admin.html",
+    "streampro.html"
   ].includes(pagina);
 }
 
@@ -182,6 +183,29 @@ function formatearFechaEntregaLocal() {
     second: "2-digit",
     hour12: true
   });
+}
+
+function normalizarIdSimple(valor) {
+  return String(valor || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9_-]/g, "");
+}
+
+function redondearMonto(valor) {
+  return Number(Number(valor || 0).toFixed(2));
+}
+
+function fechaMsSegura(valor) {
+  if (typeof valor === "number") return valor;
+  const ms = new Date(valor || "").getTime();
+  return isNaN(ms) ? 0 : ms;
+}
+
+function sumarDiasMs(baseMs, dias) {
+  return Number(baseMs || 0) + (Number(dias || 0) * 24 * 60 * 60 * 1000);
 }
 
 /* =========================
@@ -760,8 +784,10 @@ function esEntregaDescargaOPlugin(itemProducto = {}) {
   return (
     tipoEntrega === "descarga" ||
     tipoEntrega === "plugin" ||
+    tipoEntrega === "daw" ||
     categoria === "plugin" ||
-    categoria === "daw"
+    categoria === "daw" ||
+    categoria === "descarga"
   );
 }
 
@@ -807,6 +833,7 @@ function asegurarUIEntregaDescarga() {
       ">
         <option value="windows">Windows</option>
         <option value="mac">Mac</option>
+        <option value="general">General</option>
       </select>
 
       <div id="textoEntregaPlugin" style="
@@ -856,7 +883,7 @@ function actualizarVisualModalSegunTipoEntrega(itemProducto = {}) {
 
   if (textoEntrega) {
     textoEntrega.innerHTML = esDescarga
-      ? "Se entregará el acceso de descarga según la plataforma seleccionada. Verifica si necesitas <strong>Windows</strong> o <strong>Mac</strong> antes de continuar."
+      ? "Se entregará el acceso de descarga según la plataforma seleccionada. Verifica si necesitas <strong>Windows</strong>, <strong>Mac</strong> o una versión <strong>General</strong> antes de continuar."
       : "Entrega configurada para acceso estándar.";
   }
 }
@@ -926,6 +953,7 @@ function obtenerCategoriaVisualProducto(idProducto, itemProducto = {}) {
   if (
     categoriaDb === "daw" ||
     categoriaDb.includes("daw") ||
+    tipoEntrega === "daw" ||
     nombre.includes("fl studio") ||
     nombre.includes("ableton") ||
     nombre.includes("cubase") ||
@@ -935,6 +963,14 @@ function obtenerCategoriaVisualProducto(idProducto, itemProducto = {}) {
     nombre.includes("studio one")
   ) {
     return "daw";
+  }
+
+  if (
+    categoriaDb === "descarga" ||
+    categoriaDb.includes("descarga") ||
+    tipoEntrega === "descarga"
+  ) {
+    return "descarga";
   }
 
   if (
@@ -1002,8 +1038,10 @@ function esProductoDescarga(productoId = "", itemProducto = {}) {
   return (
     tipoEntrega === "descarga" ||
     tipoEntrega === "plugin" ||
+    tipoEntrega === "daw" ||
     categoria.includes("plugin") ||
     categoria.includes("daw") ||
+    categoria.includes("descarga") ||
     nombre.includes("plugin") ||
     nombre.includes("vst") ||
     nombre.includes("au") ||
@@ -1024,8 +1062,10 @@ function esProductoStockIlimitado(productoId = "", itemProducto = {}) {
   return (
     tipoEntrega === "descarga" ||
     tipoEntrega === "plugin" ||
+    tipoEntrega === "daw" ||
     categoria === "plugin" ||
-    categoria === "daw"
+    categoria === "daw" ||
+    categoria === "descarga"
   );
 }
 
@@ -1078,7 +1118,7 @@ function obtenerDuracionTexto(item) {
   const dias = Number(item?.duracionDias || 30);
   const esPermanente = dias >= 3650 || dias === 3065 || nombre.includes("permanente");
 
-  if (tipoEntrega === "descarga" || tipoEntrega === "plugin") {
+  if (tipoEntrega === "descarga" || tipoEntrega === "plugin" || tipoEntrega === "daw") {
     if (esPermanente) return "Instalación: Permanente";
     return "Instalación: " + dias + " días";
   }
@@ -1126,11 +1166,13 @@ function obtenerReglasProducto(productoBase) {
   if (
     tipoEntrega === "descarga" ||
     tipoEntrega === "plugin" ||
+    tipoEntrega === "daw" ||
     categoria === "plugin" ||
-    categoria === "daw"
+    categoria === "daw" ||
+    categoria === "descarga"
   ) {
     return `
-      <li>Selecciona correctamente la plataforma de instalación: <strong>Windows</strong> o <strong>Mac</strong>.</li>
+      <li>Selecciona correctamente la plataforma de instalación: <strong>Windows</strong>, <strong>Mac</strong> o <strong>General</strong>.</li>
       <li>Descarga el archivo completo y espera a que finalice antes de abrirlo.</li>
       <li>Descomprime el paquete si viene en formato ZIP, RAR o similar.</li>
       <li>En Windows, ejecuta el instalador <strong>.exe</strong> como administrador cuando sea necesario.</li>
@@ -1268,10 +1310,12 @@ function obtenerDescripcionProductoFallback(productoBase) {
   if (
     tipoEntrega === "descarga" ||
     tipoEntrega === "plugin" ||
+    tipoEntrega === "daw" ||
     categoria === "plugin" ||
-    categoria === "daw"
+    categoria === "daw" ||
+    categoria === "descarga"
   ) {
-    return "Producto digital descargable con entrega técnica según la plataforma seleccionada. El acceso se orienta a instalación en Windows o Mac, según disponibilidad configurada para el producto.";
+    return "Producto digital descargable con entrega técnica según la plataforma seleccionada. El acceso se orienta a instalación en Windows, Mac o versión general, según disponibilidad configurada para el producto.";
   }
 
   if (productoBase === "Crunchyroll") {
@@ -1316,7 +1360,6 @@ function obtenerDescripcionProductoFallback(productoBase) {
 
   return "Producto digital disponible.";
 }
-
 /* =========================
 RUTAS CUENTAS SEGUN FIREBASE
 ========================= */
@@ -1650,7 +1693,8 @@ auth.onAuthStateChanged((user) => {
     "recargas.html",
     "como-comprar.html",
     "mis-compras.html",
-    "admin.html"
+    "admin.html",
+    "streampro.html"
   ];
 
   if (!user) {
@@ -1698,6 +1742,15 @@ auth.onAuthStateChanged((user) => {
     if (pagina === "admin.html" && rol !== "admin") {
       if (rol === "proveedor") {
         window.location.replace("streampro.html");
+      } else {
+        window.location.replace("tienda.html");
+      }
+      return;
+    }
+
+    if (pagina === "streampro.html" && rol !== "proveedor") {
+      if (rol === "admin") {
+        window.location.replace("admin.html");
       } else {
         window.location.replace("tienda.html");
       }
@@ -2271,7 +2324,6 @@ function cambiarCantidad(valor) {
   cantidadProducto = nuevaCantidad;
   actualizarVisualCantidadYTotal();
 }
-
 /* =========================
 CUENTAS / CODIGOS / ORDENES
 ========================= */
@@ -2433,9 +2485,13 @@ async function obtenerCodigosDisponibles(productoId, cantidadNecesaria) {
 
   Object.keys(data).forEach((key) => {
     const item = data[key] || {};
-    const productoCodigo = String(item.producto || "").trim().toLowerCase();
+    const productoCodigo = String(item.producto || item.productoId || item.productoNombre || "").trim().toLowerCase();
 
-    if (productoCodigo !== productoNormalizado) return;
+    if (
+      productoCodigo !== productoNormalizado &&
+      String(item.productoId || "").trim().toLowerCase() !== productoNormalizado
+    ) return;
+
     if (!codigoEstaDisponible(item)) return;
     if (codigos.length >= cantidadNecesaria) return;
 
@@ -2489,6 +2545,83 @@ function devolverSaldoUsuario(uid, monto) {
       else resolve();
     });
   });
+}
+
+function acreditarSaldoProveedor(uidProveedor, monto) {
+  return new Promise((resolve, reject) => {
+    if (!uidProveedor || Number(monto || 0) <= 0) {
+      resolve();
+      return;
+    }
+
+    db.ref("usuarios/" + uidProveedor + "/saldo").transaction((saldoActual) => {
+      const saldo = Number(saldoActual || 0);
+      return Number((saldo + Number(monto || 0)).toFixed(2));
+    }, (error, committed, snapshot) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      if (!committed) {
+        reject(new Error("NO_SE_PUDO_ACREDITAR_PROVEEDOR"));
+        return;
+      }
+
+      resolve(Number(snapshot.val() || 0));
+    });
+  });
+}
+
+function revertirSaldoProveedor(uidProveedor, monto) {
+  return new Promise((resolve, reject) => {
+    if (!uidProveedor || Number(monto || 0) <= 0) {
+      resolve();
+      return;
+    }
+
+    db.ref("usuarios/" + uidProveedor + "/saldo").transaction((saldoActual) => {
+      const saldo = Number(saldoActual || 0);
+      const nuevoSaldo = saldo - Number(monto || 0);
+      return Number((nuevoSaldo < 0 ? 0 : nuevoSaldo).toFixed(2));
+    }, (error) => {
+      if (error) reject(error);
+      else resolve();
+    });
+  });
+}
+
+async function registrarMovimientoProveedor({
+  proveedorId = "",
+  productoId = "",
+  productoNombre = "",
+  compradorNombre = "",
+  monto = 0,
+  ventaId = ""
+} = {}) {
+  if (!proveedorId || Number(monto || 0) <= 0) return "";
+
+  const ref = db.ref("movimientosSaldo").push();
+
+  await ref.set({
+    proveedorId: proveedorId,
+    tipo: "venta",
+    detalle: `Venta de ${productoNombre || productoId || "producto"} a ${compradorNombre || "cliente"}`,
+    monto: Number(Number(monto || 0).toFixed(2)),
+    signo: "+",
+    productoId: productoId || "",
+    productoNombre: productoNombre || "",
+    compradorNombre: compradorNombre || "",
+    ventaId: ventaId || "",
+    fecha: Date.now()
+  });
+
+  return ref.key;
+}
+
+async function eliminarMovimientoProveedor(movimientoId) {
+  if (!movimientoId) return;
+  await db.ref("movimientosSaldo/" + movimientoId).remove();
 }
 
 function descontarStockProducto(productoId, cantidad) {
@@ -2609,7 +2742,7 @@ function obtenerDuracionTextoOrden(itemProducto, tipoEntrega) {
   const dias = Number(itemProducto?.duracionDias || 0);
   const esPermanente = dias >= 3650 || dias === 3065 || nombre.includes("permanente");
 
-  if (tipo === "descarga" || tipo === "plugin") {
+  if (tipo === "descarga" || tipo === "plugin" || tipo === "daw") {
     if (esPermanente) return "Instalación: Permanente";
     return "Instalación: " + dias + " días";
   }
@@ -2630,7 +2763,7 @@ function obtenerFechaExpiraOrden(itemProducto, tipoEntrega, ahora) {
   const esPermanente = dias >= 3650 || dias === 3065 || nombre.includes("permanente");
 
   if (tipo === "codigo") return "";
-  if ((tipo === "descarga" || tipo === "plugin") && esPermanente) return "";
+  if ((tipo === "descarga" || tipo === "plugin" || tipo === "daw") && esPermanente) return "";
   if (esPermanente) return "";
 
   return new Date(ahora.getTime() + dias * 24 * 60 * 60 * 1000).toISOString();
@@ -2641,15 +2774,20 @@ function obtenerPlataformaDescargaSeleccionada() {
   if (!select) return "windows";
 
   const valor = String(select.value || "windows").toLowerCase().trim();
-  return valor === "mac" ? "mac" : "windows";
+  if (valor === "mac") return "mac";
+  if (valor === "general") return "general";
+  return "windows";
 }
 
 function obtenerLinkDescargaSegunPlataforma(itemProducto = {}, plataforma = "windows") {
   const opciones = itemProducto.opcionesEntrega || {};
-  const plataformaFinal = plataforma === "mac" ? "mac" : "windows";
+  const plataformaFinal = ["windows", "mac", "general"].includes(plataforma) ? plataforma : "windows";
 
   const linkDirecto = String(opciones?.[plataformaFinal]?.link || "").trim();
   if (linkDirecto) return linkDirecto;
+
+  const linkGeneral = String(opciones?.general?.link || "").trim();
+  if (linkGeneral) return linkGeneral;
 
   const linkBase = String(itemProducto.linkDescarga || "").trim();
   return linkBase;
@@ -2667,7 +2805,10 @@ async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprad
     const nuevaOrdenRef = db.ref("ordenes/" + uid).push();
 
     const esDescarga = itemObj.tipo === "descarga";
-    const tipoEntrega = esDescarga ? "descarga" : (itemObj.tipo === "codigo" ? "codigo" : "cuenta");
+    const tipoEntrega = esDescarga
+      ? (itemObj.subtipoEntrega || "descarga")
+      : (itemObj.tipo === "codigo" ? "codigo" : "cuenta");
+
     const esCodigo = tipoEntrega === "codigo";
     const esLicencia = esCodigo || esProductoLicencia(productoSeleccionadoId, itemProducto);
 
@@ -2714,11 +2855,19 @@ async function registrarCompraFinal(itemsAsignados, nombreComprador, ordenesGene
   const productoId = productoSeleccionadoId;
   const reparto = calcularRepartoVenta(precioBase, cantidadProducto, item);
 
-  await db.ref("comprasHoy").transaction((total) => {
-    return (total || 0) + cantidadProducto;
+  const compraHoyRef = db.ref("comprasHoy").push();
+  await compraHoyRef.set({
+    producto: item.nombre || productoActual,
+    cliente: nombreComprador,
+    operacion: "compra",
+    monto: reparto.total,
+    fecha: Date.now(),
+    estado: "entregada"
   });
 
-  await db.ref("ventas/" + productoId).push({
+  const ventaRef = db.ref("ventas/" + productoId).push();
+
+  await ventaRef.set({
     productoId: productoId,
     producto: item.nombre || productoActual,
     proveedorId: item.proveedorId || "",
@@ -2732,16 +2881,40 @@ async function registrarCompraFinal(itemsAsignados, nombreComprador, ordenesGene
     nombre: nombreComprador,
     uidUsuario: usuarioActual?.uid || "",
     fecha: Date.now(),
-    estado: "registrado"
+    estado: "entregada"
   });
 
-  await db.ref("comprasLive").push({
+  const compraLiveRef = db.ref("comprasLive").push();
+
+  await compraLiveRef.set({
     nombre: nombreComprador,
     producto: item.nombre || productoActual,
     time: Date.now()
   });
 
-  return ordenesGeneradas;
+  let movimientoId = "";
+  if (item.proveedorId && reparto.montoProveedor > 0) {
+    await acreditarSaldoProveedor(item.proveedorId, reparto.montoProveedor);
+
+    movimientoId = await registrarMovimientoProveedor({
+      proveedorId: item.proveedorId,
+      productoId: productoId,
+      productoNombre: item.nombre || productoActual,
+      compradorNombre: nombreComprador,
+      monto: reparto.montoProveedor,
+      ventaId: ventaRef.key
+    });
+  }
+
+  return {
+    ordenesGeneradas,
+    ventaId: ventaRef.key,
+    compraLiveId: compraLiveRef.key,
+    compraHoyId: compraHoyRef.key,
+    movimientoId: movimientoId,
+    proveedorId: item.proveedorId || "",
+    montoProveedor: reparto.montoProveedor || 0
+  };
 }
 
 /* =========================
@@ -2758,6 +2931,13 @@ async function comprarAhora() {
   let itemsDisponibles = [];
   let uid = "";
   let totalCompra = 0;
+
+  let ventaRegistradaId = "";
+  let compraLiveRegistradaId = "";
+  let compraHoyRegistradaId = "";
+  let movimientoProveedorId = "";
+  let proveedorAcreditadoId = "";
+  let montoAcreditadoProveedor = 0;
 
   try {
     if (!usuarioActual) {
@@ -2814,6 +2994,7 @@ async function comprarAhora() {
     if (productoEsDescarga) {
       const plataformaElegida = obtenerPlataformaDescargaSeleccionada();
       const linkEntrega = obtenerLinkDescargaSegunPlataforma(item, plataformaElegida);
+      const subtipoEntrega = String(item.tipoEntrega || "descarga").toLowerCase().trim();
 
       if (!linkEntrega) {
         mostrarAvisoSistema(
@@ -2826,13 +3007,20 @@ async function comprarAhora() {
 
       itemsDisponibles = [{
         tipo: "descarga",
+        subtipoEntrega: subtipoEntrega,
         key: "descarga_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8),
         ruta: "descarga",
-        cuenta: "",
+        cuenta: linkEntrega,
         clave: "",
         perfil: "",
         pin: "",
-        observacion: "Descarga para " + (plataformaElegida === "mac" ? "Mac" : "Windows"),
+        observacion: "Descarga para " + (
+          plataformaElegida === "mac"
+            ? "Mac"
+            : plataformaElegida === "general"
+              ? "General"
+              : "Windows"
+        ),
         plataformaElegida: plataformaElegida,
         linkEntrega: linkEntrega,
         raw: item
@@ -2870,7 +3058,14 @@ async function comprarAhora() {
       itemsMarcados = true;
     }
 
-    await registrarCompraFinal(itemsDisponibles, nombreComprador, ordenesGeneradas);
+    const resultadoRegistro = await registrarCompraFinal(itemsDisponibles, nombreComprador, ordenesGeneradas);
+
+    ventaRegistradaId = resultadoRegistro?.ventaId || "";
+    compraLiveRegistradaId = resultadoRegistro?.compraLiveId || "";
+    compraHoyRegistradaId = resultadoRegistro?.compraHoyId || "";
+    movimientoProveedorId = resultadoRegistro?.movimientoId || "";
+    proveedorAcreditadoId = resultadoRegistro?.proveedorId || "";
+    montoAcreditadoProveedor = Number(resultadoRegistro?.montoProveedor || 0);
 
     cerrarModal();
     mostrarToastCompraExitosa(item.nombre || productoActual, totalCompra);
@@ -2879,6 +3074,46 @@ async function comprarAhora() {
     console.error("Error al comprar:", error);
     console.error("Mensaje:", error?.message);
     console.error("Código:", error?.code);
+
+    if (movimientoProveedorId) {
+      try {
+        await eliminarMovimientoProveedor(movimientoProveedorId);
+      } catch (e) {
+        console.error("No se pudo eliminar movimiento proveedor:", e);
+      }
+    }
+
+    if (proveedorAcreditadoId && montoAcreditadoProveedor > 0) {
+      try {
+        await revertirSaldoProveedor(proveedorAcreditadoId, montoAcreditadoProveedor);
+      } catch (e) {
+        console.error("No se pudo revertir saldo proveedor:", e);
+      }
+    }
+
+    if (ventaRegistradaId) {
+      try {
+        await db.ref("ventas/" + productoSeleccionadoId + "/" + ventaRegistradaId).remove();
+      } catch (e) {
+        console.error("No se pudo eliminar venta registrada:", e);
+      }
+    }
+
+    if (compraLiveRegistradaId) {
+      try {
+        await db.ref("comprasLive/" + compraLiveRegistradaId).remove();
+      } catch (e) {
+        console.error("No se pudo eliminar compraLive:", e);
+      }
+    }
+
+    if (compraHoyRegistradaId) {
+      try {
+        await db.ref("comprasHoy/" + compraHoyRegistradaId).remove();
+      } catch (e) {
+        console.error("No se pudo eliminar compraHoy:", e);
+      }
+    }
 
     if (itemsMarcados) {
       try {
