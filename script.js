@@ -51,11 +51,19 @@ let compraEnProceso = false;
 let filtroBusqueda = "";
 let filtroCategoria = "todos";
 
+/* caches de stock real */
+let cuentasStockCache = {};
+let codigosStockCache = {};
+let cuentasDataCache = {};
+let codigosDataCache = {};
+
 /* refs para evitar listeners innecesarios */
 let productosRef = null;
 let comprasHoyRef = null;
 let comprasLiveRef = null;
 let ventasRefs = [];
+let cuentasRootRef = null;
+let codigosRootRef = null;
 
 /* control inactividad / presencia */
 const TIEMPO_INACTIVIDAD_USUARIO = 5 * 60 * 1000;
@@ -206,6 +214,160 @@ function fechaMsSegura(valor) {
 
 function sumarDiasMs(baseMs, dias) {
   return Number(baseMs || 0) + (Number(dias || 0) * 24 * 60 * 60 * 1000);
+}
+
+function formatearReglasHTML(reglasTexto = "") {
+  const limpio = String(reglasTexto || "").trim();
+  if (!limpio) return "";
+
+  const partes = limpio
+    .split(/\n|•|- /)
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  if (!partes.length) {
+    return `<li>${escaparHTML(limpio)}</li>`;
+  }
+
+  return partes.map((linea) => `<li>${escaparHTML(linea)}</li>`).join("");
+}
+
+/* =========================
+STOCK REAL DESDE CUENTAS / CODIGOS
+========================= */
+
+function esNodoCuentaDirecta(data = {}) {
+  if (!data || typeof data !== "object") return false;
+
+  return (
+    String(data.cuenta || "").trim() !== "" ||
+    String(data.correo || "").trim() !== "" ||
+    String(data.email || "").trim() !== "" ||
+    String(data.usuario || "").trim() !== "" ||
+    String(data.codigo || "").trim() !== ""
+  );
+}
+
+function cuentaEstaDisponible(data = {}) {
+  const vendida = data.vendida === true || data.vendido === true || data.usada === true;
+  const disponibleFalse = data.disponible === false;
+  const estado = String(data.estado || "").toLowerCase().trim();
+
+  if (vendida) return false;
+  if (disponibleFalse) return false;
+  if (["vendida", "usada", "ocupada", "inactiva", "agotada"].includes(estado)) return false;
+
+  const cuenta = data.cuenta || data.correo || data.email || data.usuario || data.codigo || "";
+  return String(cuenta || "").trim() !== "";
+}
+
+function contarCuentasDisponiblesEnNodo(nodoActual) {
+  if (!nodoActual || typeof nodoActual !== "object") return 0;
+
+  if (esNodoCuentaDirecta(nodoActual)) {
+    return cuentaEstaDisponible(nodoActual) ? 1 : 0;
+  }
+
+  let total = 0;
+  Object.keys(nodoActual).forEach((key) => {
+    const subNodo = nodoActual[key];
+    if (subNodo && typeof subNodo === "object") {
+      total += contarCuentasDisponiblesEnNodo(subNodo);
+    }
+  });
+
+  return total;
+}
+
+function codigoEstaDisponible(data = {}) {
+  const activo = data.activo !== false;
+  const usado = data.usado === true;
+  const codigo = String(data.codigo || "").trim();
+
+  return activo && !usado && codigo !== "";
+}
+
+function reconstruirStockCuentasDesdeCache() {
+  const nuevoMapa = {};
+
+  Object.keys(cuentasDataCache || {}).forEach((productoId) => {
+    nuevoMapa[productoId] = contarCuentasDisponiblesEnNodo(cuentasDataCache[productoId]);
+  });
+
+  cuentasStockCache = nuevoMapa;
+}
+
+function reconstruirStockCodigosDesdeCache() {
+  const nuevoMapa = {};
+  const data = codigosDataCache || {};
+
+  Object.keys(data).forEach((key) => {
+    const item = data[key] || {};
+    if (!codigoEstaDisponible(item)) return;
+
+    const productoId = String(item.productoId || item.producto || "").trim();
+    if (!productoId) return;
+
+    nuevoMapa[productoId] = (nuevoMapa[productoId] || 0) + 1;
+  });
+
+  codigosStockCache = nuevoMapa;
+}
+
+function obtenerStockRealProducto(productoId, itemProducto = {}) {
+  if (esProductoStockIlimitado(productoId, itemProducto)) {
+    return "Ilimitado";
+  }
+
+  if (esProductoCodigo(productoId, itemProducto) || esProductoLicencia(productoId, itemProducto)) {
+    return Number(codigosStockCache[productoId] || 0);
+  }
+
+  return Number(cuentasStockCache[productoId] || 0);
+}
+
+function escucharStockRealTienda() {
+  if (!esPaginaTienda()) return;
+
+  if (cuentasRootRef) {
+    cuentasRootRef.off();
+    cuentasRootRef = null;
+  }
+
+  if (codigosRootRef) {
+    codigosRootRef.off();
+    codigosRootRef = null;
+  }
+
+  cuentasRootRef = db.ref("cuentas");
+  cuentasRootRef.on("value", (snap) => {
+    cuentasDataCache = snap.val() || {};
+    reconstruirStockCuentasDesdeCache();
+    if (Object.keys(productosTiendaCache).length) {
+      renderizarProductosTienda(productosTiendaCache);
+    }
+  }, () => {
+    cuentasDataCache = {};
+    cuentasStockCache = {};
+    if (Object.keys(productosTiendaCache).length) {
+      renderizarProductosTienda(productosTiendaCache);
+    }
+  });
+
+  codigosRootRef = db.ref("codigos");
+  codigosRootRef.on("value", (snap) => {
+    codigosDataCache = snap.val() || {};
+    reconstruirStockCodigosDesdeCache();
+    if (Object.keys(productosTiendaCache).length) {
+      renderizarProductosTienda(productosTiendaCache);
+    }
+  }, () => {
+    codigosDataCache = {};
+    codigosStockCache = {};
+    if (Object.keys(productosTiendaCache).length) {
+      renderizarProductosTienda(productosTiendaCache);
+    }
+  });
 }
 
 /* =========================
@@ -452,7 +614,6 @@ function iniciarControlInactividad() {
   controlInactividadIniciado = true;
   reiniciarTemporizadorInactividad();
 }
-
 /* =========================
 CIERRE POR PESTAÑA / NAVEGADOR
 ========================= */
@@ -659,6 +820,62 @@ function inyectarEstilosAvisoSistema() {
       box-shadow:none;
       border:1px solid rgba(255,255,255,0.10);
       color:#fff;
+    }
+
+    .toastCompraExitosa{
+      position:fixed;
+      right:20px;
+      bottom:20px;
+      z-index:999999;
+      min-width:300px;
+      max-width:420px;
+      background:linear-gradient(180deg,#0f172a,#0b1220);
+      color:#fff;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:18px;
+      box-shadow:0 20px 45px rgba(0,0,0,.38);
+      padding:14px 16px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      transform:translateY(25px);
+      opacity:0;
+      pointer-events:none;
+      transition:.22s ease;
+    }
+
+    .toastCompraExitosa.show{
+      transform:translateY(0);
+      opacity:1;
+    }
+
+    .toastCompraIcon{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(180deg,#22c55e,#16a34a);
+      font-size:21px;
+      flex:0 0 42px;
+    }
+
+    .toastCompraTexto{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+
+    .toastCompraTexto strong{
+      font-size:14px;
+      font-weight:800;
+    }
+
+    .toastCompraTexto span{
+      font-size:12.5px;
+      color:rgba(255,255,255,.72);
+      line-height:1.45;
     }
 
     @keyframes fadeAviso{
@@ -1160,6 +1377,12 @@ function calcularRepartoVenta(precioUnitario, cantidad, itemProducto = {}) {
 
 function obtenerReglasProducto(productoBase) {
   const item = productoSeleccionadoData || {};
+  const reglasPersonalizadas = String(item?.reglas || "").trim();
+
+  if (reglasPersonalizadas) {
+    return formatearReglasHTML(reglasPersonalizadas);
+  }
+
   const tipoEntrega = String(item?.tipoEntrega || "").toLowerCase().trim();
   const categoria = String(item?.categoria || "").toLowerCase().trim();
 
@@ -1507,6 +1730,16 @@ function limpiarListenersPagina() {
   if (comprasLiveRef) {
     comprasLiveRef.off();
     comprasLiveRef = null;
+  }
+
+  if (cuentasRootRef) {
+    cuentasRootRef.off();
+    cuentasRootRef = null;
+  }
+
+  if (codigosRootRef) {
+    codigosRootRef.off();
+    codigosRootRef = null;
   }
 
   if (ventasRefs.length) {
@@ -1926,7 +2159,19 @@ function escucharClientesHoy() {
 
   comprasHoyRef = db.ref("comprasHoy");
   comprasHoyRef.on("value", (snap) => {
-    span.innerText = snap.val() || 0;
+    const data = snap.val();
+
+    if (typeof data === "number") {
+      span.innerText = data;
+      return;
+    }
+
+    if (data && typeof data === "object") {
+      span.innerText = Object.keys(data).length;
+      return;
+    }
+
+    span.innerText = "0";
   }, () => {
     span.innerText = "0";
   });
@@ -1965,33 +2210,16 @@ function escucharVentasProductos() {
     const span = document.getElementById(spanId);
     if (!span) return;
 
-    const rutasCompatibles = [
-      "ventas/" + prod,
-      "ventas/" + prod.charAt(0).toUpperCase() + prod.slice(1)
-    ];
-
-    let totalRuta1 = 0;
-    let totalRuta2 = 0;
-
-    const ref1 = db.ref(rutasCompatibles[0]);
-    const cb1 = (snap) => {
-      totalRuta1 = convertirVentasANumero(snap.val());
-      span.innerText = totalRuta1 + totalRuta2;
+    const ref = db.ref("ventas/" + prod);
+    const callback = (snap) => {
+      span.innerText = convertirVentasANumero(snap.val());
     };
-    ref1.on("value", cb1, () => {
-      span.innerText = totalRuta1 + totalRuta2;
-    });
-    ventasRefs.push({ ref: ref1, callback: cb1 });
 
-    const ref2 = db.ref(rutasCompatibles[1]);
-    const cb2 = (snap) => {
-      totalRuta2 = convertirVentasANumero(snap.val());
-      span.innerText = totalRuta1 + totalRuta2;
-    };
-    ref2.on("value", cb2, () => {
-      span.innerText = totalRuta1 + totalRuta2;
+    ref.on("value", callback, () => {
+      span.innerText = "0";
     });
-    ventasRefs.push({ ref: ref2, callback: cb2 });
+
+    ventasRefs.push({ ref, callback });
   });
 }
 
@@ -2147,13 +2375,13 @@ function renderizarProductosTienda(data) {
     const item = data[id] || {};
     const nombre = item.nombre || id;
     const precio = Number(item.precio || 0);
-    const stock = Number(item.stock || 0);
     const proveedorNombre = item.proveedorNombre || "Josking";
     const imagen = obtenerImagenProducto(item, id);
     const duracionTexto = obtenerDuracionTexto(item);
-    const stockIlimitado = esProductoStockIlimitado(id, item);
-    const agotado = !stockIlimitado && stock <= 0;
-    const textoStock = stockIlimitado ? "Ilimitado" : String(stock);
+    const stockReal = obtenerStockRealProducto(id, item);
+    const stockIlimitado = stockReal === "Ilimitado";
+    const agotado = !stockIlimitado && Number(stockReal || 0) <= 0;
+    const textoStock = stockIlimitado ? "Ilimitado" : String(stockReal);
 
     const html = `
       <div class="producto" id="producto_${escaparHTML(id)}">
@@ -2221,11 +2449,11 @@ function abrirProductoPorId(productoId) {
   const productoBaseNormalizado = normalizarProductoBase(nombre);
   const descripcion = item.descripcion || obtenerDescripcionProductoFallback(productoBaseNormalizado);
   const imagen = obtenerImagenProducto(item, productoId);
-  const stock = Number(item.stock || 0);
+  const stockReal = obtenerStockRealProducto(productoId, item);
   const proveedorNombre = item.proveedorNombre || "Josking";
-  const stockIlimitado = esProductoStockIlimitado(productoId, item);
+  const stockIlimitado = stockReal === "Ilimitado";
 
-  if (!stockIlimitado && stock <= 0) {
+  if (!stockIlimitado && Number(stockReal || 0) <= 0) {
     mostrarAvisoSistema("Producto agotado", "Este producto no tiene stock disponible en este momento.", "warn");
     return;
   }
@@ -2235,7 +2463,7 @@ function abrirProductoPorId(productoId) {
   productoActual = nombre;
   precioBase = precio;
   cantidadProducto = 1;
-  stockDisponible = stockIlimitado ? 999999 : stock;
+  stockDisponible = stockIlimitado ? 999999 : Number(stockReal || 0);
   productoBaseActual = productoBaseNormalizado;
 
   const modal = document.getElementById("modalCompra");
@@ -2324,6 +2552,7 @@ function cambiarCantidad(valor) {
   cantidadProducto = nuevaCantidad;
   actualizarVisualCantidadYTotal();
 }
+
 /* =========================
 CUENTAS / CODIGOS / ORDENES
 ========================= */
@@ -2363,40 +2592,6 @@ function obtenerPinValor(data = {}) {
 
 function obtenerObservacionValor(data = {}) {
   return data.observacion || "";
-}
-
-function cuentaEstaDisponible(data = {}) {
-  const vendida = data.vendida === true || data.vendido === true || data.usada === true;
-  const disponibleFalse = data.disponible === false;
-  const estado = String(data.estado || "").toLowerCase().trim();
-
-  if (vendida) return false;
-  if (disponibleFalse) return false;
-  if (["vendida", "usada", "ocupada", "inactiva", "agotada"].includes(estado)) return false;
-
-  const cuenta = obtenerCuentaValor(data);
-  return String(cuenta || "").trim() !== "";
-}
-
-function codigoEstaDisponible(data = {}) {
-  const activo = data.activo !== false;
-  const usado = data.usado === true;
-  const codigo = String(data.codigo || "").trim();
-
-  return activo && !usado && codigo !== "";
-}
-
-function esNodoCuentaDirecta(data = {}) {
-  if (!data || typeof data !== "object") return false;
-
-  const tieneDatoPrincipal =
-    String(data.cuenta || "").trim() !== "" ||
-    String(data.correo || "").trim() !== "" ||
-    String(data.email || "").trim() !== "" ||
-    String(data.usuario || "").trim() !== "" ||
-    String(data.codigo || "").trim() !== "";
-
-  return tieneDatoPrincipal;
 }
 
 function recolectarCuentasDesdeNodo(nodoActual, rutaProducto, cantidadNecesaria, acumulado = [], rutaRelativa = "") {
@@ -2547,6 +2742,21 @@ function devolverSaldoUsuario(uid, monto) {
   });
 }
 
+async function sincronizarStockProductoConInventario(productoId, itemProducto = null) {
+  const item = itemProducto || productosTiendaCache[productoId] || {};
+  if (!productoId || esProductoStockIlimitado(productoId, item)) return;
+
+  const stockReal = Number(obtenerStockRealProducto(productoId, item) || 0);
+  try {
+    await db.ref("productos/" + productoId + "/stock").set(stockReal);
+    if (productosTiendaCache[productoId]) {
+      productosTiendaCache[productoId].stock = stockReal;
+    }
+  } catch (e) {
+    console.error("No se pudo sincronizar stock del producto:", productoId, e);
+  }
+}
+
 function acreditarSaldoProveedor(uidProveedor, monto) {
   return new Promise((resolve, reject) => {
     if (!uidProveedor || Number(monto || 0) <= 0) {
@@ -2624,42 +2834,6 @@ async function eliminarMovimientoProveedor(movimientoId) {
   await db.ref("movimientosSaldo/" + movimientoId).remove();
 }
 
-function descontarStockProducto(productoId, cantidad) {
-  return new Promise((resolve, reject) => {
-    const ref = db.ref("productos/" + productoId + "/stock");
-
-    ref.transaction((stockActual) => {
-      const stock = Number(stockActual || 0);
-      if (stock < cantidad) return;
-      return stock - cantidad;
-    }, (error, committed, snapshot) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      if (!committed) {
-        reject(new Error("STOCK_INSUFICIENTE"));
-        return;
-      }
-
-      resolve(Number(snapshot.val() || 0));
-    });
-  });
-}
-
-function devolverStockProducto(productoId, cantidad) {
-  return new Promise((resolve, reject) => {
-    db.ref("productos/" + productoId + "/stock").transaction((stockActual) => {
-      const stock = Number(stockActual || 0);
-      return stock + cantidad;
-    }, (error) => {
-      if (error) reject(error);
-      else resolve();
-    });
-  });
-}
-
 async function marcarItemsVendidos(items, user, nombreComprador, ordenIdsAsignados = []) {
   const updates = {};
   const fechaEntrega = formatearFechaEntregaLocal();
@@ -2688,6 +2862,7 @@ async function marcarItemsVendidos(items, user, nombreComprador, ordenIdsAsignad
     updates[`${base}/fechaEntrega`] = fechaEntrega;
     updates[`${base}/vendida`] = true;
     updates[`${base}/vendido`] = true;
+    updates[`${base}/usada`] = true;
     updates[`${base}/disponible`] = false;
     updates[`${base}/uidComprador`] = user.uid;
     updates[`${base}/compradorNombre`] = nombreComprador;
@@ -2726,6 +2901,7 @@ async function revertirItemsVendidos(items) {
     updates[`${base}/fechaEntrega`] = null;
     updates[`${base}/vendida`] = false;
     updates[`${base}/vendido`] = false;
+    updates[`${base}/usada`] = false;
     updates[`${base}/disponible`] = true;
     updates[`${base}/uidComprador`] = null;
     updates[`${base}/compradorNombre`] = null;
@@ -2870,6 +3046,7 @@ async function registrarCompraFinal(itemsAsignados, nombreComprador, ordenesGene
   await ventaRef.set({
     productoId: productoId,
     producto: item.nombre || productoActual,
+    productoNombre: item.nombre || productoActual,
     proveedorId: item.proveedorId || "",
     proveedorNombre: item.proveedorNombre || "Josking",
     porcentajeProveedor: reparto.porcentajeProveedor,
@@ -2877,6 +3054,7 @@ async function registrarCompraFinal(itemsAsignados, nombreComprador, ordenesGene
     montoProveedor: reparto.montoProveedor,
     montoPlataforma: reparto.montoPlataforma,
     montoTotal: reparto.total,
+    precio: Number(precioBase || 0),
     cantidad: cantidadProducto,
     nombre: nombreComprador,
     uidUsuario: usuarioActual?.uid || "",
@@ -2926,7 +3104,6 @@ async function comprarAhora() {
   compraEnProceso = true;
 
   let saldoDescontado = false;
-  let stockDescontado = false;
   let itemsMarcados = false;
   let itemsDisponibles = [];
   let uid = "";
@@ -2954,8 +3131,11 @@ async function comprarAhora() {
     const productoEsDescarga = esProductoDescarga(productoSeleccionadoId, item);
     const productoEsLicencia = esProductoLicencia(productoSeleccionadoId, item);
     const productoEsCodigo = esProductoCodigo(productoSeleccionadoId, item);
+    const stockRealActual = obtenerStockRealProducto(productoSeleccionadoId, item);
 
     if (!productoEsDescarga) {
+      stockDisponible = Number(stockRealActual || 0);
+
       if (cantidadProducto < 1) {
         mostrarAvisoSistema("Cantidad inválida", "La cantidad seleccionada no es válida.", "warn");
         return;
@@ -2965,6 +3145,11 @@ async function comprarAhora() {
         cantidadProducto = Math.max(1, stockDisponible);
         actualizarVisualCantidadYTotal();
         mostrarAvisoStockPremium(stockDisponible);
+        return;
+      }
+
+      if (stockDisponible <= 0) {
+        mostrarAvisoSistema("Producto agotado", "Este producto ya no tiene stock disponible.", "warn");
         return;
       }
     } else {
@@ -3032,11 +3217,13 @@ async function comprarAhora() {
     }
 
     if (itemsDisponibles.length < cantidadProducto) {
+      await sincronizarStockProductoConInventario(productoSeleccionadoId, item);
+
       mostrarAvisoSistema(
         "Configuración incompleta",
         (productoEsLicencia || productoEsCodigo)
-          ? "Hay stock visible, pero no hay suficientes códigos disponibles configurados para entregar este producto."
-          : "Hay stock visible, pero no hay suficientes cuentas disponibles configuradas para entregar este producto.",
+          ? "Hay diferencia entre el stock mostrado y los códigos realmente disponibles. Ya se actualizó el stock real del producto."
+          : "Hay diferencia entre el stock mostrado y las cuentas realmente disponibles. Ya se actualizó el stock real del producto.",
         "error"
       );
       return;
@@ -3045,11 +3232,6 @@ async function comprarAhora() {
     await descontarSaldoUsuario(uid, totalCompra);
     saldoDescontado = true;
 
-    if (!productoEsDescarga) {
-      await descontarStockProducto(productoSeleccionadoId, cantidadProducto);
-      stockDescontado = true;
-    }
-
     const ordenesGeneradas = await guardarOrdenesUsuario(item, itemsDisponibles, nombreComprador);
     const ordenIds = ordenesGeneradas.map((o) => o.ordenId);
 
@@ -3057,6 +3239,8 @@ async function comprarAhora() {
       await marcarItemsVendidos(itemsDisponibles, usuarioActual, nombreComprador, ordenIds);
       itemsMarcados = true;
     }
+
+    await sincronizarStockProductoConInventario(productoSeleccionadoId, item);
 
     const resultadoRegistro = await registrarCompraFinal(itemsDisponibles, nombreComprador, ordenesGeneradas);
 
@@ -3123,11 +3307,11 @@ async function comprarAhora() {
       }
     }
 
-    if (stockDescontado) {
+    if (productoSeleccionadoId) {
       try {
-        await devolverStockProducto(productoSeleccionadoId, cantidadProducto);
+        await sincronizarStockProductoConInventario(productoSeleccionadoId, productoSeleccionadoData || {});
       } catch (e) {
-        console.error("No se pudo devolver stock:", e);
+        console.error("No se pudo resincronizar stock:", e);
       }
     }
 
@@ -3144,14 +3328,9 @@ async function comprarAhora() {
       return;
     }
 
-    if (String(error?.message || "").includes("STOCK_INSUFICIENTE")) {
-      mostrarAvisoSistema("Stock actualizado", "El stock cambió y ya no alcanza para completar la compra.", "warn");
-      return;
-    }
-
     mostrarAvisoSistema(
       "Compra no completada",
-      "Ocurrió un error al procesar la compra. No se realizó ningún cobro definitivo.",
+      "Ocurrió un error al procesar la compra. El saldo fue revertido y el stock se volvió a sincronizar.",
       "error"
     );
   } finally {
@@ -3308,6 +3487,7 @@ function iniciarPaginaTienda() {
   verificarUrgenciaOferta();
   configurarFiltrosTienda();
   cargarProductosTienda();
+  escucharStockRealTienda();
   escucharClientesHoy();
   escucharVentasProductos();
   escucharNotificacionCompra();
