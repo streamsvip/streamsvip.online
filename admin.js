@@ -390,6 +390,54 @@ function mostrarMensajeDescarga(texto, error = false) {
 }
 
 /* =========================
+IDs ÚNICOS PRODUCTOS ADMIN
+========================= */
+
+function normalizarIdProductoBase(valor) {
+  return String(valor || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9_-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^[-_]+|[-_]+$/g, "");
+}
+
+function asegurarPrefijoAdminEnId(valor) {
+  const limpio = normalizarIdProductoBase(valor);
+  if (!limpio) return "";
+  return limpio.startsWith("adm-") ? limpio : "adm-" + limpio;
+}
+
+async function productoIdYaExiste(idProducto) {
+  const snap = await db.ref("productos/" + idProducto).once("value");
+  return snap.exists();
+}
+
+function limpiarFormularioCrearProductoAdmin() {
+  const ids = [
+    "nuevoIdProducto",
+    "nuevoNombreProducto",
+    "nuevoPrecioProducto",
+    "nuevoStockProducto",
+    "nuevaDuracionProducto",
+    "nuevaCategoriaProducto",
+    "nuevaImagenProducto",
+    "nuevoTipoEntregaProducto",
+    "nuevoLinkDescargaProducto",
+    "nuevaDescripcionProducto",
+    "nuevasReglasProducto"
+  ];
+
+  ids.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+}
+
+/* =========================
 INACTIVIDAD
 ========================= */
 
@@ -663,6 +711,7 @@ function cargarPanel() {
   cargarProveedores();
   cargarRecargas();
   cargarReembolsos();
+  cargarRetirosProveedores();
   cargarCodigos();
   cargarDescargas();
   cargarDescargasEntregadas();
@@ -886,79 +935,78 @@ function iniciarAutoSyncStock() {
   db.ref("codigos").on("value", () => programarRecalculoStockSilencioso());
   db.ref("productos").on("value", () => programarRecalculoStockSilencioso());
 }
-
 /* =========================
 PRODUCTOS
 ========================= */
 
-function crearProducto() {
-  const id = document.getElementById("nuevoIdProducto").value.trim().toLowerCase();
-  const nombre = document.getElementById("nuevoNombreProducto").value.trim();
-  const precio = parseFloat(document.getElementById("nuevoPrecioProducto").value);
-  const stock = parseInt(document.getElementById("nuevoStockProducto").value);
-  const duracionDias = parseInt(document.getElementById("nuevaDuracionProducto").value);
-  const categoria = document.getElementById("nuevaCategoriaProducto").value.trim();
-  const imagen = document.getElementById("nuevaImagenProducto").value.trim();
-  const tipoEntrega = document.getElementById("nuevoTipoEntregaProducto").value.trim().toLowerCase();
-  const linkDescarga = document.getElementById("nuevoLinkDescargaProducto").value.trim();
-  const descripcion = document.getElementById("nuevaDescripcionProducto").value.trim();
-  const reglas = document.getElementById("nuevasReglasProducto").value.trim();
+async function crearProducto() {
+  try {
+    const idIngresado = document.getElementById("nuevoIdProducto").value.trim();
+    const id = asegurarPrefijoAdminEnId(idIngresado);
+    const nombre = document.getElementById("nuevoNombreProducto").value.trim();
+    const precio = parseFloat(document.getElementById("nuevoPrecioProducto").value);
+    const stock = parseInt(document.getElementById("nuevoStockProducto").value);
+    const duracionDias = parseInt(document.getElementById("nuevaDuracionProducto").value);
+    const categoria = document.getElementById("nuevaCategoriaProducto").value.trim();
+    const imagen = document.getElementById("nuevaImagenProducto").value.trim();
+    const tipoEntrega = document.getElementById("nuevoTipoEntregaProducto").value.trim().toLowerCase();
+    const linkDescarga = document.getElementById("nuevoLinkDescargaProducto").value.trim();
+    const descripcion = document.getElementById("nuevaDescripcionProducto").value.trim();
+    const reglas = document.getElementById("nuevasReglasProducto").value.trim();
 
-  if (!id || !nombre) return mostrarMensajeProducto("Completa el ID y nombre del producto.", true);
-  if (isNaN(precio) || precio < 0) return mostrarMensajeProducto("El precio no es válido.", true);
-  if (isNaN(stock) || stock < 0) return mostrarMensajeProducto("El stock no es válido.", true);
-  if (isNaN(duracionDias) || duracionDias < 1) return mostrarMensajeProducto("La duración en días no es válida.", true);
+    if (!id) return mostrarMensajeProducto("Completa el ID del producto.", true);
+    if (!nombre) return mostrarMensajeProducto("Completa el nombre del producto.", true);
+    if (isNaN(precio) || precio < 0) return mostrarMensajeProducto("El precio no es válido.", true);
+    if (isNaN(stock) || stock < 0) return mostrarMensajeProducto("El stock no es válido.", true);
+    if (isNaN(duracionDias) || duracionDias < 1) return mostrarMensajeProducto("La duración en días no es válida.", true);
 
-  const tipoEntregaFinal = tipoEntrega || "cuenta";
+    const yaExiste = await productoIdYaExiste(id);
+    if (yaExiste) {
+      return mostrarMensajeProducto("Ese ID ya existe. Usa otro distinto.", true);
+    }
 
-  const productoData = {
-    nombre,
-    precio,
-    stock,
-    duracionDias,
-    activo: true,
-    categoria: categoria || "general",
-    descripcion: descripcion || "",
-    reglas: reglas || "",
-    imagen: imagen || "",
-    tipoEntrega: tipoEntregaFinal,
-    linkDescarga: linkDescarga || "",
-    proveedorId: "admin_principal",
-    proveedorNombre: "Josking",
-    proveedorTipo: "admin",
-    comisionProveedor: 96,
-    comisionPlataforma: 4,
-    fechaCreacion: Date.now()
-  };
+    const tipoEntregaFinal = tipoEntrega || "cuenta";
 
-  if (["plugin", "descarga", "daw"].includes(tipoEntregaFinal)) {
-    productoData.opcionesEntrega = {
-      windows: { nombre: "Windows", link: "" },
-      mac: { nombre: "Mac", link: "" },
-      general: { nombre: "General", link: linkDescarga || "" }
+    const productoData = {
+      id,
+      nombre,
+      precio: redondearMonto(precio),
+      stock: Number(stock),
+      duracionDias: Number(duracionDias),
+      activo: true,
+      categoria: categoria || "general",
+      descripcion: descripcion || "",
+      reglas: reglas || "",
+      imagen: imagen || "",
+      tipoEntrega: tipoEntregaFinal,
+      linkDescarga: linkDescarga || "",
+      proveedorId: "admin_principal",
+      proveedorNombre: "Josking",
+      proveedorTipo: "admin",
+      comisionProveedor: 96,
+      comisionPlataforma: 4,
+      fechaCreacion: Date.now()
     };
+
+    if (["plugin", "descarga", "daw"].includes(tipoEntregaFinal)) {
+      productoData.opcionesEntrega = {
+        windows: { nombre: "Windows", link: "" },
+        mac: { nombre: "Mac", link: "" },
+        general: { nombre: "General", link: linkDescarga || "" }
+      };
+    }
+
+    const updates = {};
+    updates["productos/" + id] = productoData;
+    updates["stock/" + id] = Number(stock);
+
+    await db.ref().update(updates);
+
+    mostrarMensajeProducto("Producto creado correctamente con ID único: " + id);
+    limpiarFormularioCrearProductoAdmin();
+  } catch (error) {
+    mostrarMensajeProducto(error.message || "No se pudo crear el producto.", true);
   }
-
-  const updates = {};
-  updates["productos/" + id] = productoData;
-  updates["stock/" + id] = stock;
-
-  db.ref().update(updates)
-    .then(() => {
-      mostrarMensajeProducto("Producto creado correctamente.");
-      document.getElementById("nuevoIdProducto").value = "";
-      document.getElementById("nuevoNombreProducto").value = "";
-      document.getElementById("nuevoPrecioProducto").value = "";
-      document.getElementById("nuevoStockProducto").value = "";
-      document.getElementById("nuevaDuracionProducto").value = "";
-      document.getElementById("nuevaCategoriaProducto").value = "";
-      document.getElementById("nuevaImagenProducto").value = "";
-      document.getElementById("nuevoTipoEntregaProducto").value = "";
-      document.getElementById("nuevoLinkDescargaProducto").value = "";
-      document.getElementById("nuevaDescripcionProducto").value = "";
-      document.getElementById("nuevasReglasProducto").value = "";
-    })
-    .catch((error) => mostrarMensajeProducto(error.message, true));
 }
 
 function guardarProducto(id) {
@@ -980,11 +1028,12 @@ function guardarProducto(id) {
   db.ref("productos/" + id).once("value")
     .then((snapshot) => {
       const actual = snapshot.val() || {};
+
       const updateData = {
         nombre,
-        precio,
+        precio: redondearMonto(precio),
         stock: Number(actual.stock || 0),
-        duracionDias,
+        duracionDias: Number(duracionDias),
         categoria: categoria || "general",
         descripcion: descripcion || "",
         reglas: reglas || "",
@@ -2292,7 +2341,6 @@ function cargarRecargas() {
     mostrarMensajeRecarga("No se pudieron leer las recargas. Revisa tus rules.", true);
   });
 }
-
 /* =========================
 REEMBOLSOS
 ========================= */
@@ -2520,6 +2568,151 @@ function cargarReembolsos() {
 }
 
 /* =========================
+RETIROS DE PROVEEDORES
+========================= */
+
+function aprobarRetiroProveedor(id) {
+  db.ref("retirosProveedores/" + id).once("value")
+    .then((snap) => {
+      const item = snap.val();
+      if (!item || typeof item !== "object") throw new Error("La solicitud de retiro no existe.");
+
+      const proveedorId = item.proveedorId || "";
+      const monto = Number(item.monto || 0);
+      const estadoActual = String(item.estado || "").toLowerCase().trim();
+
+      if (!proveedorId) throw new Error("La solicitud no tiene proveedorId.");
+      if (isNaN(monto) || monto <= 0) throw new Error("Monto inválido.");
+      if (estadoActual === "aprobado") throw new Error("Este retiro ya fue aprobado.");
+      if (estadoActual === "rechazado") throw new Error("Este retiro ya fue rechazado.");
+
+      return db.ref("usuarios/" + proveedorId).once("value").then((usuarioSnap) => {
+        const proveedor = usuarioSnap.val();
+        if (!proveedor) throw new Error("No existe el proveedor.");
+
+        const saldoActual = Number(proveedor.saldo || 0);
+        if (monto > saldoActual) throw new Error("El proveedor no tiene saldo suficiente para aprobar este retiro.");
+
+        const nuevoSaldo = redondearMonto(saldoActual - monto);
+        const ahora = Date.now();
+
+        const updates = {};
+        updates["usuarios/" + proveedorId + "/saldo"] = nuevoSaldo;
+        updates["retirosProveedores/" + id + "/estado"] = "aprobado";
+        updates["retirosProveedores/" + id + "/fechaResolucion"] = ahora;
+        updates["retirosProveedores/" + id + "/adminUid"] = auth.currentUser ? auth.currentUser.uid : "";
+        updates["movimientosSaldo/" + id] = {
+          proveedorId: proveedorId,
+          tipo: "retiro aprobado",
+          detalle: "Retiro aprobado por administrador",
+          monto: monto,
+          signo: "-",
+          fecha: ahora
+        };
+
+        return db.ref().update(updates);
+      });
+    })
+    .then(() => {
+      mostrarMensajeProducto("Retiro aprobado correctamente y saldo descontado al proveedor.");
+    })
+    .catch((error) => {
+      mostrarMensajeProducto("Error al aprobar retiro: " + error.message, true);
+    });
+}
+
+function rechazarRetiroProveedor(id) {
+  db.ref("retirosProveedores/" + id).once("value")
+    .then((snap) => {
+      const item = snap.val();
+      if (!item || typeof item !== "object") throw new Error("La solicitud de retiro no existe.");
+
+      const estadoActual = String(item.estado || "").toLowerCase().trim();
+      if (estadoActual === "aprobado") throw new Error("No puedes rechazar un retiro ya aprobado.");
+      if (estadoActual === "rechazado") throw new Error("Este retiro ya fue rechazado.");
+
+      return db.ref("retirosProveedores/" + id).update({
+        estado: "rechazado",
+        fechaResolucion: Date.now(),
+        adminUid: auth.currentUser ? auth.currentUser.uid : ""
+      });
+    })
+    .then(() => {
+      mostrarMensajeProducto("Retiro rechazado correctamente.");
+    })
+    .catch((error) => {
+      mostrarMensajeProducto("Error al rechazar retiro: " + error.message, true);
+    });
+}
+
+function cargarRetirosProveedores() {
+  const tabla = document.getElementById("tablaRetirosProveedores");
+  const vacio = document.getElementById("retirosProveedoresVacio");
+  const tbody = document.querySelector("#tablaRetirosProveedores tbody");
+  const total = document.getElementById("totalRetirosProveedores");
+
+  if (!tabla || !vacio || !tbody) return;
+
+  db.ref("retirosProveedores").on("value", (snapshot) => {
+    const data = snapshot.val() || {};
+    tbody.innerHTML = "";
+
+    const ids = Object.keys(data).sort((a, b) => {
+      return timestampSeguro(data[b].fechaSolicitud || data[b].fechaResolucion) -
+             timestampSeguro(data[a].fechaSolicitud || data[a].fechaResolucion);
+    });
+
+    let pendientes = 0;
+
+    ids.forEach((id) => {
+      const item = data[id] || {};
+      const estado = String(item.estado || "pendiente").toLowerCase().trim();
+      if (estado === "pendiente") pendientes++;
+    });
+
+    if (total) total.textContent = String(pendientes);
+
+    if (!ids.length) {
+      tabla.classList.add("hidden");
+      vacio.classList.remove("hidden");
+      return;
+    }
+
+    ids.forEach((id) => {
+      const item = data[id] || {};
+      const estado = String(item.estado || "pendiente").toLowerCase().trim();
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${escaparHTML(id)}</td>
+          <td>${escaparHTML(textoSeguro(item.proveedorNombre))}</td>
+          <td>${escaparHTML(textoSeguro(item.proveedorId))}</td>
+          <td>${formatearDinero(item.monto || 0)}</td>
+          <td>${escaparHTML(textoSeguro(item.metodo))}</td>
+          <td>${escaparHTML(textoSeguro(item.datoPago))}</td>
+          <td>${badgeEstado(estado)}</td>
+          <td>${escaparHTML(formatearFecha(item.fechaSolicitud))}</td>
+          <td>${escaparHTML(formatearFecha(item.fechaResolucion))}</td>
+          <td>
+            <div class="actionGroup">
+              ${estado === "pendiente"
+                ? `<button class="smallBtn btnSave" onclick="aprobarRetiroProveedor('${escaparParaJS(id)}')">Aprobar</button>
+                   <button class="smallBtn btnDelete" onclick="rechazarRetiroProveedor('${escaparParaJS(id)}')">Rechazar</button>`
+                : ""
+              }
+              <button class="smallBtn btnDelete" onclick="eliminarRegistroConfirmado('retirosProveedores/${escaparParaJS(id)}', 'Retiro eliminado del historial.', mostrarMensajeProducto)">Eliminar</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    tabla.classList.remove("hidden");
+    vacio.classList.add("hidden");
+  });
+}
+
+/* =========================
 ELIMINAR / VACIAR
 ========================= */
 
@@ -2558,6 +2751,8 @@ function vaciarNodoConfirmado(path, aviso) {
       } else if (path === "codigos") {
         mostrarMensajeCodigo("Historial de códigos eliminado.");
         programarRecalculoStockSilencioso();
+      } else if (path === "retirosProveedores") {
+        mostrarMensajeProducto("Historial de retiros de proveedores eliminado.");
       }
     })
     .catch((error) => {
@@ -2565,6 +2760,7 @@ function vaciarNodoConfirmado(path, aviso) {
       if (path === "reembolsos") mostrarMensajeReembolso("Error: " + error.message, true);
       if (path === "ventas") mostrarMensajeProducto("Error: " + error.message, true);
       if (path === "codigos") mostrarMensajeCodigo("Error: " + error.message, true);
+      if (path === "retirosProveedores") mostrarMensajeProducto("Error: " + error.message, true);
     });
 }
 
