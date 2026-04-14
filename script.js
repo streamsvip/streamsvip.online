@@ -614,6 +614,7 @@ function iniciarControlInactividad() {
   controlInactividadIniciado = true;
   reiniciarTemporizadorInactividad();
 }
+
 /* =========================
 CIERRE POR PESTAÑA / NAVEGADOR
 ========================= */
@@ -822,60 +823,85 @@ function inyectarEstilosAvisoSistema() {
       color:#fff;
     }
 
-    .toastCompraExitosa{
-      position:fixed;
-      right:20px;
-      bottom:20px;
-      z-index:999999;
-      min-width:300px;
-      max-width:420px;
-      background:linear-gradient(180deg,#0f172a,#0b1220);
-      color:#fff;
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:18px;
-      box-shadow:0 20px 45px rgba(0,0,0,.38);
-      padding:14px 16px;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      transform:translateY(25px);
-      opacity:0;
-      pointer-events:none;
-      transition:.22s ease;
-    }
+   .toastCompraExitosa{
+  position:fixed;
+  top:18px;
+  right:18px;
+  left:auto;
+  bottom:auto;
+  z-index:999999;
+  width:auto !important;
+  min-width:0 !important;
+  max-width:360px !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:linear-gradient(180deg,#0f172a,#0b1220);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  box-shadow:0 16px 34px rgba(0,0,0,.34);
+  opacity:0;
+  transform:translateY(-14px) scale(.98);
+  pointer-events:none;
+  overflow:hidden;
+  box-sizing:border-box;
+  transition:opacity .22s ease, transform .22s ease;
+}
 
-    .toastCompraExitosa.show{
-      transform:translateY(0);
-      opacity:1;
-    }
+.toastCompraExitosa.show{
+  opacity:1;
+  transform:translateY(0) scale(1);
+}
 
-    .toastCompraIcon{
-      width:42px;
-      height:42px;
-      border-radius:14px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:linear-gradient(180deg,#22c55e,#16a34a);
-      font-size:21px;
-      flex:0 0 42px;
-    }
+.toastCompraIcon{
+  width:40px;
+  height:40px;
+  min-width:40px;
+  min-height:40px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(180deg,#22c55e,#16a34a);
+  font-size:20px;
+  flex:0 0 40px;
+}
 
-    .toastCompraTexto{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-    }
+.toastCompraTexto{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  min-width:0;
+  flex:1;
+}
 
-    .toastCompraTexto strong{
-      font-size:14px;
-      font-weight:800;
-    }
+.toastCompraTexto strong{
+  font-size:13.5px;
+  font-weight:800;
+  line-height:1.25;
+  margin:0;
+}
 
-    .toastCompraTexto span{
-      font-size:12.5px;
-      color:rgba(255,255,255,.72);
-      line-height:1.45;
+.toastCompraTexto span{
+  font-size:12px;
+  color:rgba(255,255,255,.75);
+  line-height:1.35;
+  word-break:break-word;
+}
+
+@media (max-width: 768px){
+  .toastCompraExitosa{
+    top:12px;
+    right:12px;
+    left:12px;
+    max-width:none !important;
+  }
+}eight:1.45;
     }
 
     @keyframes fadeAviso{
@@ -1672,17 +1698,21 @@ function mostrarToastCompraExitosa(producto, total) {
     <div class="toastCompraIcon">✅</div>
     <div class="toastCompraTexto">
       <strong>Compra realizada con éxito</strong>
-      <span>${escaparHTML(producto)} - S/ ${Number(total).toFixed(2)}</span>
+      <span>${escaparHTML(producto)} - S/ ${Number(total || 0).toFixed(2)}</span>
     </div>
   `;
 
-  toast.classList.add("show");
+  toast.classList.remove("show");
 
-  setTimeout(() => {
+  requestAnimationFrame(() => {
+    toast.classList.add("show");
+  });
+
+  clearTimeout(toast._hideTimer);
+  toast._hideTimer = setTimeout(() => {
     toast.classList.remove("show");
-  }, 3500);
+  }, 3200);
 }
-
 function convertirVentasANumero(data) {
   if (data == null) return 0;
   if (typeof data === "number") return data;
@@ -2221,9 +2251,7 @@ function escucharVentasProductos() {
 
     ventasRefs.push({ ref, callback });
   });
-}
-
-/* =========================
+}/* =========================
 NOTIFICACION COMPRA
 ========================= */
 
@@ -2760,7 +2788,7 @@ async function sincronizarStockProductoConInventario(productoId, itemProducto = 
 function acreditarSaldoProveedor(uidProveedor, monto) {
   return new Promise((resolve, reject) => {
     if (!uidProveedor || Number(monto || 0) <= 0) {
-      resolve();
+      resolve({ ok: false, motivo: "SIN_PROVEEDOR_O_MONTO" });
       return;
     }
 
@@ -2778,7 +2806,10 @@ function acreditarSaldoProveedor(uidProveedor, monto) {
         return;
       }
 
-      resolve(Number(snapshot.val() || 0));
+      resolve({
+        ok: true,
+        saldo: Number(snapshot.val() || 0)
+      });
     });
   });
 }
@@ -3042,7 +3073,6 @@ async function registrarCompraFinal(itemsAsignados, nombreComprador, ordenesGene
   });
 
   const ventaRef = db.ref("ventas/" + productoId).push();
-
   await ventaRef.set({
     productoId: productoId,
     producto: item.nombre || productoActual,
@@ -3059,40 +3089,102 @@ async function registrarCompraFinal(itemsAsignados, nombreComprador, ordenesGene
     nombre: nombreComprador,
     uidUsuario: usuarioActual?.uid || "",
     fecha: Date.now(),
-    estado: "entregada"
+    estado: "entregada",
+    comisionProveedorPendiente: false
   });
 
   const compraLiveRef = db.ref("comprasLive").push();
-
   await compraLiveRef.set({
     nombre: nombreComprador,
     producto: item.nombre || productoActual,
     time: Date.now()
   });
 
-  let movimientoId = "";
-  if (item.proveedorId && reparto.montoProveedor > 0) {
-    await acreditarSaldoProveedor(item.proveedorId, reparto.montoProveedor);
-
-    movimientoId = await registrarMovimientoProveedor({
-      proveedorId: item.proveedorId,
-      productoId: productoId,
-      productoNombre: item.nombre || productoActual,
-      compradorNombre: nombreComprador,
-      monto: reparto.montoProveedor,
-      ventaId: ventaRef.key
-    });
-  }
-
   return {
     ordenesGeneradas,
     ventaId: ventaRef.key,
     compraLiveId: compraLiveRef.key,
     compraHoyId: compraHoyRef.key,
-    movimientoId: movimientoId,
     proveedorId: item.proveedorId || "",
-    montoProveedor: reparto.montoProveedor || 0
+    montoProveedor: reparto.montoProveedor || 0,
+    productoId: productoId,
+    productoNombre: item.nombre || productoActual,
+    reparto
   };
+}
+
+async function procesarComisionProveedorSilenciosa(resultadoRegistro, nombreComprador) {
+  try {
+    if (!resultadoRegistro) {
+      return { ok: false, motivo: "SIN_RESULTADO_REGISTRO" };
+    }
+
+    const proveedorId = String(resultadoRegistro.proveedorId || "").trim();
+    const montoProveedor = Number(resultadoRegistro.montoProveedor || 0);
+    const ventaId = String(resultadoRegistro.ventaId || "").trim();
+    const productoId = String(resultadoRegistro.productoId || "").trim();
+    const productoNombre = String(resultadoRegistro.productoNombre || "").trim();
+
+    if (!proveedorId || montoProveedor <= 0) {
+      return { ok: true, omitido: true };
+    }
+
+    await acreditarSaldoProveedor(proveedorId, montoProveedor);
+
+    let movimientoId = "";
+    try {
+      movimientoId = await registrarMovimientoProveedor({
+        proveedorId,
+        productoId,
+        productoNombre,
+        compradorNombre: nombreComprador || "",
+        monto: montoProveedor,
+        ventaId
+      });
+    } catch (movError) {
+      console.warn("No se pudo registrar movimiento del proveedor:", movError);
+    }
+
+    try {
+      if (productoId && ventaId) {
+        await db.ref("ventas/" + productoId + "/" + ventaId).update({
+          comisionProveedorPendiente: false,
+          comisionProveedorProcesada: true,
+          fechaComisionProveedor: Date.now(),
+          movimientoProveedorId: movimientoId || ""
+        });
+      }
+    } catch (e) {
+      console.warn("No se pudo actualizar bandera de comisión procesada:", e);
+    }
+
+    return {
+      ok: true,
+      movimientoId: movimientoId || ""
+    };
+  } catch (error) {
+    console.warn("Comisión proveedor pendiente:", error);
+
+    try {
+      const productoId = String(resultadoRegistro?.productoId || "").trim();
+      const ventaId = String(resultadoRegistro?.ventaId || "").trim();
+
+      if (productoId && ventaId) {
+        await db.ref("ventas/" + productoId + "/" + ventaId).update({
+          comisionProveedorPendiente: true,
+          comisionProveedorProcesada: false,
+          errorComisionProveedor: String(error?.message || error || "ERROR_COMISION")
+        });
+      }
+    } catch (markError) {
+      console.warn("No se pudo marcar comisión pendiente:", markError);
+    }
+
+    return {
+      ok: false,
+      motivo: String(error?.message || error || "ERROR_COMISION")
+    };
+  }
 }
 
 /* =========================
@@ -3112,9 +3204,6 @@ async function comprarAhora() {
   let ventaRegistradaId = "";
   let compraLiveRegistradaId = "";
   let compraHoyRegistradaId = "";
-  let movimientoProveedorId = "";
-  let proveedorAcreditadoId = "";
-  let montoAcreditadoProveedor = 0;
 
   try {
     if (!usuarioActual) {
@@ -3247,33 +3336,24 @@ async function comprarAhora() {
     ventaRegistradaId = resultadoRegistro?.ventaId || "";
     compraLiveRegistradaId = resultadoRegistro?.compraLiveId || "";
     compraHoyRegistradaId = resultadoRegistro?.compraHoyId || "";
-    movimientoProveedorId = resultadoRegistro?.movimientoId || "";
-    proveedorAcreditadoId = resultadoRegistro?.proveedorId || "";
-    montoAcreditadoProveedor = Number(resultadoRegistro?.montoProveedor || 0);
 
     cerrarModal();
     mostrarToastCompraExitosa(item.nombre || productoActual, totalCompra);
+
+    procesarComisionProveedorSilenciosa(resultadoRegistro, nombreComprador)
+      .then((res) => {
+        if (!res?.ok) {
+          console.warn("La compra salió bien, pero la comisión del proveedor quedó pendiente.");
+        }
+      })
+      .catch((e) => {
+        console.warn("Error silencioso procesando comisión proveedor:", e);
+      });
 
   } catch (error) {
     console.error("Error al comprar:", error);
     console.error("Mensaje:", error?.message);
     console.error("Código:", error?.code);
-
-    if (movimientoProveedorId) {
-      try {
-        await eliminarMovimientoProveedor(movimientoProveedorId);
-      } catch (e) {
-        console.error("No se pudo eliminar movimiento proveedor:", e);
-      }
-    }
-
-    if (proveedorAcreditadoId && montoAcreditadoProveedor > 0) {
-      try {
-        await revertirSaldoProveedor(proveedorAcreditadoId, montoAcreditadoProveedor);
-      } catch (e) {
-        console.error("No se pudo revertir saldo proveedor:", e);
-      }
-    }
 
     if (ventaRegistradaId) {
       try {
@@ -3330,14 +3410,13 @@ async function comprarAhora() {
 
     mostrarAvisoSistema(
       "Compra no completada",
-      "Ocurrió un error al procesar la compra. El saldo fue revertido y el stock se volvió a sincronizar.",
+      "Ocurrió un error real al procesar la compra. El saldo fue revertido y el stock se volvió a sincronizar.",
       "error"
     );
   } finally {
     compraEnProceso = false;
   }
 }
-
 /* =========================
 FORMULARIO / QR
 ========================= */
