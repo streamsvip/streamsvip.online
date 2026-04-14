@@ -153,6 +153,14 @@
       background:rgba(255,255,255,0.05);color:#fff;border:1px solid rgba(255,255,255,0.07);
     }
     .btnGhost:hover{background:rgba(255,255,255,0.08)}
+    .btnActiveOn{
+      background:linear-gradient(135deg, rgba(32,201,151,0.24), rgba(95,146,255,0.16));
+      border:1px solid rgba(32,201,151,0.34);
+      color:#fff;
+    }
+    .btnActiveOff{
+      background:rgba(255,255,255,0.05);color:#fff;border:1px solid rgba(255,255,255,0.07);
+    }
 
     .gridStats{
       display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:14px;margin-bottom:20px;
@@ -220,7 +228,7 @@
       background:rgba(9,9,15,0.22);
     }
 
-    table{width:100%;min-width:1080px;border-collapse:collapse}
+    table{width:100%;min-width:1180px;border-collapse:collapse}
     th,td{
       padding:14px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06);
       font-size:13px;vertical-align:top;
@@ -368,18 +376,12 @@
       box-shadow:0 10px 24px rgba(124,77,255,0.16);
     }
 
-    .subPanel{
-      display:none;
-      animation:fadeIn .18s ease;
-    }
-
-    .subPanel.active{
-      display:block;
-    }
+    .subPanel{display:none;animation:fadeIn .18s ease}
+    .subPanel.active{display:block}
 
     .compactFormGrid{
       display:grid;
-      grid-template-columns:1.1fr 1.2fr 1.2fr 1fr .8fr 1.1fr auto;
+      grid-template-columns:1fr 1.1fr 1.1fr .9fr .8fr 1fr auto;
       gap:12px;
       align-items:end;
     }
@@ -430,6 +432,7 @@
     .miniStatBox strong{
       display:block;
       font-size:22px;
+      word-break:break-word;
     }
 
     .cuentasHint{
@@ -441,6 +444,59 @@
       color:#dfe5ff;
       font-size:12px;
       line-height:1.6;
+    }
+
+    .actionRow{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .btnMini{
+      border:none;
+      cursor:pointer;
+      border-radius:10px;
+      padding:8px 10px;
+      font-size:11px;
+      font-weight:800;
+      color:#fff;
+      transition:.18s ease;
+    }
+
+    .btnMiniEdit{
+      background:linear-gradient(135deg, rgba(54,163,255,0.28), rgba(124,77,255,0.24));
+      border:1px solid rgba(54,163,255,0.32);
+    }
+
+    .btnMiniDelete{
+      background:linear-gradient(135deg, rgba(255,93,115,0.24), rgba(255,93,115,0.14));
+      border:1px solid rgba(255,93,115,0.32);
+    }
+
+    .btnMiniToggle{
+      background:linear-gradient(135deg, rgba(255,176,32,0.24), rgba(124,77,255,0.14));
+      border:1px solid rgba(255,176,32,0.32);
+    }
+
+    .editingBanner{
+      display:none;
+      margin-bottom:14px;
+      padding:12px 14px;
+      border-radius:14px;
+      background:linear-gradient(135deg, rgba(255,176,32,0.18), rgba(124,77,255,0.10));
+      border:1px solid rgba(255,176,32,0.26);
+      color:#fff4d2;
+      font-size:12px;
+      line-height:1.6;
+    }
+
+    .editingBanner.show{display:block}
+
+    .editActionsInline{
+      display:flex;
+      gap:8px;
+      margin-top:10px;
+      flex-wrap:wrap;
     }
 
     @media (max-width: 1200px){
@@ -462,7 +518,7 @@
       .gridStats{grid-template-columns:1fr}
       .formGrid,.salesFilters,.compactFormGrid{grid-template-columns:1fr}
       .miniStatsRow{grid-template-columns:1fr}
-      table{min-width:960px}
+      table{min-width:980px}
       .walletHero strong{font-size:32px}
       .tiendaGrid{grid-template-columns:1fr}
     }
@@ -555,6 +611,7 @@
         <div class="topActions">
           <button class="btn btnGhost" onclick="abrirModalTiendaProveedor()">Ver tienda</button>
           <button class="btn btnGhost" id="btnRecargarTop">Actualizar panel</button>
+          <button class="btn btnGhost btnActiveOff" id="btnToggleActivo">Tiempo activo: OFF</button>
           <button class="btn btnGhost" onclick="irASeccion('ventas')">Ver mis ventas</button>
           <button class="btn btnPrimary" onclick="irASeccion('retiros')">Solicitar retiro</button>
         </div>
@@ -640,8 +697,8 @@
 
       <section class="section" id="section-productos">
         <div class="topHint">
-          En esta sección puedes alternar entre <strong>Productos</strong> y <strong>Cuentas</strong>.  
-          En cuentas, el producto seleccionado se mantiene y podrás ver cuentas disponibles, usadas e historial de compra.
+          En esta sección puedes alternar entre <strong>Productos</strong> y <strong>Cuentas</strong>.
+          En cuentas, el producto seleccionado se mantiene, puedes editar o eliminar registros y ver el historial de cuentas usadas.
         </div>
 
         <div class="subToggleWrap">
@@ -653,12 +710,25 @@
           <div class="panelCard">
             <div class="panelHeader">
               <div>
-                <h3>Crear producto</h3>
-                <p>Agrega productos profesionales con descripción, reglas y datos completos.</p>
+                <h3>Crear / editar producto</h3>
+                <p>Agrega productos profesionales con ID, descripción, reglas y datos completos.</p>
+              </div>
+            </div>
+
+            <div class="editingBanner" id="editingBannerProducto">
+              <strong>Modo edición activo.</strong>
+              Estás editando un producto existente.
+              <div class="editActionsInline">
+                <button type="button" class="btn btnGhost" id="btnCancelarEdicionProducto">Cancelar edición</button>
               </div>
             </div>
 
             <form id="formProducto" class="formGrid">
+              <div class="field">
+                <label>ID del producto</label>
+                <input type="text" id="prodId" placeholder="Ej. netflixpremium / flstudio / windows11pro" required />
+              </div>
+
               <div class="field">
                 <label>Nombre del producto</label>
                 <input type="text" id="prodNombre" placeholder="Ej. Netflix Premium Perfil / Windows 11 Pro / FL Studio Producer" required />
@@ -715,7 +785,7 @@
               </div>
 
               <div class="field full">
-                <button type="submit" class="btn btnPrimary">Guardar producto</button>
+                <button type="submit" class="btn btnPrimary" id="btnGuardarProducto">Guardar producto</button>
               </div>
             </form>
           </div>
@@ -732,6 +802,7 @@
               <table>
                 <thead>
                   <tr>
+                    <th>ID</th>
                     <th>Producto</th>
                     <th>Categoría</th>
                     <th>Entrega</th>
@@ -740,11 +811,12 @@
                     <th>Duración</th>
                     <th>Estado</th>
                     <th>Fecha</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="tablaProductos">
                   <tr>
-                    <td colspan="8"><div class="emptyState">Aún no tienes productos registrados.</div></td>
+                    <td colspan="10"><div class="emptyState">Aún no tienes productos registrados.</div></td>
                   </tr>
                 </tbody>
               </table>
@@ -761,8 +833,16 @@
               </div>
             </div>
 
+            <div class="editingBanner" id="editingBannerCuenta">
+              <strong>Modo edición activo.</strong>
+              Estás editando una cuenta existente. Puedes guardar cambios o cancelar edición.
+              <div class="editActionsInline">
+                <button type="button" class="btn btnGhost" id="btnCancelarEdicionCuenta">Cancelar edición</button>
+              </div>
+            </div>
+
             <div class="cuentasHint">
-              Las cuentas disponibles quedarán listas para venta.  
+              Las cuentas disponibles quedarán listas para venta.
               Cuando una cuenta sea usada por una compra, aparecerá abajo como <strong>usada</strong> con el nombre del comprador.
             </div>
 
@@ -803,7 +883,7 @@
               </div>
 
               <div class="field">
-                <button type="submit" class="btn btnPrimary">Guardar cuenta</button>
+                <button type="submit" class="btn btnPrimary" id="btnGuardarCuenta">Guardar cuenta</button>
               </div>
             </form>
           </div>
@@ -847,11 +927,12 @@
                     <th>Observación</th>
                     <th>Estado</th>
                     <th>Fecha</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="tablaCuentasDisponibles">
                   <tr>
-                    <td colspan="8"><div class="emptyState">No hay cuentas disponibles todavía.</div></td>
+                    <td colspan="9"><div class="emptyState">No hay cuentas disponibles todavía.</div></td>
                   </tr>
                 </tbody>
               </table>
@@ -877,11 +958,12 @@
                     <th>UID comprador</th>
                     <th>Fecha venta</th>
                     <th>Estado</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="tablaCuentasUsadas">
                   <tr>
-                    <td colspan="7"><div class="emptyState">No hay cuentas usadas todavía.</div></td>
+                    <td colspan="8"><div class="emptyState">No hay cuentas usadas todavía.</div></td>
                   </tr>
                 </tbody>
               </table>
@@ -1205,6 +1287,8 @@
     const db = firebase.database();
     const auth = firebase.auth();
 
+    const TIEMPO_INACTIVIDAD_STREAMPRO = 7 * 60 * 1000;
+
     let proveedorActual = null;
     let datosProveedorActual = null;
 
@@ -1215,6 +1299,12 @@
     let retirosProveedor = [];
     let movimientosProveedor = [];
     let cuentasProveedor = [];
+
+    let cuentaEditando = null;
+    let productoEditando = null;
+    let mantenerActivo = false;
+    let temporizadorInactividad = null;
+    let uiPreparada = false;
 
     function abrirMenuMovil(){
       document.getElementById("sidebar").classList.add("show");
@@ -1240,12 +1330,14 @@
     function formatearFecha(timestamp){
       if (!timestamp) return "-";
       const d = new Date(timestamp);
+      if (isNaN(d.getTime())) return String(timestamp);
       return d.toLocaleDateString("es-PE");
     }
 
     function formatearHora(timestamp){
       if (!timestamp) return "-";
       const d = new Date(timestamp);
+      if (isNaN(d.getTime())) return "-";
       return d.toLocaleTimeString("es-PE", {
         hour: "2-digit",
         minute: "2-digit",
@@ -1256,6 +1348,7 @@
     function formatearFechaHora(timestamp){
       if (!timestamp) return "-";
       const d = new Date(timestamp);
+      if (isNaN(d.getTime())) return String(timestamp);
       return d.toLocaleString("es-PE");
     }
 
@@ -1286,7 +1379,7 @@
       const e = String(estado || "").toLowerCase();
       if (e === "activo" || e === "activa" || e === "aprobado" || e === "entregada" || e === "usado" || e === "disponible") return "success";
       if (e === "pendiente") return "warning";
-      if (e === "rechazado" || e === "vencida" || e === "bloqueado" || e === "inactivo") return "danger";
+      if (e === "rechazado" || e === "vencida" || e === "bloqueado" || e === "inactivo" || e === "usada" || e === "vendida") return "danger";
       return "info";
     }
 
@@ -1381,6 +1474,17 @@
       if (el) el.textContent = texto;
     }
 
+    function normalizarIdProducto(texto){
+      return String(texto || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9_-]/g, "")
+        .replace(/\s+/g, "")
+        .slice(0, 50);
+    }
+
     function irASeccion(nombre){
       const secciones = document.querySelectorAll(".section");
       const botones = document.querySelectorAll(".menuBtn[data-section]");
@@ -1449,13 +1553,13 @@
 
     function cuentaEstaUsada(item = {}) {
       const estado = String(item.estado || "").toLowerCase().trim();
-      const vendida = item.vendida === true || item.vendido === true;
+      const vendida = item.vendida === true || item.vendido === true || item.usada === true;
       const disponible = item.disponible;
       const tieneComprador = !!(item.comprador || item.compradorNombre || item.uidComprador || item.uidUsuario);
 
       if (vendida) return true;
       if (disponible === false) return true;
-      if (estado === "usada" || estado === "vendida" || estado === "ocupada") return true;
+      if (estado === "usada" || estado === "vendida" || estado === "ocupada" || estado === "inactiva") return true;
       if (tieneComprador && estado !== "disponible") return true;
 
       return false;
@@ -1475,108 +1579,77 @@
       localStorage.setItem("streampro_producto_cuenta_" + proveedorActual.uid, productoId || "");
     }
 
-    auth.onAuthStateChanged(async (user) => {
-      try {
-        if (!user) {
-          window.location.replace("index.html");
-          return;
-        }
+    function obtenerPreferenciaActivoGuardada(){
+      if (!proveedorActual?.uid) return false;
+      return localStorage.getItem("streampro_mantener_activo_" + proveedorActual.uid) === "true";
+    }
 
-        const uid = user.uid;
-        setDebug("Validando proveedor: " + uid);
+    function guardarPreferenciaActivo(valor){
+      if (!proveedorActual?.uid) return;
+      localStorage.setItem("streampro_mantener_activo_" + proveedorActual.uid, valor ? "true" : "false");
+    }
 
-        const snap = await db.ref("usuarios/" + uid).once("value");
-        const datos = snap.val();
+    function actualizarBotonTiempoActivo(){
+      const btn = document.getElementById("btnToggleActivo");
+      if (!btn) return;
 
-        if (!datos) {
-          setDebug("No se encontró usuarios/" + uid);
-          alert("No se encontró tu usuario en la base de datos.");
-          return;
-        }
+      btn.classList.remove("btnActiveOn", "btnActiveOff");
 
-        const rol = String(datos.rol || "").toLowerCase();
-        const estado = String(datos.estado || "activo").toLowerCase();
-
-        if (estado === "bloqueado") {
-          await auth.signOut();
-          window.location.replace("index.html");
-          return;
-        }
-
-        if (rol !== "proveedor") {
-          if (rol === "admin") {
-            window.location.replace("admin.html");
-          } else {
-            window.location.replace("tienda.html");
-          }
-          return;
-        }
-
-        proveedorActual = user;
-        datosProveedorActual = datos;
-
-        renderDatosProveedorCabecera();
-        prepararEventosUI();
-        await cargarTodoPanel();
-
-      } catch (error) {
-        console.error("Error cargando proveedor:", error);
-        setDebug("Error general: " + (error.message || error));
+      if (mantenerActivo) {
+        btn.classList.add("btnActiveOn");
+        btn.textContent = "Tiempo activo: ON";
+      } else {
+        btn.classList.add("btnActiveOff");
+        btn.textContent = "Tiempo activo: OFF";
       }
-    });
+    }
 
-    function prepararEventosUI(){
-      document.querySelectorAll(".menuBtn[data-section]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const section = btn.getAttribute("data-section");
-          irASeccion(section);
-        });
+    function limpiarTemporizadorInactividad(){
+      if (temporizadorInactividad) {
+        clearTimeout(temporizadorInactividad);
+        temporizadorInactividad = null;
+      }
+    }
+
+    function cerrarSesionPorInactividad(){
+      limpiarTemporizadorInactividad();
+      alert("La sesión del panel proveedor se cerró por inactividad.");
+      auth.signOut()
+        .then(() => window.location.replace("index.html"))
+        .catch(() => window.location.replace("index.html"));
+    }
+
+    function reiniciarTemporizadorInactividad(){
+      if (!proveedorActual) return;
+
+      limpiarTemporizadorInactividad();
+
+      if (mantenerActivo) return;
+
+      temporizadorInactividad = setTimeout(() => {
+        cerrarSesionPorInactividad();
+      }, TIEMPO_INACTIVIDAD_STREAMPRO);
+    }
+
+    function iniciarControlInactividad(){
+      const eventos = ["mousemove","mousedown","click","scroll","keydown","touchstart","touchmove"];
+      eventos.forEach(evento => {
+        document.addEventListener(evento, reiniciarTemporizadorInactividad, true);
       });
 
-      document.querySelectorAll(".subToggleBtn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          activarSubpanelProductos(btn.getAttribute("data-subpanel"));
-        });
+      window.addEventListener("focus", reiniciarTemporizadorInactividad);
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) reiniciarTemporizadorInactividad();
       });
 
-      document.getElementById("btnCerrarSesion").addEventListener("click", async () => {
-        try{
-          await auth.signOut();
-          window.location.replace("index.html");
-        }catch(error){
-          console.error(error);
-          window.location.replace("index.html");
-        }
-      });
+      reiniciarTemporizadorInactividad();
+    }
 
-      document.getElementById("btnRecargarTop").addEventListener("click", async () => {
-        await cargarTodoPanel();
-      });
-
-      document.getElementById("formProducto").addEventListener("submit", guardarProductoProveedor);
-      document.getElementById("formCodigo").addEventListener("submit", guardarCodigoProveedor);
-      document.getElementById("formDescarga").addEventListener("submit", guardarDescargaProveedor);
-      document.getElementById("formRetiro").addEventListener("submit", solicitarRetiroProveedor);
-      document.getElementById("formCuentaProveedor").addEventListener("submit", guardarCuentaProveedor);
-
-      document.getElementById("buscarVenta").addEventListener("input", renderTablaVentas);
-      document.getElementById("filtroEstadoVenta").addEventListener("change", renderTablaVentas);
-      document.getElementById("filtroOrdenVenta").addEventListener("change", renderTablaVentas);
-
-      document.getElementById("cuentaProducto").addEventListener("change", () => {
-        guardarProductoSeleccionadoCuenta(document.getElementById("cuentaProducto").value);
-        renderTablasCuentas();
-      });
-
-      document.getElementById("btnToggleClaveCuenta").addEventListener("click", () => {
-        const input = document.getElementById("cuentaClave");
-        if (!input) return;
-        input.type = input.type === "password" ? "text" : "password";
-      });
-
-      document.getElementById("modalTiendaProveedor").addEventListener("click", (e) => {
-        if (e.target.id === "modalTiendaProveedor") cerrarModalTiendaProveedor();
-      });
+    function alternarTiempoActivo(){
+      mantenerActivo = !mantenerActivo;
+      guardarPreferenciaActivo(mantenerActivo);
+      actualizarBotonTiempoActivo();
+      reiniciarTemporizadorInactividad();
     }
 
     function activarSubpanelProductos(id){
@@ -1587,6 +1660,48 @@
       document.querySelectorAll(".subPanel").forEach(panel => {
         panel.classList.toggle("active", panel.id === id);
       });
+    }
+
+    function obtenerRutaCuentaCompleta(itemCuenta){
+      if (!itemCuenta) return "";
+      if (itemCuenta.fullPath) return itemCuenta.fullPath;
+      if (itemCuenta.productoId && itemCuenta.id) return "cuentas/" + itemCuenta.productoId + "/" + itemCuenta.id;
+      return "";
+    }
+
+    function recolectarCuentasDesdeNodoProveedor(nodo, productoId, productoNombre, rutaBase, resultado = []) {
+      if (!nodo || typeof nodo !== "object") return resultado;
+
+      const tieneDatoPrincipal =
+        String(nodo.cuenta || "").trim() !== "" ||
+        String(nodo.correo || "").trim() !== "" ||
+        String(nodo.email || "").trim() !== "" ||
+        String(nodo.usuario || "").trim() !== "" ||
+        String(nodo.codigo || "").trim() !== "";
+
+      if (tieneDatoPrincipal) {
+        const partes = rutaBase.split("/").filter(Boolean);
+        const idFinal = partes[partes.length - 1] || ("cuenta_" + Date.now());
+
+        resultado.push({
+          id: idFinal,
+          productoId,
+          productoNombre,
+          fullPath: rutaBase,
+          ...nodo
+        });
+
+        return resultado;
+      }
+
+      Object.keys(nodo).forEach((key) => {
+        const sub = nodo[key];
+        if (sub && typeof sub === "object") {
+          recolectarCuentasDesdeNodoProveedor(sub, productoId, productoNombre, rutaBase + "/" + key, resultado);
+        }
+      });
+
+      return resultado;
     }
 
     function renderDatosProveedorCabecera(){
@@ -1610,6 +1725,71 @@
 
       document.getElementById("statSaldo").textContent = formatearMoneda(saldo);
       document.getElementById("walletHeroSaldo").textContent = formatearMoneda(saldo);
+    }
+
+    function mostrarModoEdicionCuenta(infoCuenta){
+      cuentaEditando = infoCuenta || null;
+
+      const banner = document.getElementById("editingBannerCuenta");
+      const btn = document.getElementById("btnGuardarCuenta");
+
+      if (cuentaEditando) {
+        banner.classList.add("show");
+        btn.textContent = "Guardar cambios";
+      } else {
+        banner.classList.remove("show");
+        btn.textContent = "Guardar cuenta";
+      }
+    }
+
+    function limpiarFormularioCuenta(){
+      document.getElementById("cuentaCorreo").value = "";
+      document.getElementById("cuentaClave").value = "";
+      document.getElementById("cuentaPerfil").value = "";
+      document.getElementById("cuentaPin").value = "";
+      document.getElementById("cuentaObservacion").value = "";
+    }
+
+    function cancelarEdicionCuenta(){
+      cuentaEditando = null;
+      mostrarModoEdicionCuenta(null);
+      limpiarFormularioCuenta();
+
+      const guardado = obtenerProductoSeleccionadoCuentaGuardado();
+      if (guardado) {
+        document.getElementById("cuentaProducto").value = guardado;
+      }
+    }
+
+    function mostrarModoEdicionProducto(prod){
+      productoEditando = prod || null;
+      const banner = document.getElementById("editingBannerProducto");
+      const btn = document.getElementById("btnGuardarProducto");
+      const inputId = document.getElementById("prodId");
+
+      if (productoEditando) {
+        banner.classList.add("show");
+        btn.textContent = "Guardar cambios";
+        inputId.disabled = true;
+        inputId.style.opacity = "0.7";
+      } else {
+        banner.classList.remove("show");
+        btn.textContent = "Guardar producto";
+        inputId.disabled = false;
+        inputId.style.opacity = "1";
+      }
+    }
+
+    function limpiarFormularioProducto(){
+      document.getElementById("formProducto").reset();
+      document.getElementById("prodStock").value = "0";
+      document.getElementById("prodDuracion").value = "30";
+    }
+
+    function cancelarEdicionProducto(){
+      productoEditando = null;
+      mostrarModoEdicionProducto(null);
+      limpiarFormularioProducto();
     }
 
     async function cargarTodoPanel(){
@@ -1668,21 +1848,23 @@
           const snap = await db.ref("cuentas/" + prod.id).once("value");
           const data = snap.val() || {};
 
-          Object.keys(data).forEach((key) => {
-            const item = data[key] || {};
-            cuentasProveedor.push({
-              id: key,
-              productoId: prod.id,
-              productoNombre: prod.nombre || "Producto",
-              ...item
-            });
-          });
+          recolectarCuentasDesdeNodoProveedor(
+            data,
+            prod.id,
+            prod.nombre || "Producto",
+            "cuentas/" + prod.id,
+            cuentasProveedor
+          );
         }catch(error){
           console.warn("Error cargando cuentas de producto:", prod.id, error);
         }
       }
 
-      cuentasProveedor.sort((a,b) => Number(b.fechaVenta || b.fechaCreacion || 0) - Number(a.fechaVenta || a.fechaCreacion || 0));
+      cuentasProveedor.sort((a,b) => {
+        const fa = Number(b.fechaVenta || b.fechaCreacion || 0);
+        const fb = Number(a.fechaVenta || a.fechaCreacion || 0);
+        return fa - fb;
+      });
     }
 
     async function cargarCodigosProveedor(){
@@ -1697,16 +1879,6 @@
 
     async function cargarVentasProveedor(){
       ventasProveedor = [];
-
-      try{
-        const flat = await safeReadEqualTo("ventas", "proveedorId", proveedorActual.uid);
-        const flatValidas = flat.filter(item => item && typeof item === "object" && String(item.proveedorId || "") === proveedorActual.uid);
-
-        if (flatValidas.length) {
-          ventasProveedor = flatValidas.sort((a,b) => Number(b.fecha || b.fechaCompra || b.timestamp || 0) - Number(a.fecha || a.fechaCompra || a.timestamp || 0));
-          return;
-        }
-      }catch(e){}
 
       try{
         const rootVentas = await safeReadRoot("ventas");
@@ -1764,6 +1936,7 @@
       e.preventDefault();
 
       try{
+        const idManual = normalizarIdProducto(document.getElementById("prodId").value.trim());
         const nombre = document.getElementById("prodNombre").value.trim();
         const precio = Number(document.getElementById("prodPrecio").value || 0);
         const categoria = document.getElementById("prodCategoria").value;
@@ -1774,6 +1947,7 @@
         const descripcion = document.getElementById("prodDescripcion").value.trim();
         const reglas = document.getElementById("prodReglas").value.trim();
 
+        if (!idManual) return alert("Ingresa un ID válido para el producto.");
         if (!nombre) return alert("Ingresa el nombre del producto.");
         if (precio < 0) return alert("El precio no puede ser negativo.");
 
@@ -1783,30 +1957,58 @@
           datosProveedorActual.usuario ||
           "Proveedor";
 
-        const ref = db.ref("productos").push();
+        if (!productoEditando) {
+          const existe = await db.ref("productos/" + idManual).once("value");
+          if (existe.exists()) {
+            alert("Ese ID de producto ya existe. Usa otro distinto.");
+            return;
+          }
 
-        await ref.set({
-          nombre,
-          precio: +precio.toFixed(2),
-          categoria,
-          tipoEntrega,
-          stock,
-          duracionDias,
-          imagen,
-          descripcion,
-          reglas,
-          proveedorId: proveedorActual.uid,
-          proveedorNombre: nombreProveedor,
-          activo: true,
-          estado: "activo",
-          comisionPlataforma: 4,
-          comisionProveedor: 96,
-          fechaCreacion: Date.now()
-        });
+          await db.ref("productos/" + idManual).set({
+            id: idManual,
+            nombre,
+            precio: +precio.toFixed(2),
+            categoria,
+            tipoEntrega,
+            stock,
+            duracionDias,
+            imagen,
+            descripcion,
+            reglas,
+            proveedorId: proveedorActual.uid,
+            proveedorNombre: nombreProveedor,
+            activo: true,
+            estado: "activo",
+            comisionPlataforma: 4,
+            comisionProveedor: 96,
+            fechaCreacion: Date.now()
+          });
+        } else {
+          const productoIdReal = productoEditando.id;
+          const snapActual = await db.ref("productos/" + productoIdReal).once("value");
+          const actual = snapActual.val() || {};
 
-        document.getElementById("formProducto").reset();
-        document.getElementById("prodStock").value = "0";
-        document.getElementById("prodDuracion").value = "30";
+          await db.ref("productos/" + productoIdReal).update({
+            nombre,
+            precio: +precio.toFixed(2),
+            categoria,
+            tipoEntrega,
+            stock,
+            duracionDias,
+            imagen,
+            descripcion,
+            reglas,
+            proveedorNombre: nombreProveedor,
+            proveedorId: proveedorActual.uid,
+            estado: actual.estado || (actual.activo === false ? "inactivo" : "activo"),
+            activo: actual.activo !== false
+          });
+
+          productoEditando = null;
+          mostrarModoEdicionProducto(null);
+        }
+
+        limpiarFormularioProducto();
 
         await cargarProductosProveedor();
         await cargarCuentasProveedor();
@@ -1825,12 +2027,13 @@
       const tbody = document.getElementById("tablaProductos");
 
       if (!productosProveedor.length){
-        tbody.innerHTML = `<tr><td colspan="8"><div class="emptyState">Aún no tienes productos registrados.</div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10"><div class="emptyState">Aún no tienes productos registrados.</div></td></tr>`;
         return;
       }
 
       tbody.innerHTML = productosProveedor.map(prod => `
         <tr>
+          <td>${escaparHTML(prod.id || "-")}</td>
           <td>${escaparHTML(prod.nombre || "-")}</td>
           <td>${escaparHTML(prod.categoria || "-")}</td>
           <td>${escaparHTML(obtenerTipoEntregaVisual(prod))}</td>
@@ -1839,6 +2042,13 @@
           <td>${escaparHTML(obtenerDuracionTexto(prod.duracionDias))}</td>
           <td><span class="badge ${obtenerEstadoBadge(prod.estado || (prod.activo ? "activo" : "inactivo"))}">${escaparHTML(prod.estado || (prod.activo ? "activo" : "inactivo"))}</span></td>
           <td>${formatearFechaHora(prod.fechaCreacion)}</td>
+          <td>
+            <div class="actionRow">
+              <button class="btnMini btnMiniEdit" onclick="editarProductoProveedor('${String(prod.id).replace(/'/g, "\\'")}')">Editar</button>
+              <button class="btnMini btnMiniToggle" onclick="toggleProductoProveedor('${String(prod.id).replace(/'/g, "\\'")}')">${prod.activo === false ? "Activar" : "Desactivar"}</button>
+              <button class="btnMini btnMiniDelete" onclick="eliminarProductoProveedor('${String(prod.id).replace(/'/g, "\\'")}')">Eliminar</button>
+            </div>
+          </td>
         </tr>
       `).join("");
     }
@@ -1862,6 +2072,83 @@
       }
     }
 
+    async function editarProductoProveedor(productoId){
+      try{
+        const prod = productosProveedor.find(p => p.id === productoId);
+        if (!prod) {
+          alert("No se encontró el producto.");
+          return;
+        }
+
+        document.getElementById("prodId").value = prod.id || "";
+        document.getElementById("prodNombre").value = prod.nombre || "";
+        document.getElementById("prodPrecio").value = Number(prod.precio || 0);
+        document.getElementById("prodCategoria").value = prod.categoria || "streaming";
+        document.getElementById("prodTipoEntrega").value = prod.tipoEntrega || "cuenta";
+        document.getElementById("prodStock").value = Number(prod.stock || 0);
+        document.getElementById("prodDuracion").value = Number(prod.duracionDias || 30);
+        document.getElementById("prodImagen").value = prod.imagen || "";
+        document.getElementById("prodDescripcion").value = prod.descripcion || "";
+        document.getElementById("prodReglas").value = prod.reglas || "";
+
+        mostrarModoEdicionProducto(prod);
+        irASeccion("productos");
+        activarSubpanelProductos("productosPanel");
+        document.getElementById("prodNombre").focus();
+      }catch(error){
+        console.error("Error editando producto:", error);
+        alert("No se pudo cargar el producto.");
+      }
+    }
+
+    async function toggleProductoProveedor(productoId){
+      try{
+        const snap = await db.ref("productos/" + productoId).once("value");
+        const prod = snap.val();
+        if (!prod) {
+          alert("No se encontró el producto.");
+          return;
+        }
+
+        const nuevoActivo = !(prod.activo !== false);
+        await db.ref("productos/" + productoId).update({
+          activo: nuevoActivo,
+          estado: nuevoActivo ? "activo" : "inactivo"
+        });
+
+        await cargarProductosProveedor();
+        renderTablaProductos();
+        alert("Estado del producto actualizado.");
+      }catch(error){
+        console.error("Error cambiando estado del producto:", error);
+        alert("No se pudo actualizar el estado del producto.");
+      }
+    }
+
+    async function eliminarProductoProveedor(productoId){
+      try{
+        const confirmar = confirm("¿Seguro que deseas eliminar este producto? También deberías revisar sus cuentas, códigos o descargas asociadas.");
+        if (!confirmar) return;
+
+        await db.ref("productos/" + productoId).remove();
+
+        if (productoEditando && productoEditando.id === productoId) {
+          cancelarEdicionProducto();
+        }
+
+        await cargarProductosProveedor();
+        await cargarCuentasProveedor();
+        renderTablaProductos();
+        poblarSelectsProductos();
+        renderTablasCuentas();
+
+        alert("Producto eliminado correctamente.");
+      }catch(error){
+        console.error("Error eliminando producto:", error);
+        alert("No se pudo eliminar el producto.");
+      }
+    }
+
     async function guardarCuentaProveedor(e){
       e.preventDefault();
 
@@ -1878,6 +2165,43 @@
         if (!clave) return alert("Ingresa la contraseña.");
 
         guardarProductoSeleccionadoCuenta(productoId);
+
+        if (cuentaEditando) {
+          const rutaAnterior = obtenerRutaCuentaCompleta(cuentaEditando);
+
+          const snapOriginal = await db.ref(rutaAnterior).once("value");
+          const original = snapOriginal.val() || {};
+
+          const dataEdit = {
+            ...original,
+            correo,
+            cuenta: correo,
+            email: correo,
+            usuario: correo,
+            clave,
+            password: clave,
+            perfil,
+            pin,
+            observacion
+          };
+
+          if (cuentaEditando.productoId === productoId) {
+            await db.ref(rutaAnterior).update(dataEdit);
+          } else {
+            const nuevoRef = db.ref("cuentas/" + productoId).push();
+            await nuevoRef.set(dataEdit);
+            await db.ref(rutaAnterior).remove();
+          }
+
+          cuentaEditando = null;
+          mostrarModoEdicionCuenta(null);
+          limpiarFormularioCuenta();
+
+          await cargarCuentasProveedor();
+          renderTablasCuentas();
+          alert("Cuenta actualizada correctamente.");
+          return;
+        }
 
         const ref = db.ref("cuentas/" + productoId).push();
 
@@ -1898,6 +2222,7 @@
           fechaEntrega: null,
           vendida: false,
           vendido: false,
+          usada: false,
           disponible: true,
           uidComprador: null,
           compradorNombre: null,
@@ -1905,11 +2230,7 @@
           ordenId: null
         });
 
-        document.getElementById("cuentaCorreo").value = "";
-        document.getElementById("cuentaClave").value = "";
-        document.getElementById("cuentaPerfil").value = "";
-        document.getElementById("cuentaPin").value = "";
-        document.getElementById("cuentaObservacion").value = "";
+        limpiarFormularioCuenta();
 
         await cargarCuentasProveedor();
         renderTablasCuentas();
@@ -1942,7 +2263,7 @@
       document.getElementById("miniProductoActivo").textContent = nombreProductoActivo;
 
       if (!disponibles.length) {
-        disponiblesTbody.innerHTML = `<tr><td colspan="8"><div class="emptyState">No hay cuentas disponibles para el filtro actual.</div></td></tr>`;
+        disponiblesTbody.innerHTML = `<tr><td colspan="9"><div class="emptyState">No hay cuentas disponibles para el filtro actual.</div></td></tr>`;
       } else {
         disponiblesTbody.innerHTML = disponibles.map(item => `
           <tr>
@@ -1954,12 +2275,18 @@
             <td>${escaparHTML(item.observacion || "-")}</td>
             <td><span class="badge ${obtenerEstadoBadge(obtenerEstadoCuenta(item))}">${escaparHTML(obtenerEstadoCuenta(item))}</span></td>
             <td>${formatearFechaHora(item.fechaCreacion)}</td>
+            <td>
+              <div class="actionRow">
+                <button class="btnMini btnMiniEdit" onclick="editarCuentaProveedor('${String(item.productoId).replace(/'/g, "\\'")}','${String(item.id).replace(/'/g, "\\'")}')">Editar</button>
+                <button class="btnMini btnMiniDelete" onclick="eliminarCuentaProveedor('${String(item.productoId).replace(/'/g, "\\'")}','${String(item.id).replace(/'/g, "\\'")}')">Eliminar</button>
+              </div>
+            </td>
           </tr>
         `).join("");
       }
 
       if (!usadas.length) {
-        usadasTbody.innerHTML = `<tr><td colspan="7"><div class="emptyState">No hay cuentas usadas todavía.</div></td></tr>`;
+        usadasTbody.innerHTML = `<tr><td colspan="8"><div class="emptyState">No hay cuentas usadas todavía.</div></td></tr>`;
       } else {
         usadasTbody.innerHTML = usadas.map(item => `
           <tr>
@@ -1970,8 +2297,82 @@
             <td>${escaparHTML(item.uidComprador || item.uidUsuario || "-")}</td>
             <td>${item.fechaVenta ? formatearFechaHora(item.fechaVenta) : (item.fechaEntrega || "-")}</td>
             <td><span class="badge ${obtenerEstadoBadge("usada")}">usada</span></td>
+            <td>
+              <div class="actionRow">
+                <button class="btnMini btnMiniEdit" onclick="editarCuentaProveedor('${String(item.productoId).replace(/'/g, "\\'")}','${String(item.id).replace(/'/g, "\\'")}')">Editar</button>
+                <button class="btnMini btnMiniDelete" onclick="eliminarCuentaProveedor('${String(item.productoId).replace(/'/g, "\\'")}','${String(item.id).replace(/'/g, "\\'")}')">Eliminar</button>
+              </div>
+            </td>
           </tr>
         `).join("");
+      }
+    }
+
+    async function editarCuentaProveedor(productoId, cuentaId){
+      try{
+        const info = cuentasProveedor.find(c => c.productoId === productoId && c.id === cuentaId);
+        if (!info) {
+          alert("No se encontró la cuenta.");
+          return;
+        }
+
+        const ruta = obtenerRutaCuentaCompleta(info);
+        const snap = await db.ref(ruta).once("value");
+        const data = snap.val();
+
+        if (!data) {
+          alert("No se encontró la cuenta.");
+          return;
+        }
+
+        activarSubpanelProductos("cuentasPanel");
+        document.getElementById("cuentaProducto").value = productoId;
+        guardarProductoSeleccionadoCuenta(productoId);
+        document.getElementById("cuentaCorreo").value = data.cuenta || data.correo || data.email || data.usuario || "";
+        document.getElementById("cuentaClave").value = data.clave || data.password || "";
+        document.getElementById("cuentaPerfil").value = data.perfil || "";
+        document.getElementById("cuentaPin").value = data.pin || "";
+        document.getElementById("cuentaObservacion").value = data.observacion || "";
+
+        cuentaEditando = {
+          id: cuentaId,
+          productoId: productoId,
+          fullPath: ruta
+        };
+
+        mostrarModoEdicionCuenta(cuentaEditando);
+        irASeccion("productos");
+        document.getElementById("cuentaCorreo").focus();
+      }catch(error){
+        console.error("Error editando cuenta:", error);
+        alert("No se pudo cargar la cuenta para edición.");
+      }
+    }
+
+    async function eliminarCuentaProveedor(productoId, cuentaId){
+      try{
+        const info = cuentasProveedor.find(c => c.productoId === productoId && c.id === cuentaId);
+        if (!info) {
+          alert("No se encontró la cuenta.");
+          return;
+        }
+
+        const confirmar = confirm("¿Seguro que deseas eliminar esta cuenta? Esta acción no se puede deshacer.");
+        if (!confirmar) return;
+
+        const ruta = obtenerRutaCuentaCompleta(info);
+        await db.ref(ruta).remove();
+
+        if (cuentaEditando && cuentaEditando.id === cuentaId && cuentaEditando.productoId === productoId) {
+          cancelarEdicionCuenta();
+        }
+
+        await cargarCuentasProveedor();
+        renderTablasCuentas();
+        alert("Cuenta eliminada correctamente.");
+      }catch(error){
+        console.error("Error eliminando cuenta:", error);
+        alert("No se pudo eliminar la cuenta.");
       }
     }
 
@@ -1992,6 +2393,7 @@
         await ref.set({
           productoId,
           productoNombre: producto?.nombre || "",
+          producto: productoId,
           codigo,
           observacion,
           proveedorId: proveedorActual.uid,
@@ -2313,11 +2715,131 @@
       document.getElementById("modalTiendaProveedor").classList.remove("show");
     }
 
+    function prepararEventosUI(){
+      if (uiPreparada) return;
+      uiPreparada = true;
+
+      document.querySelectorAll(".menuBtn[data-section]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const section = btn.getAttribute("data-section");
+          irASeccion(section);
+        });
+      });
+
+      document.querySelectorAll(".subToggleBtn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          activarSubpanelProductos(btn.getAttribute("data-subpanel"));
+        });
+      });
+
+      document.getElementById("btnCerrarSesion").addEventListener("click", async () => {
+        try{
+          await auth.signOut();
+          window.location.replace("index.html");
+        }catch(error){
+          console.error(error);
+          window.location.replace("index.html");
+        }
+      });
+
+      document.getElementById("btnRecargarTop").addEventListener("click", async () => {
+        await cargarTodoPanel();
+      });
+
+      document.getElementById("btnToggleActivo").addEventListener("click", alternarTiempoActivo);
+
+      document.getElementById("formProducto").addEventListener("submit", guardarProductoProveedor);
+      document.getElementById("formCodigo").addEventListener("submit", guardarCodigoProveedor);
+      document.getElementById("formDescarga").addEventListener("submit", guardarDescargaProveedor);
+      document.getElementById("formRetiro").addEventListener("submit", solicitarRetiroProveedor);
+      document.getElementById("formCuentaProveedor").addEventListener("submit", guardarCuentaProveedor);
+
+      document.getElementById("buscarVenta").addEventListener("input", renderTablaVentas);
+      document.getElementById("filtroEstadoVenta").addEventListener("change", renderTablaVentas);
+      document.getElementById("filtroOrdenVenta").addEventListener("change", renderTablaVentas);
+
+      document.getElementById("cuentaProducto").addEventListener("change", () => {
+        guardarProductoSeleccionadoCuenta(document.getElementById("cuentaProducto").value);
+        renderTablasCuentas();
+      });
+
+      document.getElementById("btnToggleClaveCuenta").addEventListener("click", () => {
+        const input = document.getElementById("cuentaClave");
+        if (!input) return;
+        input.type = input.type === "password" ? "text" : "password";
+      });
+
+      document.getElementById("btnCancelarEdicionCuenta").addEventListener("click", cancelarEdicionCuenta);
+      document.getElementById("btnCancelarEdicionProducto").addEventListener("click", cancelarEdicionProducto);
+
+      document.getElementById("modalTiendaProveedor").addEventListener("click", (e) => {
+        if (e.target.id === "modalTiendaProveedor") cerrarModalTiendaProveedor();
+      });
+    }
+
+    auth.onAuthStateChanged(async (user) => {
+      try {
+        if (!user) {
+          window.location.replace("index.html");
+          return;
+        }
+
+        const uid = user.uid;
+        setDebug("Validando proveedor: " + uid);
+
+        const snap = await db.ref("usuarios/" + uid).once("value");
+        const datos = snap.val();
+
+        if (!datos) {
+          setDebug("No se encontró usuarios/" + uid);
+          alert("No se encontró tu usuario en la base de datos.");
+          return;
+        }
+
+        const rol = String(datos.rol || "").toLowerCase();
+        const estado = String(datos.estado || "activo").toLowerCase();
+
+        if (estado === "bloqueado") {
+          await auth.signOut();
+          window.location.replace("index.html");
+          return;
+        }
+
+        if (rol !== "proveedor") {
+          if (rol === "admin") {
+            window.location.replace("admin.html");
+          } else {
+            window.location.replace("tienda.html");
+          }
+          return;
+        }
+
+        proveedorActual = user;
+        datosProveedorActual = datos;
+        mantenerActivo = obtenerPreferenciaActivoGuardada();
+
+        renderDatosProveedorCabecera();
+        prepararEventosUI();
+        actualizarBotonTiempoActivo();
+        iniciarControlInactividad();
+        await cargarTodoPanel();
+
+      } catch (error) {
+        console.error("Error cargando proveedor:", error);
+        setDebug("Error general: " + (error.message || error));
+      }
+    });
+
     window.irASeccion = irASeccion;
     window.abrirMenuMovil = abrirMenuMovil;
     window.cerrarMenuMovil = cerrarMenuMovil;
     window.abrirModalTiendaProveedor = abrirModalTiendaProveedor;
     window.cerrarModalTiendaProveedor = cerrarModalTiendaProveedor;
+    window.editarCuentaProveedor = editarCuentaProveedor;
+    window.eliminarCuentaProveedor = eliminarCuentaProveedor;
+    window.editarProductoProveedor = editarProductoProveedor;
+    window.toggleProductoProveedor = toggleProductoProveedor;
+    window.eliminarProductoProveedor = eliminarProductoProveedor;
   </script>
 </body>
 </html>
