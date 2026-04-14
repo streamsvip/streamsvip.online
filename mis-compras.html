@@ -664,6 +664,11 @@
       box-shadow:0 7px 14px rgba(70,10,10,.18);
     }
 
+    .btnReembolso:hover{
+      background:linear-gradient(180deg,#6a1a1a,#471111);
+      border-color:rgba(255,120,120,.42);
+    }
+
     .btnReembolsoBloqueado{
       min-width:110px;
       background:linear-gradient(180deg,#1b1b1b,#101010);
@@ -995,6 +1000,178 @@
       transform:translateY(0);
     }
 
+    .toastPremium{
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      min-width:280px;
+      max-width:420px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)),
+        linear-gradient(180deg,#14161c,#0d0f13);
+      color:#fff;
+      border:1px solid rgba(255,255,255,.10);
+      padding:14px 15px;
+      border-radius:16px;
+      font-size:13px;
+      font-weight:700;
+      box-shadow:0 16px 40px rgba(0,0,0,.38);
+      opacity:0;
+      pointer-events:none;
+      transform:translateY(16px);
+      transition:opacity .25s ease, transform .25s ease;
+      z-index:100001;
+      overflow:hidden;
+    }
+
+    .toastPremium::before{
+      content:"";
+      position:absolute;
+      inset:0 auto 0 0;
+      width:4px;
+      background:#1ed760;
+    }
+
+    .toastPremium.show{
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    .toastPremium.toast-error::before{
+      background:#ff6b6b;
+    }
+
+    .toastPremium.toast-warn::before{
+      background:#ffb300;
+    }
+
+    .toastPremium.toast-info::before{
+      background:#4cb4ff;
+    }
+
+    .toastPremiumTitulo{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:4px;
+      font-size:13px;
+      font-weight:900;
+    }
+
+    .toastPremiumTexto{
+      color:#d3d8e1;
+      line-height:1.45;
+      font-size:12.5px;
+      font-weight:700;
+      padding-left:2px;
+    }
+
+    .confirmPremium{
+      display:none;
+      position:fixed;
+      inset:0;
+      z-index:100002;
+      background:rgba(0,0,0,.82);
+      backdrop-filter:blur(8px);
+      justify-content:center;
+      align-items:center;
+      padding:16px;
+    }
+
+    .confirmPremium.show{
+      display:flex;
+    }
+
+    .confirmPremiumCard{
+      width:100%;
+      max-width:520px;
+      border-radius:24px;
+      padding:22px;
+      background:
+        radial-gradient(circle at top right, rgba(255,80,80,.10), transparent 24%),
+        radial-gradient(circle at bottom left, rgba(111,54,255,.08), transparent 28%),
+        linear-gradient(180deg,#15161c,#0b0c10);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:0 24px 60px rgba(0,0,0,.50);
+    }
+
+    .confirmPremiumTop{
+      display:flex;
+      align-items:flex-start;
+      gap:14px;
+      margin-bottom:14px;
+    }
+
+    .confirmPremiumIcon{
+      width:50px;
+      height:50px;
+      border-radius:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:24px;
+      background:linear-gradient(180deg,#351111,#201010);
+      border:1px solid rgba(255,120,120,.18);
+      flex-shrink:0;
+    }
+
+    .confirmPremiumInfo h3{
+      margin:0 0 6px;
+      font-size:22px;
+      line-height:1.1;
+      font-weight:900;
+    }
+
+    .confirmPremiumInfo p{
+      margin:0;
+      color:#cbd1db;
+      font-size:13px;
+      line-height:1.55;
+    }
+
+    .confirmPremiumDetalle{
+      margin:10px 0 0;
+      padding:12px 13px;
+      border-radius:14px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+      color:#e5e9ef;
+      font-size:12.5px;
+      line-height:1.5;
+    }
+
+    .confirmPremiumActions{
+      margin-top:16px;
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .confirmPremiumBtn{
+      border:none;
+      min-height:42px;
+      padding:10px 16px;
+      border-radius:12px;
+      font-size:13px;
+      font-weight:800;
+      cursor:pointer;
+      transition:.22s ease;
+    }
+
+    .confirmPremiumBtn.cancelar{
+      background:linear-gradient(180deg,#22252d,#151820);
+      color:#dce2ec;
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .confirmPremiumBtn.aceptar{
+      background:linear-gradient(180deg,#6a1a1a,#451111);
+      color:#fff0f0;
+      border:1px solid rgba(255,120,120,.26);
+      box-shadow:0 10px 20px rgba(80,20,20,.22);
+    }
+
     .oculto{
       display:none !important;
     }
@@ -1228,6 +1405,36 @@
         width:100%;
         min-width:100%;
       }
+
+      .toastPremium{
+        left:12px;
+        right:12px;
+        bottom:14px;
+        min-width:auto;
+        max-width:none;
+      }
+
+      .confirmPremium{
+        align-items:flex-end;
+        padding:10px;
+      }
+
+      .confirmPremiumCard{
+        border-radius:22px 22px 0 0;
+        padding:18px 14px 16px;
+      }
+
+      .confirmPremiumInfo h3{
+        font-size:20px;
+      }
+
+      .confirmPremiumActions{
+        flex-direction:column-reverse;
+      }
+
+      .confirmPremiumBtn{
+        width:100%;
+      }
     }
   </style>
 </head>
@@ -1382,9 +1589,9 @@
         </div>
 
         <div id="bloqueDescarga" class="modalCuentaDato full">
-          <span class="modalCuentaLabel">Archivo de descarga</span>
+          <span id="labelBloqueDescarga" class="modalCuentaLabel">Archivo digital</span>
           <button id="btnDescargarArchivo" class="btnDescargarArchivo" type="button">
-            ⬇ Descargar archivo
+            ⬇ Abrir archivo
           </button>
         </div>
       </div>
@@ -1422,7 +1629,34 @@
     </div>
   </div>
 
+  <div id="confirmPremium" class="confirmPremium">
+    <div class="confirmPremiumCard">
+      <div class="confirmPremiumTop">
+        <div class="confirmPremiumIcon">⛔</div>
+        <div class="confirmPremiumInfo">
+          <h3 id="confirmPremiumTitulo">Confirmar acción</h3>
+          <p id="confirmPremiumTexto">¿Deseas continuar con esta solicitud?</p>
+        </div>
+      </div>
+
+      <div id="confirmPremiumDetalle" class="confirmPremiumDetalle">
+        Esta acción será enviada al panel de administración para su revisión.
+      </div>
+
+      <div class="confirmPremiumActions">
+        <button id="confirmPremiumCancelar" class="confirmPremiumBtn cancelar" type="button">Cancelar</button>
+        <button id="confirmPremiumAceptar" class="confirmPremiumBtn aceptar" type="button">Sí, continuar</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toastCopiado" class="toastCopiado">Copiado</div>
+
+  <div id="toastPremium" class="toastPremium">
+    <div id="toastPremiumTitulo" class="toastPremiumTitulo">✔ Correcto</div>
+    <div id="toastPremiumTexto" class="toastPremiumTexto">Operación realizada correctamente.</div>
+  </div>
+
   <div id="toastGracias">¡Gracias por su visita! Vuelva pronto.</div>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -1440,13 +1674,26 @@
     const toastCopiado = document.getElementById("toastCopiado");
     const botonesVista = document.querySelectorAll(".vistaBtn");
 
+    const toastPremium = document.getElementById("toastPremium");
+    const toastPremiumTitulo = document.getElementById("toastPremiumTitulo");
+    const toastPremiumTexto = document.getElementById("toastPremiumTexto");
+
+    const confirmPremium = document.getElementById("confirmPremium");
+    const confirmPremiumTitulo = document.getElementById("confirmPremiumTitulo");
+    const confirmPremiumTexto = document.getElementById("confirmPremiumTexto");
+    const confirmPremiumDetalle = document.getElementById("confirmPremiumDetalle");
+    const confirmPremiumCancelar = document.getElementById("confirmPremiumCancelar");
+    const confirmPremiumAceptar = document.getElementById("confirmPremiumAceptar");
+
     let comprasOriginales = [];
     let timerToastCopiado = null;
+    let timerToastPremium = null;
     let compraPendienteNombre = null;
     let uidActual = null;
     let comprasRef = null;
     let timerCompras = null;
     let vistaActual = localStorage.getItem("streamsvip_vista_mis_compras") || "compacto";
+    let confirmPremiumCallback = null;
 
     function aplicarVista(vista) {
       vistaActual = vista;
@@ -1467,21 +1714,122 @@
       });
     });
 
+    function mostrarToastPremium(mensaje, tipo = "ok", titulo = "") {
+      clearTimeout(timerToastPremium);
+
+      toastPremium.classList.remove("toast-error", "toast-warn", "toast-info");
+
+      if (tipo === "error") {
+        toastPremium.classList.add("toast-error");
+        toastPremiumTitulo.textContent = titulo || "✖ Error";
+      } else if (tipo === "warn") {
+        toastPremium.classList.add("toast-warn");
+        toastPremiumTitulo.textContent = titulo || "⚠ Aviso";
+      } else if (tipo === "info") {
+        toastPremium.classList.add("toast-info");
+        toastPremiumTitulo.textContent = titulo || "ℹ Información";
+      } else {
+        toastPremiumTitulo.textContent = titulo || "✔ Correcto";
+      }
+
+      toastPremiumTexto.textContent = mensaje || "";
+      toastPremium.classList.add("show");
+
+      timerToastPremium = setTimeout(() => {
+        toastPremium.classList.remove("show");
+      }, 2600);
+    }
+
+    function cerrarConfirmacionPremium() {
+      confirmPremium.classList.remove("show");
+      confirmPremiumCallback = null;
+    }
+
+    function abrirConfirmacionPremium({ titulo, texto, detalle, onConfirm }) {
+      confirmPremiumTitulo.textContent = titulo || "Confirmar acción";
+      confirmPremiumTexto.textContent = texto || "¿Deseas continuar?";
+      confirmPremiumDetalle.textContent = detalle || "Esta acción será enviada al panel de administración para su revisión.";
+      confirmPremiumCallback = typeof onConfirm === "function" ? onConfirm : null;
+      confirmPremium.classList.add("show");
+    }
+
+    confirmPremiumCancelar.addEventListener("click", cerrarConfirmacionPremium);
+
+    confirmPremiumAceptar.addEventListener("click", async () => {
+      const callback = confirmPremiumCallback;
+      cerrarConfirmacionPremium();
+      if (callback) await callback();
+    });
+
+    function normalizarTipoEntrega(compra) {
+      return String(
+        compra?.tipoEntrega ||
+        compra?.entregaVisual ||
+        ""
+      ).toLowerCase().trim();
+    }
+
     function esCompraCodigo(compra) {
+      const tipo = normalizarTipoEntrega(compra);
       return (
-        compra?.tipoEntrega === "codigo" ||
+        tipo === "codigo" ||
         compra?.esCodigo === true ||
-        compra?.esLicencia === true ||
-        compra?.entregaVisual === "codigo"
+        compra?.esLicencia === true
       );
     }
 
     function esCompraDescarga(compra) {
+      const tipo = normalizarTipoEntrega(compra);
+      return tipo === "descarga";
+    }
+
+    function esCompraPlugin(compra) {
+      const tipo = normalizarTipoEntrega(compra);
+      return tipo === "plugin";
+    }
+
+    function esCompraDAW(compra) {
+      const tipo = normalizarTipoEntrega(compra);
+      return tipo === "daw";
+    }
+
+    function esCompraDigitalArchivo(compra) {
+      const tipo = normalizarTipoEntrega(compra);
+      const link = String(compra?.linkEntrega || "").trim();
+
       return (
-        compra?.tipoEntrega === "descarga" ||
+        tipo === "descarga" ||
+        tipo === "plugin" ||
+        tipo === "daw" ||
         compra?.entregaVisual === "descarga" ||
-        String(compra?.linkEntrega || "").trim() !== ""
+        link !== ""
       );
+    }
+
+    function obtenerEtiquetaDigital(compra) {
+      if (esCompraPlugin(compra)) return "Plugin digital";
+      if (esCompraDAW(compra)) return "DAW digital";
+      if (esCompraDescarga(compra)) return "Descarga digital";
+      if (esCompraDigitalArchivo(compra)) return "Archivo digital";
+      return "";
+    }
+
+    function obtenerEmojiDigital(compra) {
+      if (esCompraPlugin(compra)) return "🎛";
+      if (esCompraDAW(compra)) return "🎚";
+      if (esCompraDescarga(compra)) return "⬇";
+      if (esCompraDigitalArchivo(compra)) return "💾";
+      return "⬇";
+    }
+
+    function obtenerTextoBotonVer(compra, tieneNombreCliente) {
+      if (!tieneNombreCliente) return "🔒 Registrar cliente";
+      if (esCompraCodigo(compra)) return "🔑 Ver código";
+      if (esCompraPlugin(compra)) return "🎛 Ver plugin";
+      if (esCompraDAW(compra)) return "🎚 Ver DAW";
+      if (esCompraDescarga(compra)) return "⬇ Ver descarga";
+      if (esCompraDigitalArchivo(compra)) return "💾 Ver archivo";
+      return "👁 Ver cuenta";
     }
 
     function reembolsoDentroDeTiempo(fechaCompra) {
@@ -1495,14 +1843,14 @@
       if (!compra) return false;
       if (compra.estado === "reembolsado") return false;
       if (esCompraCodigo(compra)) return false;
-      if (esCompraDescarga(compra)) return false;
+      if (esCompraDigitalArchivo(compra)) return false;
       return reembolsoDentroDeTiempo(compra.fechaCompra);
     }
 
     function obtenerTextoReembolso(compra) {
       if (compra.estado === "reembolsado") return "Reembolsado";
       if (esCompraCodigo(compra)) return "No aplica";
-      if (esCompraDescarga(compra)) return "No aplica";
+      if (esCompraDigitalArchivo(compra)) return "No aplica";
       if (puedeSolicitarReembolso(compra)) return "Disponible 24h";
       return "Plazo vencido";
     }
@@ -1539,7 +1887,7 @@
     }
 
     function obtenerTextoExpiracion(compra) {
-      if (esCompraCodigo(compra) || esCompraDescarga(compra)) {
+      if (esCompraCodigo(compra) || esCompraDigitalArchivo(compra)) {
         return compra.fechaExpiraTexto || compra.duracionTexto || "Permanente";
       }
       return formatearFecha(compra.fechaExpira);
@@ -1547,7 +1895,7 @@
 
     function calcularTiempoRestante(fechaExpira, estado, compra = null) {
       if (estado === "reembolsado") return "Reembolsado";
-      if (esCompraCodigo(compra) || esCompraDescarga(compra)) return "Permanente";
+      if (esCompraCodigo(compra) || esCompraDigitalArchivo(compra)) return "Permanente";
       if (!fechaExpira) return "Sin fecha";
 
       const ahora = new Date().getTime();
@@ -1566,7 +1914,7 @@
 
     function obtenerEstadoReal(compra) {
       if (compra.estado === "reembolsado") return "reembolsado";
-      if (esCompraCodigo(compra) || esCompraDescarga(compra)) return compra.estado || "activa";
+      if (esCompraCodigo(compra) || esCompraDigitalArchivo(compra)) return compra.estado || "activa";
       if (!compra.fechaExpira) return compra.estado || "activa";
 
       const ahora = new Date().getTime();
@@ -1578,7 +1926,7 @@
 
     function puedeRenovar(fechaExpira, estado, compra = null) {
       if (estado === "reembolsado") return false;
-      if (esCompraCodigo(compra) || esCompraDescarga(compra)) return false;
+      if (esCompraCodigo(compra) || esCompraDigitalArchivo(compra)) return false;
       if (!fechaExpira) return false;
 
       const ahora = new Date().getTime();
@@ -1625,14 +1973,23 @@
     function abrirDescarga(link) {
       const url = String(link || "").trim();
       if (!url) {
-        alert("No se encontró el link de descarga para esta compra.");
+        mostrarToastPremium("No se encontró el link del archivo digital para esta compra.", "warn", "Sin archivo");
         return;
       }
-      window.open(url, "_blank", "noopener");
+
+      if (/^https?:\/\//i.test(url)) {
+        window.open(url, "_blank", "noopener,noreferrer");
+        return;
+      }
+
+      window.open(url, "_blank");
     }
 
     function abrirModalCuenta(compra) {
       const esCodigo = esCompraCodigo(compra);
+      const esDigital = esCompraDigitalArchivo(compra);
+      const esPlugin = esCompraPlugin(compra);
+      const esDAW = esCompraDAW(compra);
       const esDescarga = esCompraDescarga(compra);
 
       const box = document.getElementById("modalCuentaBox");
@@ -1648,6 +2005,7 @@
       const modalCorreo = document.getElementById("modalCorreo");
       const modalClave = document.getElementById("modalClave");
       const btnDescargarArchivo = document.getElementById("btnDescargarArchivo");
+      const labelBloqueDescarga = document.getElementById("labelBloqueDescarga");
 
       box.classList.remove("codigo", "descarga");
       heroPrincipal.classList.remove("codigoMain", "descargaMain");
@@ -1665,7 +2023,7 @@
         modalClave.classList.add("codigoTexto");
       }
 
-      if (esDescarga) {
+      if (esDigital) {
         box.classList.add("descarga");
         heroPrincipal.classList.add("descargaMain");
         bloqueCorreoCodigo.classList.add("descargaSecundario");
@@ -1680,7 +2038,7 @@
       document.getElementById("modalObservacion").innerText = compra.observacion || "-";
       document.getElementById("modalPlataforma").innerText = compra.plataformaElegida ? String(compra.plataformaElegida).toUpperCase() : "-";
 
-      document.getElementById("modalExpira").innerText = (esCodigo || esDescarga)
+      document.getElementById("modalExpira").innerText = (esCodigo || esDigital)
         ? (compra.fechaExpiraTexto || compra.duracionTexto || "Permanente")
         : formatearFecha(compra.fechaExpira);
 
@@ -1698,14 +2056,50 @@
         bloquePlataforma.classList.add("oculto");
         bloqueDescarga.classList.add("oculto");
         bloqueClave.classList.toggle("oculto", !compra.clave);
-      } else if (esDescarga) {
-        document.getElementById("modalTituloPrincipal").innerText = "Descarga digital";
-        document.getElementById("modalSubPrincipal").innerText = "Archivo y plataforma entregada para instalación";
-        document.getElementById("modalIconoPrincipal").innerText = "⬇️";
+      } else if (esDigital) {
+        let tituloDigital = "Descarga digital";
+        let subDigital = "Archivo y plataforma entregada para instalación";
+        let iconoDigital = "⬇️";
+        let labelMain = "Producto descargable";
+        let labelCorreo = "Link asignado";
+        let labelArchivo = "Archivo digital";
+        let textoBoton = "⬇ Abrir archivo";
+
+        if (esPlugin) {
+          tituloDigital = "Plugin digital";
+          subDigital = "Plugin entregado para instalación y uso";
+          iconoDigital = "🎛";
+          labelMain = "Plugin asignado";
+          labelCorreo = "Link del plugin";
+          labelArchivo = "Plugin digital";
+          textoBoton = "🎛 Abrir plugin";
+        } else if (esDAW) {
+          tituloDigital = "DAW digital";
+          subDigital = "DAW entregado para instalación y producción";
+          iconoDigital = "🎚";
+          labelMain = "DAW asignado";
+          labelCorreo = "Link del DAW";
+          labelArchivo = "DAW digital";
+          textoBoton = "🎚 Abrir DAW";
+        } else if (esDescarga) {
+          tituloDigital = "Descarga digital";
+          subDigital = "Archivo entregado para instalación o uso";
+          iconoDigital = "⬇️";
+          labelMain = "Producto descargable";
+          labelCorreo = "Link de descarga";
+          labelArchivo = "Archivo de descarga";
+          textoBoton = "⬇ Abrir descarga";
+        }
+
+        document.getElementById("modalTituloPrincipal").innerText = tituloDigital;
+        document.getElementById("modalSubPrincipal").innerText = subDigital;
+        document.getElementById("modalIconoPrincipal").innerText = iconoDigital;
         document.getElementById("modalHeroExpiraLabel").innerText = "Vigencia";
-        document.getElementById("modalHeroMainLabel").innerText = "Producto descargable";
-        document.getElementById("labelModalCorreo").innerText = "Link asignado";
+        document.getElementById("modalHeroMainLabel").innerText = labelMain;
+        document.getElementById("labelModalCorreo").innerText = labelCorreo;
         document.getElementById("labelModalClave").innerText = "Detalle adicional";
+        labelBloqueDescarga.innerText = labelArchivo;
+        btnDescargarArchivo.innerText = textoBoton;
 
         bloquePerfil.classList.add("oculto");
         bloquePin.classList.add("oculto");
@@ -1713,7 +2107,7 @@
         bloquePlataforma.classList.remove("oculto");
         bloqueDescarga.classList.remove("oculto");
 
-        btnDescargarArchivo.onclick = () => abrirDescarga(compra.linkEntrega || "");
+        btnDescargarArchivo.onclick = () => abrirDescarga(compra.linkEntrega || compra.cuenta || "");
       } else {
         document.getElementById("modalTituloPrincipal").innerText = "Datos de la cuenta";
         document.getElementById("modalSubPrincipal").innerText = "Acceso seguro y detalles de uso";
@@ -1722,6 +2116,8 @@
         document.getElementById("modalHeroMainLabel").innerText = "Servicio asignado";
         document.getElementById("labelModalCorreo").innerText = "Correo / Usuario";
         document.getElementById("labelModalClave").innerText = "Clave";
+        labelBloqueDescarga.innerText = "Archivo digital";
+        btnDescargarArchivo.innerText = "⬇ Abrir archivo";
 
         bloquePerfil.classList.remove("oculto");
         bloquePin.classList.remove("oculto");
@@ -1756,14 +2152,14 @@
       const nombre = (input.value || "").trim();
 
       if (!nombre) {
-        alert("Ingresa el nombre del cliente para continuar.");
+        mostrarToastPremium("Ingresa el nombre del cliente para continuar.", "warn", "Nombre requerido");
         input.focus();
         return;
       }
 
       const compraId = compraPendienteNombre.id;
       if (!compraId) {
-        alert("No se pudo identificar la compra.");
+        mostrarToastPremium("No se pudo identificar la compra.", "error", "Error");
         return;
       }
 
@@ -1785,6 +2181,93 @@
       abrirModalCuenta(compraPendienteNombre);
     }
 
+    function crearBadgeDigital(compra) {
+      if (esCompraCodigo(compra)) {
+        return `<div class="compactServicioBadge">🔑 Licencia / código</div>`;
+      }
+
+      if (esCompraDigitalArchivo(compra)) {
+        return `<div class="compactServicioBadge descarga">${obtenerEmojiDigital(compra)} ${obtenerEtiquetaDigital(compra)}</div>`;
+      }
+
+      return ``;
+    }
+
+    function crearBadgeDigitalTarjeta(compra) {
+      if (esCompraCodigo(compra)) {
+        return `<div class="tarjetaBadge">🔑 Licencia / código</div>`;
+      }
+
+      if (esCompraDigitalArchivo(compra)) {
+        return `<div class="tarjetaBadge descarga">${obtenerEmojiDigital(compra)} ${obtenerEtiquetaDigital(compra)}</div>`;
+      }
+
+      return ``;
+    }
+
+    async function solicitarReembolsoCompra(compra) {
+      if (!uidActual || !compra?.id) {
+        mostrarToastPremium("No se pudo identificar la compra.", "error", "Error");
+        return;
+      }
+
+      if (esCompraCodigo(compra) || esCompraDigitalArchivo(compra)) {
+        mostrarToastPremium("Este producto no aplica para reembolso.", "warn", "No disponible");
+        return;
+      }
+
+      if (!reembolsoDentroDeTiempo(compra.fechaCompra)) {
+        mostrarToastPremium("El plazo de 24 horas para solicitar reembolso ya venció.", "warn", "Plazo vencido");
+        return;
+      }
+
+      abrirConfirmacionPremium({
+        titulo: "Solicitar reembolso",
+        texto: `¿Deseas solicitar el reembolso de ${compra.servicio || "esta compra"}?`,
+        detalle: "La solicitud será enviada al panel de administración y quedará pendiente hasta su revisión.",
+        onConfirm: async () => {
+          try {
+            const snap = await db.ref("reembolsos").orderByChild("ordenId").equalTo(compra.id).once("value");
+            const existentes = snap.val() || {};
+
+            const yaExiste = Object.values(existentes).some(item => {
+              return item && item.uidUsuario === uidActual && item.estado !== "rechazado";
+            });
+
+            if (yaExiste) {
+              mostrarToastPremium("Ya existe una solicitud de reembolso para esta compra.", "info", "Solicitud existente");
+              return;
+            }
+
+            const nuevaSolicitudRef = db.ref("reembolsos").push();
+
+            await nuevaSolicitudRef.set({
+              uidUsuario: uidActual,
+              ordenId: compra.id,
+              servicio: compra.servicio || "",
+              monto: Number(compra.precio || 0),
+              estado: "pendiente",
+              fechaSolicitud: Date.now(),
+              fechaCompra: compra.fechaCompra || "",
+              fechaExpira: compra.fechaExpira || "",
+              nombreCliente: compra.nombreClienteVisual || "",
+              cuenta: compra.cuenta || "",
+              usuario: document.getElementById("panelUsuarioHandle")?.innerText?.replace("@", "") || "",
+              nombreComprador: document.getElementById("panelUsuarioNombre")?.innerText || "",
+              tipoEntrega: compra.tipoEntrega || "",
+              esCodigo: false,
+              esLicencia: false
+            });
+
+            mostrarToastPremium("Solicitud de reembolso enviada correctamente.", "ok", "Enviado");
+          } catch (error) {
+            console.error(error);
+            mostrarToastPremium("No se pudo enviar la solicitud de reembolso.", "error", "Error");
+          }
+        }
+      });
+    }
+
     function crearFilaCompraCompacta(compra) {
       const estadoReal = obtenerEstadoReal(compra);
       const tiempo = calcularTiempoRestante(compra.fechaExpira, estadoReal, compra);
@@ -1793,35 +2276,25 @@
       const nombreVisible = compra.nombreClienteVisual || "";
       const tieneNombreCliente = !!(nombreVisible && String(nombreVisible).trim());
       const esCodigo = esCompraCodigo(compra);
-      const esDescarga = esCompraDescarga(compra);
+      const esDigital = esCompraDigitalArchivo(compra);
       const expiraTexto = obtenerTextoExpiracion(compra);
       const puedeReembolso = puedeSolicitarReembolso(compra);
       const textoReembolso = obtenerTextoReembolso(compra);
 
       const div = document.createElement("div");
-      div.className = `compactRow ${esCodigo ? "codigoItem" : ""} ${esDescarga ? "descargaItem" : ""}`;
+      div.className = `compactRow ${esCodigo ? "codigoItem" : ""} ${esDigital ? "descargaItem" : ""}`;
 
       div.innerHTML = `
         <div class="compactServicio">
           <div class="compactServicioTexto">
             <span class="compactServicioNombre">${compra.servicio || "-"}</span>
-            ${
-              esCodigo
-                ? `<div class="compactServicioBadge">🔑 Licencia / código</div>`
-                : esDescarga
-                  ? `<div class="compactServicioBadge descarga">⬇ Descarga digital</div>`
-                  : ``
-            }
+            ${crearBadgeDigital(compra)}
           </div>
         </div>
 
         <div class="compactCell">
-          <button class="btnVerCuenta ${esCodigo ? "codigo" : ""} ${esDescarga ? "descarga" : ""}">
-            ${
-              tieneNombreCliente
-                ? (esCodigo ? "🔑 Ver código" : esDescarga ? "⬇ Ver descarga" : "👁 Ver cuenta")
-                : "🔒 Registrar cliente"
-            }
+          <button class="btnVerCuenta ${esCodigo ? "codigo" : ""} ${esDigital ? "descarga" : ""}">
+            ${obtenerTextoBotonVer(compra, tieneNombreCliente)}
           </button>
         </div>
 
@@ -1836,7 +2309,7 @@
         <div class="compactCell">S/ ${Number(compra.precio || 0).toFixed(2)}</div>
         <div class="compactCell">${expiraTexto}</div>
 
-        <div class="compactTiempo ${estadoReal === "expirada" ? "expirada" : ""} ${(esCodigo || esDescarga) ? "permanente" : ""}">
+        <div class="compactTiempo ${estadoReal === "expirada" ? "expirada" : ""} ${(esCodigo || esDigital) ? "permanente" : ""}">
           ${tiempo}
         </div>
 
@@ -1852,7 +2325,7 @@
           </button>
 
           ${
-            !esCodigo && !esDescarga && estadoReal !== "reembolsado"
+            !esCodigo && !esDigital && estadoReal !== "reembolsado"
               ? `<button class="btnRenovar ${renovarActivo ? "activo" : ""}">🔄 Renovar</button>`
               : ``
           }
@@ -1860,8 +2333,8 @@
           ${
             estadoReal === "reembolsado"
               ? ``
-              : (esCodigo || esDescarga)
-                ? `<span class="btnReembolsoBloqueado noAplica">${esDescarga ? "⬇ No aplica" : "🔑 No aplica"}</span>`
+              : (esCodigo || esDigital)
+                ? `<span class="btnReembolsoBloqueado noAplica">${obtenerEmojiDigital(compra)} No aplica</span>`
                 : puedeReembolso
                   ? `<button class="btnReembolso">⛔ Reembolso</button>`
                   : `<span class="btnReembolsoBloqueado vencido">⏳ ${textoReembolso}</span>`
@@ -1897,69 +2370,14 @@
       const btnRenovar = div.querySelector(".btnRenovar.activo");
       if (btnRenovar) {
         btnRenovar.addEventListener("click", () => {
-          alert("Aquí luego conectamos tu sistema de renovación.");
+          mostrarToastPremium("Aquí luego conectamos tu sistema de renovación.", "info", "Próximamente");
         });
       }
 
       const btnReembolso = div.querySelector(".btnReembolso");
       if (btnReembolso) {
         btnReembolso.addEventListener("click", async () => {
-          if (!uidActual || !compra.id) {
-            alert("No se pudo identificar la compra.");
-            return;
-          }
-
-          if (esCompraCodigo(compra) || esCompraDescarga(compra)) {
-            alert("Este producto no aplica para reembolso.");
-            return;
-          }
-
-          if (!reembolsoDentroDeTiempo(compra.fechaCompra)) {
-            alert("El plazo de 24 horas para solicitar reembolso ya venció.");
-            return;
-          }
-
-          const confirmar = confirm(`¿Deseas solicitar el reembolso de ${compra.servicio || "esta compra"}?`);
-          if (!confirmar) return;
-
-          try {
-            const snap = await db.ref("reembolsos").orderByChild("ordenId").equalTo(compra.id).once("value");
-            const existentes = snap.val() || {};
-
-            const yaExiste = Object.values(existentes).some(item => {
-              return item && item.uidUsuario === uidActual && item.estado !== "rechazado";
-            });
-
-            if (yaExiste) {
-              alert("Ya existe una solicitud de reembolso para esta compra.");
-              return;
-            }
-
-            const nuevaSolicitudRef = db.ref("reembolsos").push();
-
-            await nuevaSolicitudRef.set({
-              uidUsuario: uidActual,
-              ordenId: compra.id,
-              servicio: compra.servicio || "",
-              monto: Number(compra.precio || 0),
-              estado: "pendiente",
-              fechaSolicitud: Date.now(),
-              fechaCompra: compra.fechaCompra || "",
-              fechaExpira: compra.fechaExpira || "",
-              nombreCliente: compra.nombreClienteVisual || "",
-              cuenta: compra.cuenta || "",
-              usuario: document.getElementById("panelUsuarioHandle")?.innerText?.replace("@", "") || "",
-              nombreComprador: document.getElementById("panelUsuarioNombre")?.innerText || "",
-              tipoEntrega: compra.tipoEntrega || "",
-              esCodigo: false,
-              esLicencia: false
-            });
-
-            alert("Solicitud de reembolso enviada correctamente.");
-          } catch (error) {
-            console.error(error);
-            alert("No se pudo enviar la solicitud de reembolso.");
-          }
+          await solicitarReembolsoCompra(compra);
         });
       }
 
@@ -1974,33 +2392,23 @@
       const nombreVisible = compra.nombreClienteVisual || "";
       const tieneNombreCliente = !!(nombreVisible && String(nombreVisible).trim());
       const esCodigo = esCompraCodigo(compra);
-      const esDescarga = esCompraDescarga(compra);
+      const esDigital = esCompraDigitalArchivo(compra);
       const expiraTexto = obtenerTextoExpiracion(compra);
       const puedeReembolso = puedeSolicitarReembolso(compra);
       const textoReembolso = obtenerTextoReembolso(compra);
 
       const div = document.createElement("div");
-      div.className = `tarjetaCompra ${esCodigo ? "codigoItem" : ""} ${esDescarga ? "descargaItem" : ""}`;
+      div.className = `tarjetaCompra ${esCodigo ? "codigoItem" : ""} ${esDigital ? "descargaItem" : ""}`;
 
       div.innerHTML = `
         <div class="tarjetaTop">
-          <button class="btnVerCuenta ${esCodigo ? "codigo" : ""} ${esDescarga ? "descarga" : ""}">
-            ${
-              tieneNombreCliente
-                ? (esCodigo ? "🔑 Ver código" : esDescarga ? "⬇ Ver descarga" : "👁 Ver cuenta")
-                : "🔒 Registrar cliente"
-            }
+          <button class="btnVerCuenta ${esCodigo ? "codigo" : ""} ${esDigital ? "descarga" : ""}">
+            ${obtenerTextoBotonVer(compra, tieneNombreCliente)}
           </button>
 
           <div class="tarjetaServicio">
             ${compra.servicio || "-"}
-            ${
-              esCodigo
-                ? `<div class="tarjetaBadge">🔑 Licencia / código</div>`
-                : esDescarga
-                  ? `<div class="tarjetaBadge descarga">⬇ Descarga digital</div>`
-                  : ``
-            }
+            ${crearBadgeDigitalTarjeta(compra)}
           </div>
         </div>
 
@@ -2028,7 +2436,7 @@
 
           <div class="tarjetaMetaBox full">
             <span class="tarjetaMetaLabel">Tiempo restante</span>
-            <div class="tarjetaTiempo ${estadoReal === "expirada" ? "expirada" : ""} ${(esCodigo || esDescarga) ? "permanente" : ""}">
+            <div class="tarjetaTiempo ${estadoReal === "expirada" ? "expirada" : ""} ${(esCodigo || esDigital) ? "permanente" : ""}">
               ${tiempo}
             </div>
           </div>
@@ -2046,7 +2454,7 @@
           </button>
 
           ${
-            !esCodigo && !esDescarga && estadoReal !== "reembolsado"
+            !esCodigo && !esDigital && estadoReal !== "reembolsado"
               ? `<button class="btnRenovar ${renovarActivo ? "activo" : ""}">🔄 Renovar</button>`
               : `<span></span>`
           }
@@ -2054,8 +2462,8 @@
           ${
             estadoReal === "reembolsado"
               ? ``
-              : (esCodigo || esDescarga)
-                ? `<span class="btnReembolsoBloqueado noAplica">${esDescarga ? "⬇ No aplica" : "🔑 No aplica"}</span>`
+              : (esCodigo || esDigital)
+                ? `<span class="btnReembolsoBloqueado noAplica">${obtenerEmojiDigital(compra)} No aplica</span>`
                 : puedeReembolso
                   ? `<button class="btnReembolso">⛔ Reembolso</button>`
                   : `<span class="btnReembolsoBloqueado vencido">⏳ ${textoReembolso}</span>`
@@ -2091,69 +2499,14 @@
       const btnRenovar = div.querySelector(".btnRenovar.activo");
       if (btnRenovar) {
         btnRenovar.addEventListener("click", () => {
-          alert("Aquí luego conectamos tu sistema de renovación.");
+          mostrarToastPremium("Aquí luego conectamos tu sistema de renovación.", "info", "Próximamente");
         });
       }
 
       const btnReembolso = div.querySelector(".btnReembolso");
       if (btnReembolso) {
         btnReembolso.addEventListener("click", async () => {
-          if (!uidActual || !compra.id) {
-            alert("No se pudo identificar la compra.");
-            return;
-          }
-
-          if (esCompraCodigo(compra) || esCompraDescarga(compra)) {
-            alert("Este producto no aplica para reembolso.");
-            return;
-          }
-
-          if (!reembolsoDentroDeTiempo(compra.fechaCompra)) {
-            alert("El plazo de 24 horas para solicitar reembolso ya venció.");
-            return;
-          }
-
-          const confirmar = confirm(`¿Deseas solicitar el reembolso de ${compra.servicio || "esta compra"}?`);
-          if (!confirmar) return;
-
-          try {
-            const snap = await db.ref("reembolsos").orderByChild("ordenId").equalTo(compra.id).once("value");
-            const existentes = snap.val() || {};
-
-            const yaExiste = Object.values(existentes).some(item => {
-              return item && item.uidUsuario === uidActual && item.estado !== "rechazado";
-            });
-
-            if (yaExiste) {
-              alert("Ya existe una solicitud de reembolso para esta compra.");
-              return;
-            }
-
-            const nuevaSolicitudRef = db.ref("reembolsos").push();
-
-            await nuevaSolicitudRef.set({
-              uidUsuario: uidActual,
-              ordenId: compra.id,
-              servicio: compra.servicio || "",
-              monto: Number(compra.precio || 0),
-              estado: "pendiente",
-              fechaSolicitud: Date.now(),
-              fechaCompra: compra.fechaCompra || "",
-              fechaExpira: compra.fechaExpira || "",
-              nombreCliente: compra.nombreClienteVisual || "",
-              cuenta: compra.cuenta || "",
-              usuario: document.getElementById("panelUsuarioHandle")?.innerText?.replace("@", "") || "",
-              nombreComprador: document.getElementById("panelUsuarioNombre")?.innerText || "",
-              tipoEntrega: compra.tipoEntrega || "",
-              esCodigo: false,
-              esLicencia: false
-            });
-
-            alert("Solicitud de reembolso enviada correctamente.");
-          } catch (error) {
-            console.error(error);
-            alert("No se pudo enviar la solicitud de reembolso.");
-          }
+          await solicitarReembolsoCompra(compra);
         });
       }
 
@@ -2179,6 +2532,7 @@
           ${compra.entregaVisual || ""}
           ${compra.duracionTexto || ""}
           ${compra.plataformaElegida || ""}
+          ${compra.linkEntrega || ""}
         `.toLowerCase();
 
         return coincideServicio && coincideEstado && textoBase.includes(texto);
@@ -2267,6 +2621,7 @@
       }, error => {
         listaCompras.innerHTML = `<div class="misComprasVacio">Error al cargar tus compras.</div>`;
         console.error(error);
+        mostrarToastPremium("Error al cargar tus compras.", "error", "Error");
       });
     }
 
@@ -2299,13 +2654,16 @@
 
       if (e.target === modalCuenta) cerrarModalCuenta();
       if (e.target === modalNombre) cerrarModalNombreCliente();
+      if (e.target === confirmPremium) cerrarConfirmacionPremium();
     });
 
-    document.onkeydown = function(e){
-      if(e.key === "F12") return false;
-      if(e.ctrlKey && e.shiftKey && e.key.toUpperCase() === "I") return false;
-      if(e.ctrlKey && e.shiftKey && e.key.toUpperCase() === "J") return false;
-    };
+    document.addEventListener("keydown", function(e){
+      if (e.key === "Escape") {
+        cerrarModalCuenta();
+        cerrarModalNombreCliente();
+        cerrarConfirmacionPremium();
+      }
+    });
 
     aplicarVista(vistaActual);
   </script>
@@ -2339,13 +2697,24 @@
       e.preventDefault();
     });
 
-    document.onkeydown = function(e){
-      if(e.keyCode == 123) return false;
-      if(e.ctrlKey && e.shiftKey && e.keyCode == "I".charCodeAt(0)) return false;
-      if(e.ctrlKey && e.shiftKey && e.keyCode == "C".charCodeAt(0)) return false;
-      if(e.ctrlKey && e.shiftKey && e.keyCode == "J".charCodeAt(0)) return false;
-      if(e.ctrlKey && e.keyCode == "U".charCodeAt(0)) return false;
-    };
+    document.addEventListener("keydown", function(e){
+      const key = String(e.key || "").toUpperCase();
+
+      if (e.key === "F12") {
+        e.preventDefault();
+        return false;
+      }
+
+      if (e.ctrlKey && e.shiftKey && (key === "I" || key === "J" || key === "C")) {
+        e.preventDefault();
+        return false;
+      }
+
+      if (e.ctrlKey && key === "U") {
+        e.preventDefault();
+        return false;
+      }
+    });
 
     document.addEventListener("selectstart", function(e){
       e.preventDefault();
