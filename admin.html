@@ -53,6 +53,7 @@
         <div class="miniCard"><h3>Solicitudes recarga</h3><p id="totalRecargas">0</p></div>
         <div class="miniCard"><h3>Solicitudes reembolso</h3><p id="totalReembolsos">0</p></div>
         <div class="miniCard"><h3>Códigos creados</h3><p id="totalCodigos">0</p></div>
+        <div class="miniCard"><h3>Retiros proveedores</h3><p id="totalRetirosProveedores">0</p></div>
       </div>
 
       <!-- RECARGAS -->
@@ -132,6 +133,43 @@
         </div>
       </div>
 
+      <!-- RETIROS PROVEEDORES -->
+      <div class="card collapsibleCard">
+        <button class="collapseHeader" type="button" onclick="toggleSection(this)">
+          <span>Retiros de proveedores</span>
+          <span class="collapseIcon">▼</span>
+        </button>
+
+        <div class="collapseContent">
+          <div class="sectionTools">
+            <button class="btnMiniDanger" onclick="vaciarNodoConfirmado('retirosProveedores', 'Se eliminarán todas las solicitudes de retiro de proveedores.')">
+              Vaciar historial retiros
+            </button>
+          </div>
+
+          <div class="tableWrap tableWrapAdminScroll">
+            <table id="tablaRetirosProveedores" class="hidden">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Proveedor</th>
+                  <th>UID</th>
+                  <th>Monto</th>
+                  <th>Método</th>
+                  <th>Dato pago</th>
+                  <th>Estado</th>
+                  <th>Fecha solicitud</th>
+                  <th>Fecha resolución</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <div id="retirosProveedoresVacio" class="empty">No hay solicitudes de retiro de proveedores.</div>
+          </div>
+        </div>
+      </div>
+
       <!-- STOCK -->
       <div class="card collapsibleCard">
         <button class="collapseHeader" type="button" onclick="toggleSection(this)">
@@ -171,7 +209,7 @@
 
         <div class="collapseContent">
           <div class="createGrid">
-            <input type="text" id="nuevoIdProducto" placeholder="ID producto (ej: pluginwaves)">
+            <input type="text" id="nuevoIdProducto" placeholder="ID único del producto (ej: admin_netflix_premium_001)">
             <input type="text" id="nuevoNombreProducto" placeholder="Nombre producto">
             <input type="number" id="nuevoPrecioProducto" placeholder="Precio" min="0" step="0.01">
             <input type="number" id="nuevoStockProducto" placeholder="Stock" min="0">
