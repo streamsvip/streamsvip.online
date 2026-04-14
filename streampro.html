@@ -531,6 +531,237 @@
       .walletHero strong{font-size:32px}
       .tiendaGrid{grid-template-columns:1fr}
     }
+    /* =========================
+RETIROS RESPONSIVE PRO
+========================= */
+
+/* =========================
+RETIROS RESPONSIVE PRO
+========================= */
+
+#section-retiros .gridStats.twoCols{
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+#section-retiros .gridTwo{
+  grid-template-columns: minmax(320px, 370px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+#section-retiros .panelCard{
+  overflow: hidden;
+}
+
+#section-retiros .panelCard:first-child{
+  align-self: start;
+}
+
+#section-retiros .panelCard:last-child{
+  min-width: 0;
+}
+
+#section-retiros .panelHeader{
+  margin-bottom: 14px;
+}
+
+#section-retiros .panelHeader h3{
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+#section-retiros .panelHeader p{
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+#section-retiros .formGrid{
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 14px;
+}
+
+#section-retiros .field.full{
+  grid-column: 1 / -1;
+}
+
+#section-retiros .field{
+  min-width: 0;
+}
+
+#section-retiros .field label{
+  font-size: 13px;
+}
+
+#section-retiros .field input,
+#section-retiros .field select{
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 14px;
+}
+
+#section-retiros #formRetiro .btn{
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
+}
+
+#section-retiros .notice{
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+#section-retiros .tableWrap{
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: 16px;
+}
+
+#section-retiros table{
+  width: 100%;
+  min-width: 860px;
+}
+
+#section-retiros th,
+#section-retiros td{
+  padding: 13px 12px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+#section-retiros td:nth-child(3),
+#section-retiros th:nth-child(3){
+  min-width: 210px;
+}
+
+#section-retiros td:nth-child(5),
+#section-retiros th:nth-child(5),
+#section-retiros td:nth-child(6),
+#section-retiros th:nth-child(6){
+  min-width: 150px;
+}
+
+@media (max-width: 1100px){
+  #section-retiros .gridTwo{
+    grid-template-columns: 1fr;
+  }
+
+  #section-retiros .panelCard:first-child,
+  #section-retiros .panelCard:last-child{
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px){
+  #section-retiros .gridStats.twoCols{
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  #section-retiros .gridTwo{
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  #section-retiros .panelCard{
+    padding: 14px;
+    border-radius: 18px;
+    margin-bottom: 14px;
+  }
+
+  #section-retiros .panelHeader{
+    margin-bottom: 12px;
+  }
+
+  #section-retiros .panelHeader h3{
+    font-size: 17px;
+  }
+
+  #section-retiros .panelHeader p{
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  #section-retiros .formGrid{
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  #section-retiros .field{
+    gap: 6px;
+  }
+
+  #section-retiros .field label{
+    font-size: 12.5px;
+  }
+
+  #section-retiros .field input,
+  #section-retiros .field select{
+    height: 46px;
+    padding: 0 13px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+
+  #section-retiros #formRetiro .btn{
+    min-height: 48px;
+    padding: 12px 14px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+
+  #section-retiros .notice{
+    font-size: 11.5px;
+    line-height: 1.55;
+    padding: 10px 12px;
+    border-radius: 12px;
+  }
+
+  #section-retiros .tableWrap{
+    border-radius: 14px;
+  }
+
+  #section-retiros table{
+    min-width: 720px;
+  }
+
+  #section-retiros th,
+  #section-retiros td{
+    padding: 12px 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 560px){
+  #section-retiros .panelCard{
+    padding: 12px;
+  }
+
+  #section-retiros .field input,
+  #section-retiros .field select{
+    height: 44px;
+    font-size: 13.5px;
+  }
+
+  #section-retiros #formRetiro .btn{
+    min-height: 46px;
+    font-size: 13.5px;
+  }
+
+  #section-retiros .notice{
+    font-size: 11px;
+  }
+}
   </style>
 </head>
 <body>
