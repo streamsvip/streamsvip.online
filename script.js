@@ -233,6 +233,21 @@ function formatearReglasHTML(reglasTexto = "") {
 }
 
 /* =========================
+HELPERS STOCK PRO
+========================= */
+
+function obtenerVariantesClaveStock(valor) {
+  const original = String(valor || "").trim();
+  if (!original) return [];
+
+  const lower = original.toLowerCase();
+  const upper = original.toUpperCase();
+  const capitalizada = lower.charAt(0).toUpperCase() + lower.slice(1);
+
+  return Array.from(new Set([original, lower, upper, capitalizada].filter(Boolean)));
+}
+
+/* =========================
 STOCK REAL DESDE CUENTAS / CODIGOS
 ========================= */
 
@@ -290,8 +305,13 @@ function codigoEstaDisponible(data = {}) {
 function reconstruirStockCuentasDesdeCache() {
   const nuevoMapa = {};
 
-  Object.keys(cuentasDataCache || {}).forEach((productoId) => {
-    nuevoMapa[productoId] = contarCuentasDisponiblesEnNodo(cuentasDataCache[productoId]);
+  Object.keys(cuentasDataCache || {}).forEach((rutaKey) => {
+    const stockRuta = contarCuentasDisponiblesEnNodo(cuentasDataCache[rutaKey]);
+    const variantes = obtenerVariantesClaveStock(rutaKey);
+
+    variantes.forEach((clave) => {
+      nuevoMapa[clave] = stockRuta;
+    });
   });
 
   cuentasStockCache = nuevoMapa;
@@ -308,7 +328,11 @@ function reconstruirStockCodigosDesdeCache() {
     const productoId = String(item.productoId || item.producto || "").trim();
     if (!productoId) return;
 
-    nuevoMapa[productoId] = (nuevoMapa[productoId] || 0) + 1;
+    const variantes = obtenerVariantesClaveStock(productoId);
+
+    variantes.forEach((clave) => {
+      nuevoMapa[clave] = (nuevoMapa[clave] || 0) + 1;
+    });
   });
 
   codigosStockCache = nuevoMapa;
@@ -319,11 +343,31 @@ function obtenerStockRealProducto(productoId, itemProducto = {}) {
     return "Ilimitado";
   }
 
+  const clavesBuscar = new Set();
+
+  obtenerVariantesClaveStock(productoId).forEach((k) => clavesBuscar.add(k));
+
+  const rutasCompatibles = obtenerRutasCuentasCompatibles(productoId, itemProducto) || [];
+  rutasCompatibles.forEach((ruta) => {
+    obtenerVariantesClaveStock(ruta).forEach((k) => clavesBuscar.add(k));
+  });
+
+  let stockMaximo = 0;
+
   if (esProductoCodigo(productoId, itemProducto) || esProductoLicencia(productoId, itemProducto)) {
-    return Number(codigosStockCache[productoId] || 0);
+    clavesBuscar.forEach((k) => {
+      const valor = Number(codigosStockCache[k] || 0);
+      if (valor > stockMaximo) stockMaximo = valor;
+    });
+    return stockMaximo;
   }
 
-  return Number(cuentasStockCache[productoId] || 0);
+  clavesBuscar.forEach((k) => {
+    const valor = Number(cuentasStockCache[k] || 0);
+    if (valor > stockMaximo) stockMaximo = valor;
+  });
+
+  return stockMaximo;
 }
 
 function escucharStockRealTienda() {
@@ -632,7 +676,6 @@ function registrarCierrePorPestana() {
     programarOfflineConEspera();
   });
 }
-
 /* =========================
 AVISOS PROFESIONALES
 ========================= */
@@ -823,85 +866,84 @@ function inyectarEstilosAvisoSistema() {
       color:#fff;
     }
 
-   .toastCompraExitosa{
-  position:fixed;
-  top:18px;
-  right:18px;
-  left:auto;
-  bottom:auto;
-  z-index:999999;
-  width:auto !important;
-  min-width:0 !important;
-  max-width:360px !important;
-  height:auto !important;
-  min-height:0 !important;
-  max-height:none !important;
-  padding:12px 14px;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  background:linear-gradient(180deg,#0f172a,#0b1220);
-  color:#fff;
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:16px;
-  box-shadow:0 16px 34px rgba(0,0,0,.34);
-  opacity:0;
-  transform:translateY(-14px) scale(.98);
-  pointer-events:none;
-  overflow:hidden;
-  box-sizing:border-box;
-  transition:opacity .22s ease, transform .22s ease;
-}
+    .toastCompraExitosa{
+      position:fixed;
+      top:18px;
+      right:18px;
+      left:auto;
+      bottom:auto;
+      z-index:999999;
+      width:auto !important;
+      min-width:0 !important;
+      max-width:360px !important;
+      height:auto !important;
+      min-height:0 !important;
+      max-height:none !important;
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      background:linear-gradient(180deg,#0f172a,#0b1220);
+      color:#fff;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:16px;
+      box-shadow:0 16px 34px rgba(0,0,0,.34);
+      opacity:0;
+      transform:translateY(-14px) scale(.98);
+      pointer-events:none;
+      overflow:hidden;
+      box-sizing:border-box;
+      transition:opacity .22s ease, transform .22s ease;
+    }
 
-.toastCompraExitosa.show{
-  opacity:1;
-  transform:translateY(0) scale(1);
-}
+    .toastCompraExitosa.show{
+      opacity:1;
+      transform:translateY(0) scale(1);
+    }
 
-.toastCompraIcon{
-  width:40px;
-  height:40px;
-  min-width:40px;
-  min-height:40px;
-  border-radius:12px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:linear-gradient(180deg,#22c55e,#16a34a);
-  font-size:20px;
-  flex:0 0 40px;
-}
+    .toastCompraIcon{
+      width:40px;
+      height:40px;
+      min-width:40px;
+      min-height:40px;
+      border-radius:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(180deg,#22c55e,#16a34a);
+      font-size:20px;
+      flex:0 0 40px;
+    }
 
-.toastCompraTexto{
-  display:flex;
-  flex-direction:column;
-  gap:3px;
-  min-width:0;
-  flex:1;
-}
+    .toastCompraTexto{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+      min-width:0;
+      flex:1;
+    }
 
-.toastCompraTexto strong{
-  font-size:13.5px;
-  font-weight:800;
-  line-height:1.25;
-  margin:0;
-}
+    .toastCompraTexto strong{
+      font-size:13.5px;
+      font-weight:800;
+      line-height:1.25;
+      margin:0;
+    }
 
-.toastCompraTexto span{
-  font-size:12px;
-  color:rgba(255,255,255,.75);
-  line-height:1.35;
-  word-break:break-word;
-}
+    .toastCompraTexto span{
+      font-size:12px;
+      color:rgba(255,255,255,.75);
+      line-height:1.35;
+      word-break:break-word;
+    }
 
-@media (max-width: 768px){
-  .toastCompraExitosa{
-    top:12px;
-    right:12px;
-    left:12px;
-    max-width:none !important;
-  }
-}eight:1.45;
+    @media (max-width: 768px){
+      .toastCompraExitosa{
+        top:12px;
+        right:12px;
+        left:12px;
+        max-width:none !important;
+      }
     }
 
     @keyframes fadeAviso{
@@ -1614,32 +1656,33 @@ RUTAS CUENTAS SEGUN FIREBASE
 ========================= */
 
 function obtenerRutaCuentasPorProducto(productoId, itemProducto = {}) {
-  const id = String(productoId || "").toLowerCase().trim();
+  const id = String(productoId || "").trim();
+  const idLower = id.toLowerCase();
   const nombre = String(itemProducto.nombre || productoActual || "").toLowerCase();
 
-  if (id === "netflix" || nombre.includes("netflix")) return "netflix";
-  if (id === "disney" || nombre.includes("disney")) return "disney";
+  if (idLower === "netflix" || nombre.includes("netflix")) return "netflix";
+  if (idLower === "disney" || nombre.includes("disney")) return "disney";
   if (
-    id === "hboprime" ||
+    idLower === "hboprime" ||
     nombre.includes("hbo max + prime") ||
     (nombre.includes("hbo") && nombre.includes("prime"))
   ) return "hboprime";
-  if (id === "prime" || nombre.includes("prime video")) return "prime";
+  if (idLower === "prime" || nombre.includes("prime video")) return "prime";
   if (
-    id === "hboplatinium" ||
+    idLower === "hboplatinium" ||
     nombre.includes("hbo max platinium") ||
     nombre.includes("hbomax platinium") ||
     nombre.includes("hbo platinium")
   ) return "hboplatinium";
-  if (id === "hbo" || nombre.includes("hbo")) return "hbo";
-  if (id === "paramount" || nombre.includes("paramount")) return "paramount";
-  if (id === "spotify" || nombre.includes("spotify")) return "spotify";
-  if (id === "vix" || nombre.includes("vix")) return "vix";
-  if (id === "crunchyroll" || nombre.includes("crunchyroll")) return "crunchyroll";
-  if (id === "canva" || nombre.includes("canva")) return "canva";
-  if (id === "youtubepremium" || nombre.includes("youtube premium") || nombre.includes("youtube")) return "youtubepremium";
-  if (id === "chatgpt" || nombre.includes("chatgpt")) return "chatgpt";
-  if (id === "windows11pro" || nombre.includes("windows 11 pro")) return "windows11pro";
+  if (idLower === "hbo" || nombre.includes("hbo")) return "hbo";
+  if (idLower === "paramount" || nombre.includes("paramount")) return "paramount";
+  if (idLower === "spotify" || nombre.includes("spotify")) return "spotify";
+  if (idLower === "vix" || nombre.includes("vix")) return "vix";
+  if (idLower === "crunchyroll" || idLower === "crunchy" || nombre.includes("crunchyroll")) return "crunchyroll";
+  if (idLower === "canva" || nombre.includes("canva")) return "canva";
+  if (idLower === "youtubepremium" || nombre.includes("youtube premium") || nombre.includes("youtube")) return "youtubepremium";
+  if (idLower === "chatgpt" || idLower === "chagpt" || nombre.includes("chatgpt")) return "chatgpt";
+  if (idLower === "windows11pro" || nombre.includes("windows 11 pro")) return "windows11pro";
 
   return id;
 }
@@ -1649,14 +1692,8 @@ function obtenerRutasCuentasCompatibles(productoId, itemProducto = {}) {
   const nombre = String(itemProducto.nombre || "").trim();
   const variantes = new Set();
 
-  if (rutaBase) variantes.add(rutaBase);
-  if (rutaBase) variantes.add(rutaBase.toLowerCase());
-  if (rutaBase) variantes.add(rutaBase.toUpperCase());
-  if (rutaBase) variantes.add(rutaBase.charAt(0).toUpperCase() + rutaBase.slice(1));
-
-  if (productoId) variantes.add(String(productoId).trim());
-  if (productoId) variantes.add(String(productoId).trim().toLowerCase());
-  if (productoId) variantes.add(String(productoId).trim().charAt(0).toUpperCase() + String(productoId).trim().slice(1));
+  obtenerVariantesClaveStock(rutaBase).forEach((v) => variantes.add(v));
+  obtenerVariantesClaveStock(productoId).forEach((v) => variantes.add(v));
 
   if (nombre) variantes.add(nombre);
 
@@ -1665,20 +1702,21 @@ function obtenerRutasCuentasCompatibles(productoId, itemProducto = {}) {
     disney: ["Disney"],
     prime: ["Prime"],
     hbo: ["HBO"],
-    hboprime: ["hboprime", "HBOPrime", "HboPrime"],
+    hboprime: ["hboprime", "HBOPrime", "HboPrime", "HBOPrimeVideo"],
     hboplatinium: ["HBOPlatinium", "hboplatinium", "HboPlatinium"],
     paramount: ["Paramount"],
     spotify: ["Spotify"],
     vix: ["Vix"],
-    crunchyroll: ["Crunchyroll"],
+    crunchyroll: ["Crunchyroll", "crunchy"],
     canva: ["Canva"],
     youtubepremium: ["YouTubePremium", "YoutubePremium", "youtubepremium"],
-    chatgpt: ["ChatGPT", "chatgpt"],
-    windows11pro: ["Windows11Pro", "windows11pro"]
+    chatgpt: ["ChatGPT", "chatgpt", "chagpt"],
+    windows11pro: ["Windows11Pro", "windows11pro", "Windows11pro"]
   };
 
-  if (mapaEspecial[rutaBase]) {
-    mapaEspecial[rutaBase].forEach(v => variantes.add(v));
+  const rutaLower = String(rutaBase || "").toLowerCase();
+  if (mapaEspecial[rutaLower]) {
+    mapaEspecial[rutaLower].forEach((v) => variantes.add(v));
   }
 
   return Array.from(variantes).filter(Boolean);
@@ -1713,6 +1751,7 @@ function mostrarToastCompraExitosa(producto, total) {
     toast.classList.remove("show");
   }, 3200);
 }
+
 function convertirVentasANumero(data) {
   if (data == null) return 0;
   if (typeof data === "number") return data;
@@ -2251,7 +2290,9 @@ function escucharVentasProductos() {
 
     ventasRefs.push({ ref, callback });
   });
-}/* =========================
+}
+
+/* =========================
 NOTIFICACION COMPRA
 ========================= */
 
@@ -2701,7 +2742,7 @@ async function obtenerCuentasDisponibles(productoId, itemProducto, cantidadNeces
 }
 
 async function obtenerCodigosDisponibles(productoId, cantidadNecesaria) {
-  const productoNormalizado = String(productoId || "").trim().toLowerCase();
+  const variantesProducto = obtenerVariantesClaveStock(productoId).map((v) => v.toLowerCase());
   const snap = await db.ref("codigos").once("value");
   const data = snap.val() || {};
   const codigos = [];
@@ -2710,11 +2751,7 @@ async function obtenerCodigosDisponibles(productoId, cantidadNecesaria) {
     const item = data[key] || {};
     const productoCodigo = String(item.producto || item.productoId || item.productoNombre || "").trim().toLowerCase();
 
-    if (
-      productoCodigo !== productoNormalizado &&
-      String(item.productoId || "").trim().toLowerCase() !== productoNormalizado
-    ) return;
-
+    if (!variantesProducto.includes(productoCodigo)) return;
     if (!codigoEstaDisponible(item)) return;
     if (codigos.length >= cantidadNecesaria) return;
 
@@ -2775,8 +2812,21 @@ async function sincronizarStockProductoConInventario(productoId, itemProducto = 
   if (!productoId || esProductoStockIlimitado(productoId, item)) return;
 
   const stockReal = Number(obtenerStockRealProducto(productoId, item) || 0);
+
   try {
-    await db.ref("productos/" + productoId + "/stock").set(stockReal);
+    const updates = {};
+    updates["productos/" + productoId + "/stock"] = stockReal;
+    updates["stock/" + productoId] = stockReal;
+
+    const variantes = obtenerVariantesClaveStock(productoId);
+    variantes.forEach((clave) => {
+      if (clave !== productoId) {
+        updates["stock/" + clave] = stockReal;
+      }
+    });
+
+    await db.ref().update(updates);
+
     if (productosTiendaCache[productoId]) {
       productosTiendaCache[productoId].stock = stockReal;
     }
@@ -3056,7 +3106,6 @@ async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprad
 
   return ordenesGeneradas;
 }
-
 async function registrarCompraFinal(itemsAsignados, nombreComprador, ordenesGeneradas = []) {
   const item = productoSeleccionadoData || {};
   const productoId = productoSeleccionadoId;
@@ -3417,6 +3466,7 @@ async function comprarAhora() {
     compraEnProceso = false;
   }
 }
+
 /* =========================
 FORMULARIO / QR
 ========================= */
