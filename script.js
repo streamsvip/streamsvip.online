@@ -1652,6 +1652,7 @@ function obtenerDescripcionProductoFallback(productoBase) {
 
   return "Producto digital disponible.";
 }
+
 /* =========================
 RUTAS CUENTAS SEGUN FIREBASE
 ========================= */
@@ -2663,7 +2664,13 @@ function obtenerObservacionValor(data = {}) {
   return data.observacion || "";
 }
 
-function recolectarCuentasDesdeNodo(nodoActual, rutaProducto, cantidadNecesaria, acumulado = [], rutaRelativa = "") {
+function recolectarCuentasDesdeNodo(
+  nodoActual,
+  rutaProducto,
+  cantidadNecesaria,
+  acumulado = [],
+  rutaRelativa = ""
+) {
   if (!nodoActual || typeof nodoActual !== "object") return acumulado;
   if (acumulado.length >= cantidadNecesaria) return acumulado;
 
@@ -2695,7 +2702,13 @@ function recolectarCuentasDesdeNodo(nodoActual, rutaProducto, cantidadNecesaria,
     const nuevaRuta = rutaRelativa ? `${rutaRelativa}/${subKey}` : subKey;
 
     if (subNodo && typeof subNodo === "object") {
-      recolectarCuentasDesdeNodo(subNodo, rutaProducto, cantidadNecesaria, acumulado, nuevaRuta);
+      recolectarCuentasDesdeNodo(
+        subNodo,
+        rutaProducto,
+        cantidadNecesaria,
+        acumulado,
+        nuevaRuta
+      );
     }
   });
 
@@ -2717,7 +2730,13 @@ async function obtenerCuentasDisponibles(productoId, itemProducto, cantidadNeces
 
       if (!data || typeof data !== "object") continue;
 
-      const cuentasRuta = recolectarCuentasDesdeNodo(data, ruta, cantidadNecesaria, [], "");
+      const cuentasRuta = recolectarCuentasDesdeNodo(
+        data,
+        ruta,
+        cantidadNecesaria,
+        [],
+        ""
+      );
 
       for (const cuenta of cuentasRuta) {
         const claveUnica = `${cuenta.ruta}::${cuenta.nodePath || cuenta.key}`;
@@ -2749,7 +2768,9 @@ async function obtenerCodigosDisponibles(productoId, cantidadNecesaria) {
 
   Object.keys(data).forEach((key) => {
     const item = data[key] || {};
-    const productoCodigo = String(item.producto || item.productoId || item.productoNombre || "").trim().toLowerCase();
+    const productoCodigo = String(
+      item.producto || item.productoId || item.productoNombre || ""
+    ).trim().toLowerCase();
 
     if (!variantesProducto.includes(productoCodigo)) return;
     if (!codigoEstaDisponible(item)) return;
@@ -2930,7 +2951,9 @@ async function marcarItemsVendidos(items, user, nombreComprador, ordenIdsAsignad
       updates[`${base}/activo`] = false;
       updates[`${base}/uidUsuario`] = user.uid;
       updates[`${base}/comprador`] = nombreComprador;
+      updates[`${base}/compradorNombre`] = nombreComprador;
       updates[`${base}/fechaUso`] = Date.now();
+      updates[`${base}/ordenId`] = ordenIdAsignado;
       return;
     }
 
@@ -2969,7 +2992,9 @@ async function revertirItemsVendidos(items) {
       updates[`${base}/activo`] = true;
       updates[`${base}/uidUsuario`] = "";
       updates[`${base}/comprador`] = "";
+      updates[`${base}/compradorNombre`] = "";
       updates[`${base}/fechaUso`] = "";
+      updates[`${base}/ordenId`] = "";
       return;
     }
 
@@ -3038,7 +3063,9 @@ function obtenerPlataformaDescargaSeleccionada() {
 
 function obtenerLinkDescargaSegunPlataforma(itemProducto = {}, plataforma = "windows") {
   const opciones = itemProducto.opcionesEntrega || {};
-  const plataformaFinal = ["windows", "mac", "general"].includes(plataforma) ? plataforma : "windows";
+  const plataformaFinal = ["windows", "mac", "general"].includes(plataforma)
+    ? plataforma
+    : "windows";
 
   const linkDirecto = String(opciones?.[plataformaFinal]?.link || "").trim();
   if (linkDirecto) return linkDirecto;
@@ -3048,6 +3075,13 @@ function obtenerLinkDescargaSegunPlataforma(itemProducto = {}, plataforma = "win
 
   const linkBase = String(itemProducto.linkDescarga || "").trim();
   return linkBase;
+}
+
+function obtenerNombrePlataformaDescarga(plataforma = "") {
+  const valor = String(plataforma || "").toLowerCase().trim();
+  if (valor === "mac") return "Mac";
+  if (valor === "general") return "General";
+  return "Windows";
 }
 
 async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprador) {
@@ -3075,6 +3109,7 @@ async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprad
     await nuevaOrdenRef.set({
       servicio: itemProducto.nombre || productoActual || "",
       producto: productoSeleccionadoId || "",
+      productoId: productoSeleccionadoId || "",
       cuenta: itemObj.cuenta || "",
       clave: itemObj.clave || "",
       perfil: itemObj.perfil || "",
@@ -3084,10 +3119,12 @@ async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprad
       comprador: nombreComprador || "",
       precio: Number(precioUnitario.toFixed(2)),
       fechaCompra: ahora.toISOString(),
+      fechaEntrega: esDescarga ? ahora.toISOString() : "",
       fechaExpira: fechaExpira,
       fechaExpiraTexto: (!fechaExpira && duracionTexto.includes("Permanente")) ? "Permanente" : "",
       estado: "activa",
       uid: uid,
+      uidUsuario: uid,
       soporteNumero: numero,
       tipoEntrega: tipoEntrega,
       esCodigo: esCodigo,
@@ -3095,7 +3132,16 @@ async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprad
       entregaVisual: esDescarga ? "descarga" : (esCodigo ? "codigo" : "cuenta"),
       duracionTexto: duracionTexto,
       linkEntrega: itemObj.linkEntrega || "",
-      plataformaElegida: itemObj.plataformaElegida || ""
+      plataformaElegida: itemObj.plataformaElegida || "",
+      plataformaNombre: itemObj.plataformaElegida
+        ? obtenerNombrePlataformaDescarga(itemObj.plataformaElegida)
+        : "",
+      proveedorId: itemProducto.proveedorId || "",
+      proveedorNombre: itemProducto.proveedorNombre || "Josking",
+      comisionPlataforma: Number(itemProducto.comisionPlataforma ?? 4),
+      comisionProveedor: Number(itemProducto.comisionProveedor ?? 96),
+      montoPlataforma: 0,
+      montoProveedor: 0
     });
 
     ordenesGeneradas.push({
@@ -3107,54 +3153,197 @@ async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprad
   return ordenesGeneradas;
 }
 
+function construirPayloadVentaBase({
+  itemProducto = {},
+  nombreComprador = "",
+  reparto = {},
+  fechaMs = Date.now()
+} = {}) {
+  const tipoEntrega = String(itemProducto.tipoEntrega || "").toLowerCase().trim();
+
+  return {
+    productoId: productoSeleccionadoId || "",
+    producto: itemProducto.nombre || productoActual || "",
+    productoNombre: itemProducto.nombre || productoActual || "",
+    proveedorId: itemProducto.proveedorId || "",
+    proveedorNombre: itemProducto.proveedorNombre || "Josking",
+    porcentajeProveedor: reparto.porcentajeProveedor || 96,
+    porcentajePlataforma: reparto.porcentajePlataforma || 4,
+    montoProveedor: reparto.montoProveedor || 0,
+    montoPlataforma: reparto.montoPlataforma || 0,
+    montoTotal: reparto.total || 0,
+    precio: Number(precioBase || 0),
+    cantidad: cantidadProducto,
+    nombre: nombreComprador,
+    comprador: nombreComprador,
+    uidUsuario: usuarioActual?.uid || "",
+    fecha: fechaMs,
+    fechaCompra: new Date(fechaMs).toISOString(),
+    estado: "entregada",
+    tipoEntrega: tipoEntrega || "cuenta",
+    comisionProveedorPendiente: false
+  };
+}
+
+async function registrarVentaDescargaDetallada({
+  itemProducto = {},
+  itemAsignado = {},
+  nombreComprador = "",
+  ordenId = "",
+  reparto = {},
+  fechaMs = Date.now()
+} = {}) {
+  const ref = db.ref("ventasDescargas").push();
+
+  await ref.set({
+    ventaId: ref.key,
+    ordenId: ordenId || "",
+    uidUsuario: usuarioActual?.uid || "",
+    comprador: nombreComprador || "",
+    productoId: productoSeleccionadoId || "",
+    producto: itemProducto.nombre || productoActual || "",
+    proveedorId: itemProducto.proveedorId || "",
+    proveedorNombre: itemProducto.proveedorNombre || "Josking",
+    tipoEntrega: String(itemAsignado.subtipoEntrega || itemProducto.tipoEntrega || "descarga").toLowerCase(),
+    plataformaElegida: itemAsignado.plataformaElegida || "",
+    plataformaNombre: itemAsignado.plataformaElegida
+      ? obtenerNombrePlataformaDescarga(itemAsignado.plataformaElegida)
+      : "",
+    linkEntrega: itemAsignado.linkEntrega || "",
+    observacion: itemAsignado.observacion || "",
+    precio: Number(precioBase || 0),
+    cantidad: 1,
+    montoTotal: Number(precioBase || 0),
+    porcentajeProveedor: reparto.porcentajeProveedor || 96,
+    porcentajePlataforma: reparto.porcentajePlataforma || 4,
+    montoProveedor: redondearMonto(
+      Number(precioBase || 0) * Number((itemProducto.comisionProveedor ?? reparto.porcentajeProveedor ?? 96)) / 100
+    ),
+    montoPlataforma: redondearMonto(
+      Number(precioBase || 0) * Number((itemProducto.comisionPlataforma ?? reparto.porcentajePlataforma ?? 4)) / 100
+    ),
+    fecha: fechaMs,
+    fechaCompra: new Date(fechaMs).toISOString(),
+    fechaEntrega: new Date(fechaMs).toISOString(),
+    estado: "entregada"
+  });
+
+  return ref.key;
+}
+
+async function actualizarOrdenesConMontos(uid, ordenesGeneradas = [], reparto = {}) {
+  if (!uid || !ordenesGeneradas.length) return;
+
+  const montoPlataformaUnitario = redondearMonto(
+    Number(reparto.montoPlataforma || 0) / Number(ordenesGeneradas.length || 1)
+  );
+  const montoProveedorUnitario = redondearMonto(
+    Number(reparto.montoProveedor || 0) / Number(ordenesGeneradas.length || 1)
+  );
+
+  const updates = {};
+  ordenesGeneradas.forEach((o, index) => {
+    const esUltimo = index === ordenesGeneradas.length - 1;
+    const montoPlat = esUltimo
+      ? redondearMonto(Number(reparto.montoPlataforma || 0) - montoPlataformaUnitario * index)
+      : montoPlataformaUnitario;
+
+    const montoProv = esUltimo
+      ? redondearMonto(Number(reparto.montoProveedor || 0) - montoProveedorUnitario * index)
+      : montoProveedorUnitario;
+
+    updates[`ordenes/${uid}/${o.ordenId}/montoPlataforma`] = montoPlat;
+    updates[`ordenes/${uid}/${o.ordenId}/montoProveedor`] = montoProv;
+  });
+
+  if (Object.keys(updates).length) {
+    await db.ref().update(updates);
+  }
+}
+
 async function registrarCompraFinal(itemsAsignados, nombreComprador, ordenesGeneradas = []) {
   const item = productoSeleccionadoData || {};
   const productoId = productoSeleccionadoId;
   const reparto = calcularRepartoVenta(precioBase, cantidadProducto, item);
+  const ahoraMs = Date.now();
 
   const compraHoyRef = db.ref("comprasHoy").push();
   await compraHoyRef.set({
     producto: item.nombre || productoActual,
+    productoId: productoId,
     cliente: nombreComprador,
+    comprador: nombreComprador,
+    proveedorId: item.proveedorId || "",
+    proveedorNombre: item.proveedorNombre || "Josking",
     operacion: "compra",
-    monto: reparto.total,
-    fecha: Date.now(),
-    estado: "entregada"
+    monto: reparto.montoPlataforma,
+    montoPlataforma: reparto.montoPlataforma,
+    montoProveedor: reparto.montoProveedor,
+    montoTotal: reparto.total,
+    fecha: ahoraMs,
+    fechaCompra: new Date(ahoraMs).toISOString(),
+    estado: "entregada",
+    tipoEntrega: String(item.tipoEntrega || "").toLowerCase().trim() || "cuenta",
+    cantidad: cantidadProducto,
+    ordenId: ordenesGeneradas[0]?.ordenId || ""
   });
 
   const ventaRef = db.ref("ventas/" + productoId).push();
+  const payloadVenta = construirPayloadVentaBase({
+    itemProducto: item,
+    nombreComprador,
+    reparto,
+    fechaMs: ahoraMs
+  });
+
   await ventaRef.set({
-    productoId: productoId,
-    producto: item.nombre || productoActual,
-    productoNombre: item.nombre || productoActual,
-    proveedorId: item.proveedorId || "",
-    proveedorNombre: item.proveedorNombre || "Josking",
-    porcentajeProveedor: reparto.porcentajeProveedor,
-    porcentajePlataforma: reparto.porcentajePlataforma,
-    montoProveedor: reparto.montoProveedor,
-    montoPlataforma: reparto.montoPlataforma,
-    montoTotal: reparto.total,
-    precio: Number(precioBase || 0),
-    cantidad: cantidadProducto,
-    nombre: nombreComprador,
-    uidUsuario: usuarioActual?.uid || "",
-    fecha: Date.now(),
-    estado: "entregada",
-    comisionProveedorPendiente: false
+    ...payloadVenta,
+    ventaId: ventaRef.key,
+    ordenId: ordenesGeneradas[0]?.ordenId || "",
+    linkEntrega: itemsAsignados[0]?.linkEntrega || "",
+    plataformaElegida: itemsAsignados[0]?.plataformaElegida || "",
+    plataformaNombre: itemsAsignados[0]?.plataformaElegida
+      ? obtenerNombrePlataformaDescarga(itemsAsignados[0]?.plataformaElegida)
+      : ""
   });
 
   const compraLiveRef = db.ref("comprasLive").push();
   await compraLiveRef.set({
     nombre: nombreComprador,
     producto: item.nombre || productoActual,
-    time: Date.now()
+    time: ahoraMs
   });
+
+  await actualizarOrdenesConMontos(usuarioActual?.uid || "", ordenesGeneradas, reparto);
+
+  const ventasDescargasIds = [];
+  const hayDescargas = itemsAsignados.some((it) => it.tipo === "descarga");
+
+  if (hayDescargas) {
+    for (let i = 0; i < itemsAsignados.length; i++) {
+      const itemAsignado = itemsAsignados[i];
+      if (itemAsignado.tipo !== "descarga") continue;
+
+      const ordenId = ordenesGeneradas[i]?.ordenId || "";
+      const ventaDescargaId = await registrarVentaDescargaDetallada({
+        itemProducto: item,
+        itemAsignado,
+        nombreComprador,
+        ordenId,
+        reparto,
+        fechaMs: ahoraMs
+      });
+
+      ventasDescargasIds.push(ventaDescargaId);
+    }
+  }
 
   return {
     ordenesGeneradas,
     ventaId: ventaRef.key,
     compraLiveId: compraLiveRef.key,
     compraHoyId: compraHoyRef.key,
+    ventasDescargasIds,
     proveedorId: item.proveedorId || "",
     montoProveedor: reparto.montoProveedor || 0,
     productoId: productoId,
@@ -3254,6 +3443,7 @@ async function comprarAhora() {
   let ventaRegistradaId = "";
   let compraLiveRegistradaId = "";
   let compraHoyRegistradaId = "";
+  let ventasDescargasRegistradasIds = [];
 
   try {
     if (!usuarioActual) {
@@ -3297,7 +3487,9 @@ async function comprarAhora() {
     }
 
     uid = usuarioActual.uid;
-    totalCompra = Number((Number(precioBase || 0) * Number(cantidadProducto || 1)).toFixed(2));
+    totalCompra = Number(
+      (Number(precioBase || 0) * Number(cantidadProducto || 1)).toFixed(2)
+    );
 
     const perfil = await obtenerPerfilUsuario(uid);
     const estadoUsuario = String(perfil.estado || "activo").toLowerCase();
@@ -3338,13 +3530,7 @@ async function comprarAhora() {
         clave: "",
         perfil: "",
         pin: "",
-        observacion: "Descarga para " + (
-          plataformaElegida === "mac"
-            ? "Mac"
-            : plataformaElegida === "general"
-              ? "General"
-              : "Windows"
-        ),
+        observacion: "Descarga para " + obtenerNombrePlataformaDescarga(plataformaElegida),
         plataformaElegida: plataformaElegida,
         linkEntrega: linkEntrega,
         raw: item
@@ -3352,7 +3538,11 @@ async function comprarAhora() {
     } else if (productoEsLicencia || productoEsCodigo) {
       itemsDisponibles = await obtenerCodigosDisponibles(productoSeleccionadoId, cantidadProducto);
     } else {
-      itemsDisponibles = await obtenerCuentasDisponibles(productoSeleccionadoId, item, cantidadProducto);
+      itemsDisponibles = await obtenerCuentasDisponibles(
+        productoSeleccionadoId,
+        item,
+        cantidadProducto
+      );
     }
 
     if (itemsDisponibles.length < cantidadProducto) {
@@ -3381,11 +3571,16 @@ async function comprarAhora() {
 
     await sincronizarStockProductoConInventario(productoSeleccionadoId, item);
 
-    const resultadoRegistro = await registrarCompraFinal(itemsDisponibles, nombreComprador, ordenesGeneradas);
+    const resultadoRegistro = await registrarCompraFinal(
+      itemsDisponibles,
+      nombreComprador,
+      ordenesGeneradas
+    );
 
     ventaRegistradaId = resultadoRegistro?.ventaId || "";
     compraLiveRegistradaId = resultadoRegistro?.compraLiveId || "";
     compraHoyRegistradaId = resultadoRegistro?.compraHoyId || "";
+    ventasDescargasRegistradasIds = resultadoRegistro?.ventasDescargasIds || [];
 
     cerrarModal();
     mostrarToastCompraExitosa(item.nombre || productoActual, totalCompra);
@@ -3429,6 +3624,16 @@ async function comprarAhora() {
       }
     }
 
+    if (ventasDescargasRegistradasIds.length) {
+      for (const ventaDescargaId of ventasDescargasRegistradasIds) {
+        try {
+          await db.ref("ventasDescargas/" + ventaDescargaId).remove();
+        } catch (e) {
+          console.error("No se pudo eliminar ventaDescarga:", e);
+        }
+      }
+    }
+
     if (itemsMarcados) {
       try {
         await revertirItemsVendidos(itemsDisponibles);
@@ -3439,7 +3644,10 @@ async function comprarAhora() {
 
     if (productoSeleccionadoId) {
       try {
-        await sincronizarStockProductoConInventario(productoSeleccionadoId, productoSeleccionadoData || {});
+        await sincronizarStockProductoConInventario(
+          productoSeleccionadoId,
+          productoSeleccionadoData || {}
+        );
       } catch (e) {
         console.error("No se pudo resincronizar stock:", e);
       }
@@ -3555,6 +3763,34 @@ function cerrarMenu() {
   menu.classList.remove("activo");
 }
 
+function iniciarComportamientoMenu() {
+  const menu = document.getElementById("menuLateral");
+  const menuIcon = document.querySelector(".menuIcon");
+
+  if (menu) {
+    menu.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+  }
+
+  if (menuIcon) {
+    menuIcon.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+  }
+
+  document.querySelectorAll("#menuLateral a").forEach((link) => {
+    link.addEventListener("click", function () {
+      if (esModoMovilOTablet()) cerrarMenu();
+    });
+  });
+
+  window.addEventListener("resize", function () {
+    if (!esModoMovilOTablet()) cerrarMenu();
+    actualizarEstadoUIOverlay();
+  });
+}
+
 /* =========================
 MODAL OFERTA VIGENTE
 ========================= */
@@ -3645,39 +3881,6 @@ function iniciarFormularioReservado() {
     });
   }
 }
-
-function iniciarComportamientoMenu() {
-  const menu = document.getElementById("menuLateral");
-  const menuIcon = document.querySelector(".menuIcon");
-
-  if (menu) {
-    menu.addEventListener("click", function (e) {
-      e.stopPropagation();
-    });
-  }
-
-  if (menuIcon) {
-    menuIcon.addEventListener("click", function (e) {
-      e.stopPropagation();
-    });
-  }
-
-  document.querySelectorAll("#menuLateral a").forEach((link) => {
-    link.addEventListener("click", function () {
-      if (esModoMovilOTablet()) cerrarMenu();
-    });
-  });
-
-  window.addEventListener("resize", function () {
-    if (!esModoMovilOTablet()) cerrarMenu();
-    actualizarEstadoUIOverlay();
-  });
-}
-
-/* =========================
-DOM READY
-========================= */
-
 document.addEventListener("DOMContentLoaded", function () {
   const pagina = obtenerPaginaActual();
 
