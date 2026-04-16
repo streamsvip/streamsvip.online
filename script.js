@@ -676,6 +676,7 @@ function registrarCierrePorPestana() {
     programarOfflineConEspera();
   });
 }
+
 /* =========================
 AVISOS PROFESIONALES
 ========================= */
@@ -2621,7 +2622,6 @@ function cambiarCantidad(valor) {
   cantidadProducto = nuevaCantidad;
   actualizarVisualCantidadYTotal();
 }
-
 /* =========================
 CUENTAS / CODIGOS / ORDENES
 ========================= */
@@ -3106,6 +3106,7 @@ async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprad
 
   return ordenesGeneradas;
 }
+
 async function registrarCompraFinal(itemsAsignados, nombreComprador, ordenesGeneradas = []) {
   const item = productoSeleccionadoData || {};
   const productoId = productoSeleccionadoId;
@@ -3478,7 +3479,6 @@ function mostrarFormulario() {
   if (qr) qr.style.display = "none";
   if (form) form.style.display = "block";
 }
-
 /* =========================
 BANNER SLIDER
 ========================= */
