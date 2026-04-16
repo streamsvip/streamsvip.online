@@ -3,31 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel Administrador</title>
+  <title>StreamsVip | Panel Administrador</title>
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
 
   <div class="container">
 
+    <!-- LOGIN -->
     <div id="loginSection" class="loginBox card">
       <h1>Panel Administrador</h1>
-      <p class="subLogin">Acceso exclusivo para administrador</p>
+      <p class="subLogin">Acceso exclusivo para administrador principal</p>
 
       <div class="inputWrap">
-        <input type="email" id="adminEmail" placeholder="Correo administrador" autocomplete="email">
+        <input
+          type="email"
+          id="adminEmail"
+          placeholder="Correo administrador"
+          autocomplete="email">
       </div>
 
       <div class="inputWrap">
-        <input type="password" id="adminPassword" class="passwordInput" placeholder="Contraseña" autocomplete="current-password">
-        <button type="button" class="togglePass" id="toggleBtn" onclick="togglePassword()">👁️</button>
+        <input
+          type="password"
+          id="adminPassword"
+          class="passwordInput"
+          placeholder="Contraseña"
+          autocomplete="current-password">
+        <button
+          type="button"
+          class="togglePass"
+          id="toggleBtn"
+          onclick="togglePassword()">👁️</button>
       </div>
 
       <button class="btn" id="loginBtn" onclick="loginAdmin()">Iniciar sesión</button>
       <div id="loginMsg" class="mensaje"></div>
     </div>
 
+    <!-- PANEL -->
     <div id="panelSection" class="hidden">
+
       <div class="topBar">
         <div class="info">
           <h2>Administrador conectado</h2>
@@ -35,25 +51,74 @@
         </div>
 
         <div class="adminTopActions">
-          <button id="toggleTiempoActivoBtn" class="btnTiempoActivoSwitch btnTiempoActivoOff" type="button" onclick="toggleTiempoActivoAdmin()">
+          <button
+            id="toggleTiempoActivoBtn"
+            class="btnTiempoActivoSwitch btnTiempoActivoOff"
+            type="button"
+            onclick="toggleTiempoActivoAdmin()">
             Tiempo activo: Desactivado
           </button>
+
           <button class="btn btnLogout" onclick="cerrarSesion()">Cerrar sesión</button>
         </div>
       </div>
 
+      <!-- RESUMEN -->
       <div class="grid">
-        <div class="miniCard"><h3>Total ventas</h3><p id="totalVentas">0</p></div>
-        <div class="miniCard"><h3>Ganancia total</h3><p id="gananciaTotal">S/ 0.00</p></div>
-        <div class="miniCard"><h3>Compras hoy</h3><p id="totalComprasHoy">0</p></div>
-        <div class="miniCard"><h3>Ganancia hoy</h3><p id="gananciaHoy">S/ 0.00</p></div>
-        <div class="miniCard"><h3>Productos en stock</h3><p id="totalStock">0</p></div>
-        <div class="miniCard"><h3>Usuarios registrados</h3><p id="totalUsuarios">0</p></div>
-        <div class="miniCard"><h3>Proveedores activos</h3><p id="totalProveedoresActivos">0</p></div>
-        <div class="miniCard"><h3>Solicitudes recarga</h3><p id="totalRecargas">0</p></div>
-        <div class="miniCard"><h3>Solicitudes reembolso</h3><p id="totalReembolsos">0</p></div>
-        <div class="miniCard"><h3>Códigos creados</h3><p id="totalCodigos">0</p></div>
-        <div class="miniCard"><h3>Retiros proveedores</h3><p id="totalRetirosProveedores">0</p></div>
+        <div class="miniCard">
+          <h3>Total ventas</h3>
+          <p id="totalVentas">0</p>
+        </div>
+
+        <div class="miniCard">
+          <h3>Comisión plataforma</h3>
+          <p id="gananciaTotal">S/ 0.00</p>
+        </div>
+
+        <div class="miniCard">
+          <h3>Compras hoy</h3>
+          <p id="totalComprasHoy">0</p>
+        </div>
+
+        <div class="miniCard">
+          <h3>Comisión hoy</h3>
+          <p id="gananciaHoy">S/ 0.00</p>
+        </div>
+
+        <div class="miniCard">
+          <h3>Productos en stock</h3>
+          <p id="totalStock">0</p>
+        </div>
+
+        <div class="miniCard">
+          <h3>Usuarios registrados</h3>
+          <p id="totalUsuarios">0</p>
+        </div>
+
+        <div class="miniCard">
+          <h3>Proveedores activos</h3>
+          <p id="totalProveedoresActivos">0</p>
+        </div>
+
+        <div class="miniCard">
+          <h3>Solicitudes recarga</h3>
+          <p id="totalRecargas">0</p>
+        </div>
+
+        <div class="miniCard">
+          <h3>Solicitudes reembolso</h3>
+          <p id="totalReembolsos">0</p>
+        </div>
+
+        <div class="miniCard">
+          <h3>Códigos creados</h3>
+          <p id="totalCodigos">0</p>
+        </div>
+
+        <div class="miniCard">
+          <h3>Retiros proveedores</h3>
+          <p id="totalRetirosProveedores">0</p>
+        </div>
       </div>
 
       <!-- RECARGAS -->
@@ -67,7 +132,10 @@
           <div id="recargaMsg" class="accountMsg"></div>
 
           <div class="sectionTools">
-            <button class="btnMiniDanger" onclick="vaciarNodoConfirmado('recargas', 'Se eliminarán todas las recargas del historial.')">
+            <button
+              class="btnMiniDanger"
+              type="button"
+              onclick="vaciarNodoConfirmado('recargas', 'Se eliminarán todas las recargas del historial.')">
               Vaciar historial recargas
             </button>
           </div>
@@ -90,7 +158,10 @@
               </thead>
               <tbody></tbody>
             </table>
-            <div id="recargasVacio" class="empty">Aún no existe el nodo recargas o no tiene datos.</div>
+
+            <div id="recargasVacio" class="empty">
+              Aún no existe el nodo recargas o no tiene datos.
+            </div>
           </div>
         </div>
       </div>
@@ -106,7 +177,10 @@
           <div id="reembolsoMsg" class="accountMsg"></div>
 
           <div class="sectionTools">
-            <button class="btnMiniDanger" onclick="vaciarNodoConfirmado('reembolsos', 'Se eliminarán todas las solicitudes de reembolso.')">
+            <button
+              class="btnMiniDanger"
+              type="button"
+              onclick="vaciarNodoConfirmado('reembolsos', 'Se eliminarán todas las solicitudes de reembolso.')">
               Vaciar historial reembolsos
             </button>
           </div>
@@ -128,7 +202,10 @@
               </thead>
               <tbody></tbody>
             </table>
-            <div id="reembolsosVacio" class="empty">No hay solicitudes de reembolso.</div>
+
+            <div id="reembolsosVacio" class="empty">
+              No hay solicitudes de reembolso.
+            </div>
           </div>
         </div>
       </div>
@@ -142,7 +219,10 @@
 
         <div class="collapseContent">
           <div class="sectionTools">
-            <button class="btnMiniDanger" onclick="vaciarNodoConfirmado('retirosProveedores', 'Se eliminarán todas las solicitudes de retiro de proveedores.')">
+            <button
+              class="btnMiniDanger"
+              type="button"
+              onclick="vaciarNodoConfirmado('retirosProveedores', 'Se eliminarán todas las solicitudes de retiro de proveedores.')">
               Vaciar historial retiros
             </button>
           </div>
@@ -165,7 +245,10 @@
               </thead>
               <tbody></tbody>
             </table>
-            <div id="retirosProveedoresVacio" class="empty">No hay solicitudes de retiro de proveedores.</div>
+
+            <div id="retirosProveedoresVacio" class="empty">
+              No hay solicitudes de retiro de proveedores.
+            </div>
           </div>
         </div>
       </div>
@@ -179,7 +262,12 @@
 
         <div class="collapseContent">
           <div class="sectionTools">
-            <button class="btnMiniSoft" onclick="recalcularTodoElStock()">Recalcular stock automáticamente</button>
+            <button
+              class="btnMiniSoft"
+              type="button"
+              onclick="recalcularTodoElStock()">
+              Recalcular stock automáticamente
+            </button>
           </div>
 
           <div class="tableWrap">
@@ -194,13 +282,16 @@
               </thead>
               <tbody></tbody>
             </table>
-            <div id="stockVacio" class="empty">No hay productos en stock registrados.</div>
+
+            <div id="stockVacio" class="empty">
+              No hay productos en stock registrados.
+            </div>
           </div>
+
           <div id="stockMsg" class="stockMsg"></div>
         </div>
       </div>
-
-      <!-- PRODUCTOS -->
+            <!-- PRODUCTOS -->
       <div class="card collapsibleCard">
         <button class="collapseHeader" type="button" onclick="toggleSection(this)">
           <span>Productos</span>
@@ -209,20 +300,67 @@
 
         <div class="collapseContent">
           <div class="createGrid">
-            <input type="text" id="nuevoIdProducto" placeholder="ID único del producto (ej: admin_netflix_premium_001)">
-            <input type="text" id="nuevoNombreProducto" placeholder="Nombre producto">
-            <input type="number" id="nuevoPrecioProducto" placeholder="Precio" min="0" step="0.01">
-            <input type="number" id="nuevoStockProducto" placeholder="Stock" min="0">
-            <input type="number" id="nuevaDuracionProducto" placeholder="Duración en días (3650 = permanente)" min="1">
-            <input type="text" id="nuevaCategoriaProducto" placeholder="Categoría (ej: musica)">
-            <input type="text" id="nuevaImagenProducto" placeholder="Link de imagen (Imgur, etc.)">
-            <input type="text" id="nuevoTipoEntregaProducto" placeholder="Tipo entrega: cuenta / codigo / descarga / plugin / daw">
-            <input type="text" id="nuevoLinkDescargaProducto" placeholder="Link de descarga base (opcional)">
-            <textarea id="nuevaDescripcionProducto" class="full" placeholder="Descripción del producto"></textarea>
-            <textarea id="nuevasReglasProducto" class="full" placeholder="Reglas del producto"></textarea>
+            <input
+              type="text"
+              id="nuevoIdProducto"
+              placeholder="ID único del producto (ej: admin_netflix_premium_001)">
+
+            <input
+              type="text"
+              id="nuevoNombreProducto"
+              placeholder="Nombre producto">
+
+            <input
+              type="number"
+              id="nuevoPrecioProducto"
+              placeholder="Precio"
+              min="0"
+              step="0.01">
+
+            <input
+              type="number"
+              id="nuevoStockProducto"
+              placeholder="Stock"
+              min="0">
+
+            <input
+              type="number"
+              id="nuevaDuracionProducto"
+              placeholder="Duración en días (3650 = permanente)"
+              min="1">
+
+            <input
+              type="text"
+              id="nuevaCategoriaProducto"
+              placeholder="Categoría (ej: musica)">
+
+            <input
+              type="text"
+              id="nuevaImagenProducto"
+              placeholder="Link de imagen (Imgur, etc.)">
+
+            <input
+              type="text"
+              id="nuevoTipoEntregaProducto"
+              placeholder="Tipo entrega: cuenta / codigo / descarga / plugin / daw">
+
+            <input
+              type="text"
+              id="nuevoLinkDescargaProducto"
+              placeholder="Link de descarga base (opcional)">
+
+            <textarea
+              id="nuevaDescripcionProducto"
+              class="full"
+              placeholder="Descripción del producto"></textarea>
+
+            <textarea
+              id="nuevasReglasProducto"
+              class="full"
+              placeholder="Reglas del producto"></textarea>
           </div>
 
-          <button class="btn btnMedium" onclick="crearProducto()">Crear producto</button>
+          <button class="btn btnMedium" type="button" onclick="crearProducto()">Crear producto</button>
           <div id="productoMsg" class="productoMsg"></div>
 
           <div class="tableWrap topSpacing tableWrapAdminScroll">
@@ -249,7 +387,10 @@
               </thead>
               <tbody></tbody>
             </table>
-            <div id="productosVacio" class="empty">No hay productos registrados.</div>
+
+            <div id="productosVacio" class="empty">
+              No hay productos registrados.
+            </div>
           </div>
         </div>
       </div>
@@ -270,8 +411,15 @@
             <input type="text" id="cuentaCorreo" placeholder="Correo / usuario">
 
             <div class="inputWrap noMargin">
-              <input type="password" id="cuentaClave" class="passwordInput" placeholder="Contraseña de la cuenta">
-              <button type="button" class="togglePass" onclick="toggleCuentaPassword('cuentaClave', this)">👁️</button>
+              <input
+                type="password"
+                id="cuentaClave"
+                class="passwordInput"
+                placeholder="Contraseña de la cuenta">
+              <button
+                type="button"
+                class="togglePass"
+                onclick="toggleCuentaPassword('cuentaClave', this)">👁️</button>
             </div>
 
             <input type="text" id="cuentaPerfil" placeholder="Perfil (ej: Perfil 1)">
@@ -279,7 +427,7 @@
             <input type="text" id="cuentaObservacion" placeholder="Observación corta">
           </div>
 
-          <button class="btn btnMedium" onclick="crearCuenta()">Guardar cuenta</button>
+          <button class="btn btnMedium" type="button" onclick="crearCuenta()">Guardar cuenta</button>
           <div id="cuentaMsg" class="accountMsg"></div>
 
           <div class="tableWrap topSpacing tableWrapAdminScroll">
@@ -301,12 +449,15 @@
               </thead>
               <tbody></tbody>
             </table>
-            <div id="cuentasDisponiblesVacio" class="empty">No hay cuentas disponibles registradas.</div>
+
+            <div id="cuentasDisponiblesVacio" class="empty">
+              No hay cuentas disponibles registradas.
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- CODIGOS -->
+      <!-- CÓDIGOS -->
       <div class="card collapsibleCard">
         <button class="collapseHeader" type="button" onclick="toggleSection(this)">
           <span>Códigos</span>
@@ -318,15 +469,26 @@
             <select id="codigoProducto" class="selectDark">
               <option value="">Selecciona producto</option>
             </select>
-            <input type="text" id="nuevoCodigoValor" placeholder="Código / licencia digital">
-            <input type="text" id="nuevoCodigoObservacion" placeholder="Observación (opcional)">
+
+            <input
+              type="text"
+              id="nuevoCodigoValor"
+              placeholder="Código / licencia digital">
+
+            <input
+              type="text"
+              id="nuevoCodigoObservacion"
+              placeholder="Observación (opcional)">
           </div>
 
-          <button class="btn btnMedium" onclick="crearCodigo()">Guardar código</button>
+          <button class="btn btnMedium" type="button" onclick="crearCodigo()">Guardar código</button>
           <div id="codigoMsg" class="productoMsg"></div>
 
           <div class="sectionTools topSpacing">
-            <button class="btnMiniDanger" onclick="vaciarNodoConfirmado('codigos', 'Se eliminarán todos los códigos del historial.')">
+            <button
+              class="btnMiniDanger"
+              type="button"
+              onclick="vaciarNodoConfirmado('codigos', 'Se eliminarán todos los códigos del historial.')">
               Vaciar historial códigos
             </button>
           </div>
@@ -350,7 +512,10 @@
               </thead>
               <tbody></tbody>
             </table>
-            <div id="codigosVacio" class="empty">Aún no existe el nodo codigos o no tiene datos.</div>
+
+            <div id="codigosVacio" class="empty">
+              Aún no existe el nodo codigos o no tiene datos.
+            </div>
           </div>
         </div>
       </div>
@@ -374,11 +539,19 @@
               <option value="general">General</option>
             </select>
 
-            <input type="text" id="descargaNombre" placeholder="Nombre visible (ej: Melodyne Windows)">
-            <input type="text" id="descargaLink" class="full" placeholder="Link de descarga">
+            <input
+              type="text"
+              id="descargaNombre"
+              placeholder="Nombre visible (ej: Melodyne Windows)">
+
+            <input
+              type="text"
+              id="descargaLink"
+              class="full"
+              placeholder="Link de descarga">
           </div>
 
-          <button class="btn btnMedium" onclick="guardarDescargaProducto()">Guardar descarga</button>
+          <button class="btn btnMedium" type="button" onclick="guardarDescargaProducto()">Guardar descarga</button>
           <div id="descargaMsg" class="accountMsg"></div>
 
           <div class="tableWrap topSpacing tableWrapAdminScroll">
@@ -395,12 +568,14 @@
               </thead>
               <tbody></tbody>
             </table>
-            <div id="descargasVacio" class="empty">No hay productos configurados para plugins, DAW o descargas.</div>
+
+            <div id="descargasVacio" class="empty">
+              No hay productos configurados para plugins, DAW o descargas.
+            </div>
           </div>
         </div>
       </div>
-
-      <!-- VENTAS -->
+            <!-- VENTAS -->
       <div class="card collapsibleCard closed">
         <button class="collapseHeader" type="button" onclick="toggleSection(this)">
           <span>Ventas</span>
@@ -409,7 +584,10 @@
 
         <div class="collapseContent">
           <div class="sectionTools">
-            <button class="btnMiniDanger" onclick="vaciarNodoConfirmado('ventas', 'Se eliminará todo el historial de ventas.')">
+            <button
+              class="btnMiniDanger"
+              type="button"
+              onclick="vaciarNodoConfirmado('ventas', 'Se eliminará todo el historial de ventas.')">
               Vaciar historial ventas
             </button>
           </div>
@@ -421,8 +599,8 @@
                   <th>ID</th>
                   <th>Producto</th>
                   <th>Cliente</th>
-                  <th>Operación</th>
-                  <th>Monto</th>
+                  <th>Proveedor</th>
+                  <th>Comisión plataforma</th>
                   <th>Fecha</th>
                   <th>Estado</th>
                   <th>Acciones</th>
@@ -430,7 +608,10 @@
               </thead>
               <tbody></tbody>
             </table>
-            <div id="ventasVacio" class="empty">No hay ventas registradas.</div>
+
+            <div id="ventasVacio" class="empty">
+              No hay ventas registradas.
+            </div>
           </div>
         </div>
       </div>
@@ -444,7 +625,10 @@
 
         <div class="collapseContent">
           <div class="sectionTools">
-            <button class="btnMiniDanger" onclick="vaciarComprasHoyConfirmado()">
+            <button
+              class="btnMiniDanger"
+              type="button"
+              onclick="vaciarComprasHoyConfirmado()">
               Vaciar historial compras hoy
             </button>
           </div>
@@ -456,8 +640,8 @@
                   <th>ID</th>
                   <th>Producto</th>
                   <th>Cliente</th>
-                  <th>Operación</th>
-                  <th>Monto</th>
+                  <th>Referencia</th>
+                  <th>Ingreso</th>
                   <th>Fecha</th>
                   <th>Estado</th>
                   <th>Acciones</th>
@@ -465,7 +649,10 @@
               </thead>
               <tbody></tbody>
             </table>
-            <div id="comprasHoyVacio" class="empty">No hay compras hoy registradas.</div>
+
+            <div id="comprasHoyVacio" class="empty">
+              No hay compras hoy registradas.
+            </div>
           </div>
         </div>
       </div>
@@ -479,7 +666,10 @@
 
         <div class="collapseContent">
           <div class="sectionTools">
-            <button class="btnMiniDanger" onclick="vaciarCuentasUsadasConfirmado()">
+            <button
+              class="btnMiniDanger"
+              type="button"
+              onclick="vaciarCuentasUsadasConfirmado()">
               Vaciar historial cuentas usadas
             </button>
           </div>
@@ -506,7 +696,10 @@
               </thead>
               <tbody></tbody>
             </table>
-            <div id="cuentasUsadasVacio" class="empty">No hay cuentas entregadas o usadas.</div>
+
+            <div id="cuentasUsadasVacio" class="empty">
+              No hay cuentas entregadas o usadas.
+            </div>
           </div>
         </div>
       </div>
@@ -537,7 +730,10 @@
               </thead>
               <tbody></tbody>
             </table>
-            <div id="descargasEntregadasVacio" class="empty">No hay descargas, plugins o DAW vendidos todavía.</div>
+
+            <div id="descargasEntregadasVacio" class="empty">
+              No hay descargas, plugins o DAW vendidos todavía.
+            </div>
           </div>
         </div>
       </div>
@@ -565,7 +761,10 @@
               </thead>
               <tbody></tbody>
             </table>
-            <div id="usuariosVacio" class="empty">Aún no existe el nodo usuarios o no tiene datos.</div>
+
+            <div id="usuariosVacio" class="empty">
+              Aún no existe el nodo usuarios o no tiene datos.
+            </div>
           </div>
         </div>
       </div>
@@ -594,12 +793,14 @@
               </thead>
               <tbody></tbody>
             </table>
-            <div id="proveedoresVacio" class="empty">No hay proveedores registrados.</div>
+
+            <div id="proveedoresVacio" class="empty">
+              No hay proveedores registrados.
+            </div>
           </div>
         </div>
       </div>
-
-    </div>
+          </div>
   </div>
 
   <!-- MODAL RECARGA -->
@@ -610,7 +811,11 @@
           <h3>Detalle de recarga</h3>
           <span id="modalRecargaEstadoBadge" class="badge warn">pendiente</span>
         </div>
-        <button class="adminModalClose" type="button" onclick="cerrarModalRecarga()">✕</button>
+
+        <button
+          class="adminModalClose"
+          type="button"
+          onclick="cerrarModalRecarga()">✕</button>
       </div>
 
       <div class="adminModalGrid">
@@ -620,19 +825,62 @@
 
         <div class="adminModalInfo">
           <div class="adminInfoList">
-            <div class="adminInfoRow"><small>ID</small><strong id="modalRecargaId">-</strong></div>
-            <div class="adminInfoRow"><small>Nombre</small><strong id="modalRecargaNombre">-</strong></div>
-            <div class="adminInfoRow"><small>Usuario</small><strong id="modalRecargaUsuario">-</strong></div>
-            <div class="adminInfoRow"><small>UID</small><strong id="modalRecargaUid">-</strong></div>
-            <div class="adminInfoRow"><small>Monto actual</small><strong id="modalRecargaMonto">-</strong></div>
+            <div class="adminInfoRow">
+              <small>ID</small>
+              <strong id="modalRecargaId">-</strong>
+            </div>
+
+            <div class="adminInfoRow">
+              <small>Nombre</small>
+              <strong id="modalRecargaNombre">-</strong>
+            </div>
+
+            <div class="adminInfoRow">
+              <small>Usuario</small>
+              <strong id="modalRecargaUsuario">-</strong>
+            </div>
+
+            <div class="adminInfoRow">
+              <small>UID</small>
+              <strong id="modalRecargaUid">-</strong>
+            </div>
+
+            <div class="adminInfoRow">
+              <small>Monto actual</small>
+              <strong id="modalRecargaMonto">-</strong>
+            </div>
+
             <div class="adminInfoRow">
               <small>Monto a aprobar (editable)</small>
-              <input type="text" id="modalRecargaMontoEditable" inputmode="decimal" min="0" step="0.01" class="tableInput" placeholder="0.00">
+              <input
+                type="text"
+                id="modalRecargaMontoEditable"
+                inputmode="decimal"
+                min="0"
+                step="0.01"
+                class="tableInput"
+                placeholder="0.00">
             </div>
-            <div class="adminInfoRow"><small>Método</small><strong id="modalRecargaMetodo">-</strong></div>
-            <div class="adminInfoRow"><small>Operación</small><strong id="modalRecargaOperacion">-</strong></div>
-            <div class="adminInfoRow"><small>Fecha</small><strong id="modalRecargaFecha">-</strong></div>
-            <div class="adminInfoRow"><small>Email</small><strong id="modalRecargaEmail">-</strong></div>
+
+            <div class="adminInfoRow">
+              <small>Método</small>
+              <strong id="modalRecargaMetodo">-</strong>
+            </div>
+
+            <div class="adminInfoRow">
+              <small>Operación</small>
+              <strong id="modalRecargaOperacion">-</strong>
+            </div>
+
+            <div class="adminInfoRow">
+              <small>Fecha</small>
+              <strong id="modalRecargaFecha">-</strong>
+            </div>
+
+            <div class="adminInfoRow">
+              <small>Email</small>
+              <strong id="modalRecargaEmail">-</strong>
+            </div>
           </div>
 
           <div class="adminModalActions">
