@@ -34,8 +34,13 @@ let productosCache = {};
 let recargasCacheAdmin = {};
 let ventasCache = {};
 let comprasHoyCache = {};
+let comprasHoyEliminadasCache = {};
 let ordenesCache = {};
 let usuariosCache = {};
+let retirosProveedoresCache = {};
+let reembolsosCache = {};
+let codigosCache = {};
+let cuentasCache = {};
 let modalRecargaActual = null;
 let recargaProcesando = false;
 
@@ -46,6 +51,10 @@ let recargasListenerActivo = false;
 let stockAutoSyncEscuchando = false;
 let stockRecalcTimeout = null;
 
+let procesandoComisionesProveedores = false;
+let listenerComisionesProveedoresActivo = false;
+let timeoutComisionesProveedores = null;
+
 const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;
 const TIEMPO_AVISO_ADMIN = 1 * 60 * 1000;
 
@@ -55,6 +64,25 @@ let adminControlIniciado = false;
 let adminAvisoMostrado = false;
 
 let tiempoActivoAdmin = localStorage.getItem("streamsvip_admin_tiempo_activo") === "true";
+
+/* =========================
+FILTROS ADMIN
+========================= */
+
+let filtroUsuariosAdmin = "";
+let filtroProductosAdmin = "";
+let filtroStockAdmin = "";
+let filtroCuentasDisponiblesAdmin = "";
+let filtroCuentasUsadasAdmin = "";
+let filtroRecargasAdmin = "";
+let filtroReembolsosAdmin = "";
+let filtroRetirosAdmin = "";
+let filtroCodigosAdmin = "";
+let filtroDescargasAdmin = "";
+let filtroDescargasVendidasAdmin = "";
+let filtroVentasAdmin = "";
+let filtroComprasHoyAdmin = "";
+let filtroProveedoresAdmin = "";
 
 /* =========================
 UTILS
@@ -99,6 +127,19 @@ function permitirSoloNumerosDecimales(input) {
   valor = valor.replace(/[^0-9.]/g, "");
   valor = valor.replace(/(\..*)\./g, "$1");
   input.value = valor;
+}
+
+function normalizarTexto(valor) {
+  return String(valor || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function coincideFiltroTexto(textoBase, filtro) {
+  if (!filtro) return true;
+  return normalizarTexto(textoBase).includes(normalizarTexto(filtro));
 }
 
 function inicializarFiltroMontoRecarga() {
@@ -390,6 +431,336 @@ function mostrarMensajeDescarga(texto, error = false) {
 }
 
 /* =========================
+HELPERS VENTAS / PROVEEDORES / DESCARGAS VENDIDAS
+========================= */
+
+function obtenerProveedorNombreVentaAdmin(item = {}) {
+  const proveedorDirecto = String(
+    item.proveedorNombre ||
+    item.proveedor ||
+    ""
+  ).trim();
+
+  if (proveedorDirecto) return proveedorDirecto;
+
+  const proveedorId = String(item.proveedorId || "").trim();
+  if (proveedorId && usuariosCache[proveedorId]) {
+    const prov = usuariosCache[proveedorId] || {};
+    return prov.nombreCompleto || prov.nombre || prov.usuario || proveedorId;
+  }
+
+  const productoId = String(item.productoId || item.producto || "").trim();
+  if (productoId && productosCache[productoId]) {
+    const prod = productosCache[productoId] || {};
+    return prod.proveedorNombre || prod.proveedorId || "-";
+  }
+
+  return "-";
+}
+
+function obtenerGananciaPlataformaVenta(item = {}) {
+  const montoDirecto = Number(
+    item.montoPlataforma ??
+    item.gananciaPlataforma ??
+    0
+  );
+
+  if (!isNaN(montoDirecto) && montoDirecto > 0) {
+    return redondearMonto(montoDirecto);
+  }
+
+  const montoTotal = Number(
+    item.montoTotal ??
+    item.total ??
+    item.precioTotal ??
+    item.monto ??
+    item.precio ??
+    0
+  );
+
+  if (isNaN(montoTotal) || montoTotal <= 0) return 0;
+
+  const porcentajePlataforma = Number(
+    item.porcentajePlataforma ??
+    item.comisionPlataforma ??
+    4
+  );
+
+  return redondearMonto((montoTotal * porcentajePlataforma) / 100);
+}
+
+function obtenerGananciaProveedorVenta(item = {}) {
+  const montoDirecto = Number(item.montoProveedor ?? 0);
+  if (!isNaN(montoDirecto) && montoDirecto > 0) return redondearMonto(montoDirecto);
+
+  const montoTotal = Number(
+    item.montoTotal ??
+    item.total ??
+    item.precioTotal ??
+    item.monto ??
+    item.precio ??
+    0
+  );
+
+  if (isNaN(montoTotal) || montoTotal <= 0) return 0;
+
+  const porcentajeProveedor = Number(
+    item.porcentajeProveedor ??
+    item.comisionProveedor ??
+    96
+  );
+
+  return redondearMonto((montoTotal * porcentajeProveedor) / 100);
+}
+
+function obtenerTipoEntregaDesdeOrdenOProducto(item = {}) {
+  const tipoEntrega = String(item.tipoEntrega || "").toLowerCase().trim();
+  if (["descarga", "plugin", "daw", "codigo", "cuenta"].includes(tipoEntrega)) {
+    return tipoEntrega;
+  }
+
+  const entregaVisual = String(item.entregaVisual || "").toLowerCase().trim();
+  if (["descarga", "plugin", "daw", "codigo", "cuenta"].includes(entregaVisual)) {
+    return entregaVisual;
+  }
+
+  const productoId = String(item.producto || item.productoId || "").trim();
+  const prod = productosCache[productoId] || {};
+  const tipoProducto = String(prod.tipoEntrega || "").toLowerCase().trim();
+  const categoria = String(prod.categoria || "").toLowerCase().trim();
+  const nombre = String(prod.nombre || item.servicio || item.producto || "").toLowerCase().trim();
+
+  if (["descarga", "plugin", "daw", "codigo", "cuenta"].includes(tipoProducto)) return tipoProducto;
+  if (categoria.includes("plugin")) return "plugin";
+  if (categoria.includes("daw")) return "daw";
+  if (categoria.includes("descarga")) return "descarga";
+  if (categoria.includes("licencia")) return "codigo";
+  if (nombre.includes("plugin")) return "plugin";
+  if (nombre.includes("fl studio") || nombre.includes("ableton") || nombre.includes("cubase") || nombre.includes("studio one")) return "daw";
+  if (nombre.includes("windows 11 pro") || nombre.includes("licencia") || nombre.includes("key")) return "codigo";
+
+  return "cuenta";
+}
+
+function esOrdenDescargaOPlugin(item = {}) {
+  const tipoDetectado = obtenerTipoEntregaDesdeOrdenOProducto(item);
+  const linkEntrega = String(item.linkEntrega || "").trim();
+  const plataforma = String(item.plataformaElegida || "").trim();
+
+  return (
+    tipoDetectado === "descarga" ||
+    tipoDetectado === "plugin" ||
+    tipoDetectado === "daw" ||
+    linkEntrega !== "" ||
+    plataforma !== ""
+  );
+}
+
+function obtenerComisionPlataformaOrden(item = {}) {
+  const precio = Number(
+    item.precio ??
+    item.total ??
+    item.precioTotal ??
+    item.montoTotal ??
+    0
+  );
+
+  if (precio <= 0) return 0;
+
+  if (item.montoPlataforma !== undefined && item.montoPlataforma !== null) {
+    return redondearMonto(item.montoPlataforma);
+  }
+
+  const porcentaje = Number(item.porcentajePlataforma ?? item.comisionPlataforma ?? 4);
+  return redondearMonto(precio * porcentaje / 100);
+}
+
+function obtenerGananciaProveedorOrden(item = {}) {
+  const precio = Number(
+    item.precio ??
+    item.total ??
+    item.precioTotal ??
+    item.montoTotal ??
+    0
+  );
+
+  if (precio <= 0) return 0;
+
+  if (item.montoProveedor !== undefined && item.montoProveedor !== null) {
+    return redondearMonto(item.montoProveedor);
+  }
+
+  return redondearMonto(precio - obtenerComisionPlataformaOrden(item));
+}
+
+function obtenerProveedorOrden(item = {}) {
+  if (item.proveedorNombre) return item.proveedorNombre;
+  if (item.proveedor) return item.proveedor;
+  if (item.vendedor) return item.vendedor;
+
+  const proveedorId = String(item.proveedorId || "").trim();
+  if (proveedorId && usuariosCache[proveedorId]) {
+    const proveedor = usuariosCache[proveedorId] || {};
+    return proveedor.nombreCompleto || proveedor.nombre || proveedor.usuario || proveedorId;
+  }
+
+  const productoId = String(item.producto || item.productoId || "").trim();
+  if (productoId && productosCache[productoId]) {
+    const producto = productosCache[productoId] || {};
+    return producto.proveedorNombre || producto.proveedorId || "-";
+  }
+
+  return proveedorId || "-";
+}
+
+function ventaRequiereComisionProveedor(item = {}) {
+  const proveedorId = String(item.proveedorId || "").trim();
+  const montoProveedor = Number(item.montoProveedor || 0);
+  const procesada = item.comisionProveedorProcesada === true;
+  const procesando = item.comisionProveedorProcesando === true;
+  const movimientoId = String(item.movimientoProveedorId || "").trim();
+
+  if (!proveedorId) return false;
+  if (proveedorId === "admin_principal") return false;
+  if (isNaN(montoProveedor) || montoProveedor <= 0) return false;
+  if (procesada) return false;
+  if (procesando) return false;
+  if (movimientoId) return false;
+
+  return true;
+}
+
+function extraerVentasPendientesProveedor(data = {}) {
+  const lista = [];
+
+  Object.keys(data || {}).forEach((clavePadre) => {
+    const bloque = data[clavePadre];
+    if (!bloque || typeof bloque !== "object") return;
+
+    const esVentaDirecta =
+      Object.prototype.hasOwnProperty.call(bloque, "proveedorId") ||
+      Object.prototype.hasOwnProperty.call(bloque, "montoProveedor") ||
+      Object.prototype.hasOwnProperty.call(bloque, "montoTotal") ||
+      Object.prototype.hasOwnProperty.call(bloque, "productoId");
+
+    if (esVentaDirecta) {
+      if (ventaRequiereComisionProveedor(bloque)) {
+        lista.push({
+          path: "ventas/" + clavePadre,
+          ventaId: clavePadre,
+          productoId: String(bloque.productoId || clavePadre || "").trim(),
+          item: bloque
+        });
+      }
+      return;
+    }
+
+    Object.keys(bloque).forEach((ventaId) => {
+      const item = bloque[ventaId];
+      if (!item || typeof item !== "object") return;
+
+      if (ventaRequiereComisionProveedor(item)) {
+        lista.push({
+          path: "ventas/" + clavePadre + "/" + ventaId,
+          ventaId,
+          productoId: String(item.productoId || clavePadre || "").trim(),
+          item
+        });
+      }
+    });
+  });
+
+  return lista;
+}
+
+/* =========================
+BUSCADORES ADMIN
+========================= */
+
+function conectarInputBusquedaAdmin(inputId, onChange) {
+  const input = document.getElementById(inputId);
+  if (!input || input.dataset.listenerAdminBusqueda === "true") return;
+
+  input.addEventListener("input", function () {
+    onChange(this.value || "");
+  });
+
+  input.dataset.listenerAdminBusqueda = "true";
+}
+
+function inicializarBuscadoresAdmin() {
+  conectarInputBusquedaAdmin("buscarUsuariosAdmin", (valor) => {
+    filtroUsuariosAdmin = normalizarTexto(valor);
+    renderUsuarios();
+  });
+
+  conectarInputBusquedaAdmin("buscarProductosAdmin", (valor) => {
+    filtroProductosAdmin = normalizarTexto(valor);
+    renderProductos();
+  });
+
+  conectarInputBusquedaAdmin("buscarStockAdmin", (valor) => {
+    filtroStockAdmin = normalizarTexto(valor);
+    renderStock();
+  });
+
+  conectarInputBusquedaAdmin("buscarCuentasDisponiblesAdmin", (valor) => {
+    filtroCuentasDisponiblesAdmin = normalizarTexto(valor);
+    renderCuentas();
+  });
+
+  conectarInputBusquedaAdmin("buscarCuentasUsadasAdmin", (valor) => {
+    filtroCuentasUsadasAdmin = normalizarTexto(valor);
+    renderCuentas();
+  });
+
+  conectarInputBusquedaAdmin("buscarRecargasAdmin", (valor) => {
+    filtroRecargasAdmin = normalizarTexto(valor);
+    renderRecargasDesdeCache(recargasCacheAdmin);
+  });
+
+  conectarInputBusquedaAdmin("buscarReembolsosAdmin", (valor) => {
+    filtroReembolsosAdmin = normalizarTexto(valor);
+    renderReembolsosDesdeCache(reembolsosCache);
+  });
+
+  conectarInputBusquedaAdmin("buscarRetirosAdmin", (valor) => {
+    filtroRetirosAdmin = normalizarTexto(valor);
+    renderRetirosProveedoresDesdeCache(retirosProveedoresCache);
+  });
+
+  conectarInputBusquedaAdmin("buscarCodigosAdmin", (valor) => {
+    filtroCodigosAdmin = normalizarTexto(valor);
+    renderCodigos();
+  });
+
+  conectarInputBusquedaAdmin("buscarDescargasAdmin", (valor) => {
+    filtroDescargasAdmin = normalizarTexto(valor);
+    renderDescargas();
+  });
+
+  conectarInputBusquedaAdmin("buscarDescargasVendidasAdmin", (valor) => {
+    filtroDescargasVendidasAdmin = normalizarTexto(valor);
+    renderDescargasEntregadas();
+  });
+
+  conectarInputBusquedaAdmin("buscarVentasAdmin", (valor) => {
+    filtroVentasAdmin = normalizarTexto(valor);
+    renderVentas();
+  });
+
+  conectarInputBusquedaAdmin("buscarComprasHoyAdmin", (valor) => {
+    filtroComprasHoyAdmin = normalizarTexto(valor);
+    renderComprasHoy();
+  });
+
+  conectarInputBusquedaAdmin("buscarProveedoresAdmin", (valor) => {
+    filtroProveedoresAdmin = normalizarTexto(valor);
+    renderProveedores();
+  });
+}
+
+/* =========================
 IDs ÚNICOS PRODUCTOS ADMIN
 ========================= */
 
@@ -555,6 +926,10 @@ function toggleSection(button) {
   card.classList.toggle("closed");
 }
 
+function irATiendaAdmin() {
+  window.open("tienda.html", "_blank");
+}
+
 if (adminEmailInput) {
   adminEmailInput.addEventListener("keydown", e => {
     if (e.key === "Enter") loginAdmin();
@@ -632,6 +1007,10 @@ function loginAdmin() {
         loginMsg.textContent = "Ese correo no existe en Firebase Authentication.";
       } else if (error.code === "auth/wrong-password") {
         loginMsg.textContent = "La contraseña es incorrecta.";
+      } else if (error.code === "auth/invalid-login-credentials") {
+        loginMsg.textContent = "Correo o contraseña incorrectos.";
+      } else if (error.code === "auth/invalid-credential") {
+        loginMsg.textContent = "Correo o contraseña incorrectos.";
       } else {
         loginMsg.textContent = error.message || "Correo o contraseña incorrectos.";
       }
@@ -688,6 +1067,12 @@ auth.onAuthStateChanged(async (user) => {
     recargasPendientesCache = {};
     recargasCacheAdmin = {};
     usuariosCache = {};
+    retirosProveedoresCache = {};
+    reembolsosCache = {};
+    comprasHoyEliminadasCache = {};
+    listenerComisionesProveedoresActivo = false;
+    procesandoComisionesProveedores = false;
+    clearTimeout(timeoutComisionesProveedores);
     loginSection.classList.remove("hidden");
     panelSection.classList.add("hidden");
     setLoading(false);
@@ -698,9 +1083,37 @@ auth.onAuthStateChanged(async (user) => {
 CARGA PANEL
 ========================= */
 
+function actualizarEncabezadosVentasAdmin() {
+  const tablaVentas = document.getElementById("tablaVentas");
+  if (!tablaVentas) return;
+
+  const ths = tablaVentas.querySelectorAll("thead th");
+  if (!ths || !ths.length) return;
+
+  if (ths[3]) ths[3].textContent = "Proveedor";
+  if (ths[4]) ths[4].textContent = "Comisión plataforma";
+  if (ths[5]) ths[5].textContent = "Ganancia proveedor";
+}
+
+function actualizarCabeceraTablaComprasHoyAdmin() {
+  const tabla = document.getElementById("tablaComprasHoy");
+  if (!tabla) return;
+
+  const ths = tabla.querySelectorAll("thead th");
+  if (!ths || ths.length < 9) return;
+
+  if (ths[3]) ths[3].textContent = "Proveedor";
+  if (ths[4]) ths[4].textContent = "Comisión plataforma";
+  if (ths[5]) ths[5].textContent = "Ganancia proveedor";
+}
+
 function cargarPanel() {
   inicializarFiltroMontoRecarga();
   inicializarFiltroSaldoUsuarios();
+  inicializarBuscadoresAdmin();
+  actualizarEncabezadosVentasAdmin();
+  actualizarCabeceraTablaComprasHoyAdmin();
+
   cargarVentas();
   cargarComprasHoy();
   cargarStock();
@@ -716,8 +1129,174 @@ function cargarPanel() {
   cargarDescargas();
   cargarDescargasEntregadas();
   escucharNuevasRecargasPendientes();
+  escucharComisionesProveedoresPendientes();
   iniciarAutoSyncStock();
   recalcularTodoElStockSilencioso();
+}
+/* =========================
+HELPERS STOCK ROBUSTO
+========================= */
+
+function obtenerVariantesClaveStockAdmin(valor) {
+  const original = String(valor || "").trim();
+  if (!original) return [];
+
+  const lower = original.toLowerCase();
+  const upper = original.toUpperCase();
+  const capitalizada = lower.charAt(0).toUpperCase() + lower.slice(1);
+
+  return Array.from(new Set([original, lower, upper, capitalizada].filter(Boolean)));
+}
+
+function obtenerRutaCuentasPorProductoAdmin(productoId, itemProducto = {}) {
+  const id = String(productoId || "").trim();
+  const idLower = id.toLowerCase();
+  const nombre = String(itemProducto.nombre || "").toLowerCase();
+
+  if (idLower === "netflix" || nombre.includes("netflix")) return "netflix";
+  if (idLower === "disney" || nombre.includes("disney")) return "disney";
+  if (
+    idLower === "hboprime" ||
+    nombre.includes("hbo max + prime") ||
+    (nombre.includes("hbo") && nombre.includes("prime"))
+  ) return "hboprime";
+  if (idLower === "prime" || nombre.includes("prime video")) return "prime";
+  if (
+    idLower === "hboplatinium" ||
+    nombre.includes("hbo max platinium") ||
+    nombre.includes("hbomax platinium") ||
+    nombre.includes("hbo platinium")
+  ) return "hboplatinium";
+  if (idLower === "hbo" || nombre.includes("hbo")) return "hbo";
+  if (idLower === "paramount" || nombre.includes("paramount")) return "paramount";
+  if (idLower === "spotify" || nombre.includes("spotify")) return "spotify";
+  if (idLower === "vix" || nombre.includes("vix")) return "vix";
+  if (idLower === "crunchyroll" || idLower === "crunchy" || nombre.includes("crunchyroll")) return "crunchyroll";
+  if (idLower === "canva" || nombre.includes("canva")) return "canva";
+  if (idLower === "youtubepremium" || nombre.includes("youtube premium") || nombre.includes("youtube")) return "youtubepremium";
+  if (idLower === "chatgpt" || idLower === "chagpt" || nombre.includes("chatgpt")) return "chatgpt";
+  if (idLower === "windows11pro" || nombre.includes("windows 11 pro")) return "windows11pro";
+
+  return id;
+}
+
+function obtenerRutasCuentasCompatiblesAdmin(productoId, itemProducto = {}) {
+  const rutaBase = obtenerRutaCuentasPorProductoAdmin(productoId, itemProducto);
+  const nombre = String(itemProducto.nombre || "").trim();
+  const variantes = new Set();
+
+  obtenerVariantesClaveStockAdmin(rutaBase).forEach((v) => variantes.add(v));
+  obtenerVariantesClaveStockAdmin(productoId).forEach((v) => variantes.add(v));
+
+  if (nombre) variantes.add(nombre);
+
+  const mapaEspecial = {
+    netflix: ["Netflix"],
+    disney: ["Disney"],
+    prime: ["Prime"],
+    hbo: ["HBO"],
+    hboprime: ["hboprime", "HBOPrime", "HboPrime", "HBOPrimeVideo"],
+    hboplatinium: ["HBOPlatinium", "hboplatinium", "HboPlatinium"],
+    paramount: ["Paramount"],
+    spotify: ["Spotify"],
+    vix: ["Vix"],
+    crunchyroll: ["Crunchyroll", "crunchy"],
+    canva: ["Canva"],
+    youtubepremium: ["YouTubePremium", "YoutubePremium", "youtubepremium"],
+    chatgpt: ["ChatGPT", "chatgpt", "chagpt"],
+    windows11pro: ["Windows11Pro", "windows11pro", "Windows11pro"]
+  };
+
+  const rutaLower = String(rutaBase || "").toLowerCase();
+  if (mapaEspecial[rutaLower]) {
+    mapaEspecial[rutaLower].forEach((v) => variantes.add(v));
+  }
+
+  return Array.from(variantes).filter(Boolean);
+}
+
+function esNodoCuentaDirectaAdmin(data = {}) {
+  if (!data || typeof data !== "object") return false;
+
+  return (
+    String(data.cuenta || "").trim() !== "" ||
+    String(data.correo || "").trim() !== "" ||
+    String(data.email || "").trim() !== "" ||
+    String(data.usuario || "").trim() !== "" ||
+    String(data.codigo || "").trim() !== ""
+  );
+}
+
+function cuentaDisponibleAdmin(data = {}) {
+  const vendida = data.vendida === true || data.vendido === true || data.usada === true;
+  const disponibleFalse = data.disponible === false;
+  const estado = String(data.estado || "").toLowerCase().trim();
+
+  if (vendida) return false;
+  if (disponibleFalse) return false;
+  if (["vendida", "usada", "ocupada", "inactiva", "agotada"].includes(estado)) return false;
+
+  const cuenta = data.cuenta || data.correo || data.email || data.usuario || data.codigo || "";
+  return String(cuenta || "").trim() !== "";
+}
+
+function contarCuentasDisponiblesEnNodoAdmin(nodoActual) {
+  if (!nodoActual || typeof nodoActual !== "object") return 0;
+
+  if (esNodoCuentaDirectaAdmin(nodoActual)) {
+    return cuentaDisponibleAdmin(nodoActual) ? 1 : 0;
+  }
+
+  let total = 0;
+
+  Object.keys(nodoActual).forEach((key) => {
+    const subNodo = nodoActual[key];
+    if (subNodo && typeof subNodo === "object") {
+      total += contarCuentasDisponiblesEnNodoAdmin(subNodo);
+    }
+  });
+
+  return total;
+}
+
+function codigoDisponibleAdmin(data = {}) {
+  const activo = data.activo !== false;
+  const usado = data.usado === true;
+  const codigo = String(data.codigo || "").trim();
+
+  return activo && !usado && codigo !== "";
+}
+
+function obtenerStockRealParaProductoAdmin(productoId, productoData = {}, cuentasData = {}, codigosData = {}, stockActual = {}) {
+  if (esProductoDescargaAdmin(productoId, productoData)) {
+    return Number(stockActual[productoId] ?? productoData.stock ?? 0);
+  }
+
+  if (esProductoCodigoAdmin(productoId, productoData)) {
+    let totalCodigos = 0;
+    const variantes = obtenerVariantesClaveStockAdmin(productoId).map((v) => v.toLowerCase());
+
+    Object.keys(codigosData || {}).forEach((codigoId) => {
+      const item = codigosData[codigoId] || {};
+      const productoCodigo = String(item.producto || item.productoId || item.productoNombre || "").trim().toLowerCase();
+      if (!variantes.includes(productoCodigo)) return;
+      if (!codigoDisponibleAdmin(item)) return;
+      totalCodigos++;
+    });
+
+    return totalCodigos;
+  }
+
+  let stockMaximo = 0;
+  const rutasCompatibles = obtenerRutasCuentasCompatiblesAdmin(productoId, productoData);
+
+  rutasCompatibles.forEach((ruta) => {
+    const nodo = cuentasData[ruta];
+    const totalRuta = contarCuentasDisponiblesEnNodoAdmin(nodo || {});
+    if (totalRuta > stockMaximo) stockMaximo = totalRuta;
+  });
+
+  return stockMaximo;
 }
 
 /* =========================
@@ -727,6 +1306,7 @@ STOCK
 function cambiarCantidadInput(producto, cambio) {
   const input = document.getElementById("stockInput_" + safeDomKey(producto));
   if (!input) return;
+
   let valor = parseInt(input.value) || 0;
   valor += cambio;
   if (valor < 0) valor = 0;
@@ -771,7 +1351,21 @@ function renderStock() {
 
   tbody.innerHTML = "";
 
-  const ids = Object.keys(productosCache || {}).sort();
+  let ids = Object.keys(productosCache || {}).sort();
+
+  if (filtroStockAdmin) {
+    ids = ids.filter((productoId) => {
+      const item = productosCache[productoId] || {};
+      const texto = [
+        productoId,
+        item.nombre || "",
+        item.categoria || "",
+        item.tipoEntrega || "",
+        item.proveedorNombre || ""
+      ].join(" ");
+      return coincideFiltroTexto(texto, filtroStockAdmin);
+    });
+  }
 
   if (!ids.length) {
     tabla.classList.add("hidden");
@@ -835,9 +1429,25 @@ function cargarStock() {
   db.ref("productos").on("value", (snapshot) => {
     productosCache = snapshot.val() || {};
     renderStock();
+    renderProductos();
+    renderDescargas();
+    renderVentas();
+    renderComprasHoy();
+    renderDescargasEntregadas();
   }, () => {
     productosCache = {};
     renderStock();
+    renderProductos();
+  });
+
+  db.ref("cuentas").on("value", (snapshot) => {
+    cuentasCache = snapshot.val() || {};
+    renderCuentas();
+  });
+
+  db.ref("codigos").on("value", (snapshot) => {
+    codigosCache = snapshot.val() || {};
+    renderCodigos();
   });
 }
 
@@ -857,50 +1467,7 @@ function recalcularTodoElStock(mostrarMensaje = true) {
 
       Object.keys(productos).forEach((productoId) => {
         const productoData = productos[productoId] || {};
-
-        if (esProductoCodigoAdmin(productoId, productoData)) {
-          let stockReal = 0;
-
-          Object.keys(codigos).forEach((codigoId) => {
-            const item = codigos[codigoId] || {};
-            const mismoProducto = String(item.producto || "").toLowerCase() === String(productoId).toLowerCase();
-            const disponible = item.activo !== false && item.usado !== true;
-            if (mismoProducto && disponible) stockReal++;
-          });
-
-          updates["stock/" + productoId] = stockReal;
-          updates["productos/" + productoId + "/stock"] = stockReal;
-          return;
-        }
-
-        if (esProductoDescargaAdmin(productoId, productoData)) {
-          const stockManual = Number(stockActual[productoId] ?? productoData.stock ?? 0);
-          updates["stock/" + productoId] = stockManual;
-          updates["productos/" + productoId + "/stock"] = stockManual;
-          return;
-        }
-
-        let stockReal = 0;
-        const rutasCompatibles = [
-          String(productoId),
-          String(productoId).toLowerCase(),
-          String(productoId).charAt(0).toUpperCase() + String(productoId).slice(1)
-        ];
-
-        const rutasProcesadas = new Set();
-
-        rutasCompatibles.forEach((ruta) => {
-          if (!ruta || rutasProcesadas.has(ruta)) return;
-          rutasProcesadas.add(ruta);
-
-          const cuentasProducto = cuentas[ruta] || {};
-          Object.keys(cuentasProducto).forEach((cuentaId) => {
-            const item = cuentasProducto[cuentaId] || {};
-            if (String(item.estado || "").toLowerCase() === "disponible") {
-              stockReal++;
-            }
-          });
-        });
+        const stockReal = obtenerStockRealParaProductoAdmin(productoId, productoData, cuentas, codigos, stockActual);
 
         updates["stock/" + productoId] = stockReal;
         updates["productos/" + productoId + "/stock"] = stockReal;
@@ -935,6 +1502,7 @@ function iniciarAutoSyncStock() {
   db.ref("codigos").on("value", () => programarRecalculoStockSilencioso());
   db.ref("productos").on("value", () => programarRecalculoStockSilencioso());
 }
+
 /* =========================
 PRODUCTOS
 ========================= */
@@ -1025,14 +1593,18 @@ function guardarProducto(id) {
   if (isNaN(precio) || precio < 0) return mostrarMensajeProducto("Precio inválido en " + id, true);
   if (isNaN(duracionDias) || duracionDias < 1) return mostrarMensajeProducto("Duración inválida en " + id, true);
 
-  db.ref("productos/" + id).once("value")
-    .then((snapshot) => {
-      const actual = snapshot.val() || {};
+  Promise.all([
+    db.ref("productos/" + id).once("value"),
+    db.ref("stock/" + id).once("value")
+  ])
+    .then(([productoSnap, stockSnap]) => {
+      const actual = productoSnap.val() || {};
+      const stockReal = Number(stockSnap.val() ?? actual.stock ?? 0);
 
       const updateData = {
         nombre,
         precio: redondearMonto(precio),
-        stock: Number(actual.stock || 0),
+        stock: stockReal,
         duracionDias: Number(duracionDias),
         categoria: categoria || "general",
         descripcion: descripcion || "",
@@ -1055,7 +1627,14 @@ function guardarProducto(id) {
         };
       }
 
-      return db.ref("productos/" + id).update(updateData);
+      const updates = {};
+      updates["productos/" + id] = {
+        ...actual,
+        ...updateData
+      };
+      updates["stock/" + id] = stockReal;
+
+      return db.ref().update(updates);
     })
     .then(() => mostrarMensajeProducto("Producto actualizado: " + id))
     .catch((error) => mostrarMensajeProducto("Error: " + error.message, true));
@@ -1078,63 +1657,93 @@ function eliminarProducto(id) {
     .catch((error) => mostrarMensajeProducto("Error: " + error.message, true));
 }
 
+function renderProductos() {
+  const data = productosCache || {};
+  const tbody = document.querySelector("#tablaProductos tbody");
+  const tabla = document.getElementById("tablaProductos");
+  const vacio = document.getElementById("productosVacio");
+
+  if (!tbody || !tabla || !vacio) return;
+  tbody.innerHTML = "";
+
+  if (!data || typeof data !== "object" || !Object.keys(data).length) {
+    tabla.classList.add("hidden");
+    vacio.classList.remove("hidden");
+    return;
+  }
+
+  let ids = Object.keys(data).sort();
+
+  if (filtroProductosAdmin) {
+    ids = ids.filter((id) => {
+      const item = data[id] || {};
+      const texto = [
+        id,
+        item.nombre || "",
+        item.categoria || "",
+        item.tipoEntrega || "",
+        item.proveedorNombre || "",
+        item.descripcion || ""
+      ].join(" ");
+      return coincideFiltroTexto(texto, filtroProductosAdmin);
+    });
+  }
+
+  if (!ids.length) {
+    tabla.classList.add("hidden");
+    vacio.classList.remove("hidden");
+    return;
+  }
+
+  ids.forEach((id) => {
+    const item = data[id] || {};
+    const estadoVisual = item.activo === false ? "desactivado" : "activo";
+    const key = safeDomKey(id);
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${escaparHTML(id)}</td>
+        <td><input id="prodNombre_${key}" class="tableInput tableInputWide" value="${escaparHTML(item.nombre || "")}"></td>
+        <td><input id="prodPrecio_${key}" class="tableInput" type="number" min="0" step="0.01" value="${Number(item.precio || 0)}"></td>
+        <td><input id="prodStock_${key}" class="tableInput tableInputReadonly" type="number" value="${Number(item.stock || 0)}" readonly></td>
+        <td><input id="prodDuracion_${key}" class="tableInput" type="number" min="1" value="${Number(item.duracionDias || 30)}"></td>
+        <td>${badgeEstado(estadoVisual)}</td>
+        <td><input id="prodCategoria_${key}" class="tableInput tableInputWide" value="${escaparHTML(item.categoria || "general")}"></td>
+        <td><input id="prodImagen_${key}" class="tableInput tableInputWide" value="${escaparHTML(item.imagen || "")}" placeholder="https://..."></td>
+        <td><input id="prodTipoEntrega_${key}" class="tableInput" value="${escaparHTML(item.tipoEntrega || "cuenta")}" placeholder="cuenta / codigo / descarga / plugin / daw"></td>
+        <td><input id="prodLinkDescarga_${key}" class="tableInput tableInputWide" value="${escaparHTML(item.linkDescarga || "")}" placeholder="https://..."></td>
+        <td>${escaparHTML(textoSeguro(item.proveedorNombre, "Josking"))}</td>
+        <td>${Number(item.comisionProveedor ?? 96)}%</td>
+        <td>${Number(item.comisionPlataforma ?? 4)}%</td>
+        <td><textarea id="prodDescripcion_${key}" class="tableInputDesc">${escaparHTML(item.descripcion || "")}</textarea></td>
+        <td><textarea id="prodReglas_${key}" class="tableInputDesc">${escaparHTML(item.reglas || "")}</textarea></td>
+        <td>
+          <div class="actionGroup">
+            <button class="smallBtn btnSave" onclick="guardarProducto('${escaparParaJS(id)}')">Guardar</button>
+            <button class="smallBtn btnToggle" onclick="toggleProductoActivo('${escaparParaJS(id)}', ${!!item.activo})">${item.activo ? "Desactivar" : "Activar"}</button>
+            <button class="smallBtn btnDelete" onclick="eliminarProducto('${escaparParaJS(id)}')">Eliminar</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  tabla.classList.remove("hidden");
+  vacio.classList.add("hidden");
+}
+
 function cargarProductos() {
   db.ref("productos").on("value", (snapshot) => {
-    const data = snapshot.val();
-    productosCache = data || {};
-    const tbody = document.querySelector("#tablaProductos tbody");
-    const tabla = document.getElementById("tablaProductos");
-    const vacio = document.getElementById("productosVacio");
-
-    if (!tbody || !tabla || !vacio) return;
-    tbody.innerHTML = "";
-
-    if (!data || typeof data !== "object") {
-      tabla.classList.add("hidden");
-      vacio.classList.remove("hidden");
-      return;
-    }
-
-    Object.keys(data).sort().forEach((id) => {
-      const item = data[id] || {};
-      const estadoVisual = item.activo === false ? "desactivado" : "activo";
-      const key = safeDomKey(id);
-
-      tbody.innerHTML += `
-        <tr>
-          <td>${escaparHTML(id)}</td>
-          <td><input id="prodNombre_${key}" class="tableInput tableInputWide" value="${escaparHTML(item.nombre || "")}"></td>
-          <td><input id="prodPrecio_${key}" class="tableInput" type="number" min="0" step="0.01" value="${Number(item.precio || 0)}"></td>
-          <td><input id="prodStock_${key}" class="tableInput tableInputReadonly" type="number" value="${Number(item.stock || 0)}" readonly></td>
-          <td><input id="prodDuracion_${key}" class="tableInput" type="number" min="1" value="${Number(item.duracionDias || 30)}"></td>
-          <td>${badgeEstado(estadoVisual)}</td>
-          <td><input id="prodCategoria_${key}" class="tableInput tableInputWide" value="${escaparHTML(item.categoria || "general")}"></td>
-          <td><input id="prodImagen_${key}" class="tableInput tableInputWide" value="${escaparHTML(item.imagen || "")}" placeholder="https://..."></td>
-          <td><input id="prodTipoEntrega_${key}" class="tableInput" value="${escaparHTML(item.tipoEntrega || "cuenta")}" placeholder="cuenta / codigo / descarga / plugin / daw"></td>
-          <td><input id="prodLinkDescarga_${key}" class="tableInput tableInputWide" value="${escaparHTML(item.linkDescarga || "")}" placeholder="https://..."></td>
-          <td>${escaparHTML(textoSeguro(item.proveedorNombre, "Josking"))}</td>
-          <td>${Number(item.comisionProveedor ?? 96)}%</td>
-          <td>${Number(item.comisionPlataforma ?? 4)}%</td>
-          <td><textarea id="prodDescripcion_${key}" class="tableInputDesc">${escaparHTML(item.descripcion || "")}</textarea></td>
-          <td><textarea id="prodReglas_${key}" class="tableInputDesc">${escaparHTML(item.reglas || "")}</textarea></td>
-          <td>
-            <div class="actionGroup">
-              <button class="smallBtn btnSave" onclick="guardarProducto('${escaparParaJS(id)}')">Guardar</button>
-              <button class="smallBtn btnToggle" onclick="toggleProductoActivo('${escaparParaJS(id)}', ${!!item.activo})">${item.activo ? "Desactivar" : "Activar"}</button>
-              <button class="smallBtn btnDelete" onclick="eliminarProducto('${escaparParaJS(id)}')">Eliminar</button>
-            </div>
-          </td>
-        </tr>
-      `;
-    });
-
-    tabla.classList.remove("hidden");
-    vacio.classList.add("hidden");
+    productosCache = snapshot.val() || {};
+    renderProductos();
+    renderStock();
+    renderDescargas();
+    renderVentas();
+    renderComprasHoy();
+    renderDescargasEntregadas();
   }, () => {
-    const tabla = document.getElementById("tablaProductos");
-    const vacio = document.getElementById("productosVacio");
-    if (tabla) tabla.classList.add("hidden");
-    if (vacio) vacio.classList.remove("hidden");
+    productosCache = {};
+    renderProductos();
     mostrarMensajeProducto("No se pudieron leer productos. Revisa tus rules.", true);
   });
 }
@@ -1308,149 +1917,180 @@ function eliminarCuenta(producto, cuentaId) {
     .catch((error) => mostrarMensajeCuenta("Error: " + error.message, true));
 }
 
+function renderCuentas() {
+  const data = cuentasCache || {};
+  const tbodyDisponibles = document.querySelector("#tablaCuentasDisponibles tbody");
+  const tablaDisponibles = document.getElementById("tablaCuentasDisponibles");
+  const vacioDisponibles = document.getElementById("cuentasDisponiblesVacio");
+  const tbodyUsadas = document.querySelector("#tablaCuentasUsadas tbody");
+  const tablaUsadas = document.getElementById("tablaCuentasUsadas");
+  const vacioUsadas = document.getElementById("cuentasUsadasVacio");
+
+  if (!tbodyDisponibles || !tablaDisponibles || !vacioDisponibles || !tbodyUsadas || !tablaUsadas || !vacioUsadas) return;
+
+  tbodyDisponibles.innerHTML = "";
+  tbodyUsadas.innerHTML = "";
+
+  let hayDisponibles = false;
+  let hayUsadas = false;
+
+  if (!data || typeof data !== "object" || !Object.keys(data).length) {
+    tablaDisponibles.classList.add("hidden");
+    vacioDisponibles.classList.remove("hidden");
+    tablaUsadas.classList.add("hidden");
+    vacioUsadas.classList.remove("hidden");
+    return;
+  }
+
+  const disponiblesLista = [];
+  const usadasLista = [];
+
+  Object.keys(data).forEach((producto) => {
+    const cuentasProducto = data[producto] || {};
+
+    Object.keys(cuentasProducto).forEach((cuentaId) => {
+      const item = cuentasProducto[cuentaId] || {};
+      const estado = String(item.estado || "").toLowerCase().trim();
+      const fechaCreacionMs = timestampSeguro(item.fechaCreacion);
+      const fechaEntregaMs = timestampSeguro(item.fechaEntrega);
+
+      const textoFiltro = [
+        producto,
+        cuentaId,
+        item.correo || "",
+        item.email || "",
+        item.usuario || "",
+        item.perfil || "",
+        item.pin || "",
+        item.observacion || "",
+        item.comprador || "",
+        item.uidUsuario || ""
+      ].join(" ");
+
+      const registro = {
+        producto,
+        cuentaId,
+        item,
+        fechaCreacionMs,
+        fechaEntregaMs,
+        textoFiltro
+      };
+
+      if (estado === "disponible") disponiblesLista.push(registro);
+      else usadasLista.push(registro);
+    });
+  });
+
+  let disponiblesFiltradas = disponiblesLista;
+  let usadasFiltradas = usadasLista;
+
+  if (filtroCuentasDisponiblesAdmin) {
+    disponiblesFiltradas = disponiblesLista.filter((r) => coincideFiltroTexto(r.textoFiltro, filtroCuentasDisponiblesAdmin));
+  }
+
+  if (filtroCuentasUsadasAdmin) {
+    usadasFiltradas = usadasLista.filter((r) => coincideFiltroTexto(r.textoFiltro, filtroCuentasUsadasAdmin));
+  }
+
+  disponiblesFiltradas.sort((a, b) => b.fechaCreacionMs - a.fechaCreacionMs);
+  usadasFiltradas.sort((a, b) => {
+    const fechaA = a.fechaEntregaMs || a.fechaCreacionMs;
+    const fechaB = b.fechaEntregaMs || b.fechaCreacionMs;
+    return fechaB - fechaA;
+  });
+
+  disponiblesFiltradas.forEach(({ producto, cuentaId, item }) => {
+    hayDisponibles = true;
+    const key = safeDomKey(producto + "_" + cuentaId);
+
+    tbodyDisponibles.innerHTML += `
+      <tr>
+        <td>${escaparHTML(producto)}</td>
+        <td>${escaparHTML(textoSeguro(item.correo || item.email || item.usuario))}</td>
+        <td>
+          <div class="accountPassWrap">
+            <input type="password" id="clave_${key}" class="accountPassInput" value="${escaparHTML(textoSeguro(item.clave, ""))}" readonly>
+            <button class="accountEye" onclick="toggleCuentaPassword('clave_${key}', this)">👁️</button>
+          </div>
+        </td>
+        <td>${escaparHTML(textoSeguro(item.perfil))}</td>
+        <td>${escaparHTML(textoSeguro(item.pin))}</td>
+        <td>${escaparHTML(obtenerDuracionTextoAdmin(item.duracionDias))}</td>
+        <td>${escaparHTML(formatearFecha(item.fechaCreacion))}</td>
+        <td>${escaparHTML(formatearFecha(item.fechaVencimiento))}</td>
+        <td>${escaparHTML(textoSeguro(item.observacion))}</td>
+        <td>${badgeEstado("disponible")}</td>
+        <td>
+          <div class="actionGroup">
+            <button class="smallBtn btnDangerSoft" onclick="marcarCuentaUsadaManual('${escaparParaJS(producto)}', '${escaparParaJS(cuentaId)}')">Marcar usada</button>
+            <button class="smallBtn btnDelete" onclick="eliminarCuenta('${escaparParaJS(producto)}', '${escaparParaJS(cuentaId)}')">Eliminar</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  usadasFiltradas.forEach(({ producto, cuentaId, item }) => {
+    hayUsadas = true;
+    const key = safeDomKey(producto + "_" + cuentaId);
+
+    tbodyUsadas.innerHTML += `
+      <tr>
+        <td>${escaparHTML(producto)}</td>
+        <td><input id="usedCorreo_${key}" class="tableInput tableInputWide" value="${escaparHTML(textoSeguro(item.correo || item.email || item.usuario, ""))}"></td>
+        <td>
+          <div class="accountPassWrap">
+            <input type="password" id="usedClave_${key}" class="accountPassInput" value="${escaparHTML(textoSeguro(item.clave, ""))}">
+            <button class="accountEye" onclick="toggleCuentaPassword('usedClave_${key}', this)">👁️</button>
+          </div>
+        </td>
+        <td><input id="usedPerfil_${key}" class="tableInput" value="${escaparHTML(textoSeguro(item.perfil, ""))}"></td>
+        <td>${escaparHTML(textoSeguro(item.comprador))}</td>
+        <td>${escaparHTML(textoSeguro(item.uidUsuario))}</td>
+        <td>${escaparHTML(obtenerDuracionTextoAdmin(item.duracionDias))}</td>
+        <td>${escaparHTML(formatearFecha(item.fechaCreacion))}</td>
+        <td>${escaparHTML(formatearFecha(item.fechaEntrega))}</td>
+        <td>${escaparHTML(formatearFecha(item.fechaVencimiento))}</td>
+        <td><input id="usedPin_${key}" class="tableInput" value="${escaparHTML(textoSeguro(item.pin, ""))}"></td>
+        <td><input id="usedObs_${key}" class="tableInput tableInputWide" value="${escaparHTML(textoSeguro(item.observacion, ""))}"></td>
+        <td>${badgeEstado(item.estado || "usada")}</td>
+        <td>
+          <div class="actionGroup">
+            <button class="smallBtn btnSave" onclick="guardarCuentaUsada('${escaparParaJS(producto)}', '${escaparParaJS(cuentaId)}')">Guardar cambios</button>
+            <button class="smallBtn btnDelete" onclick="eliminarCuenta('${escaparParaJS(producto)}', '${escaparParaJS(cuentaId)}')">Eliminar</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  if (hayDisponibles) {
+    tablaDisponibles.classList.remove("hidden");
+    vacioDisponibles.classList.add("hidden");
+  } else {
+    tablaDisponibles.classList.add("hidden");
+    vacioDisponibles.classList.remove("hidden");
+  }
+
+  if (hayUsadas) {
+    tablaUsadas.classList.remove("hidden");
+    vacioUsadas.classList.add("hidden");
+  } else {
+    tablaUsadas.classList.add("hidden");
+    vacioUsadas.classList.remove("hidden");
+  }
+}
+
 function cargarCuentas() {
   db.ref("cuentas").on("value", (snapshot) => {
-    const data = snapshot.val();
-    const tbodyDisponibles = document.querySelector("#tablaCuentasDisponibles tbody");
-    const tablaDisponibles = document.getElementById("tablaCuentasDisponibles");
-    const vacioDisponibles = document.getElementById("cuentasDisponiblesVacio");
-    const tbodyUsadas = document.querySelector("#tablaCuentasUsadas tbody");
-    const tablaUsadas = document.getElementById("tablaCuentasUsadas");
-    const vacioUsadas = document.getElementById("cuentasUsadasVacio");
-
-    if (!tbodyDisponibles || !tablaDisponibles || !vacioDisponibles || !tbodyUsadas || !tablaUsadas || !vacioUsadas) return;
-
-    tbodyDisponibles.innerHTML = "";
-    tbodyUsadas.innerHTML = "";
-
-    let hayDisponibles = false;
-    let hayUsadas = false;
-
-    if (!data) {
-      tablaDisponibles.classList.add("hidden");
-      vacioDisponibles.classList.remove("hidden");
-      tablaUsadas.classList.add("hidden");
-      vacioUsadas.classList.remove("hidden");
-      return;
-    }
-
-    const disponiblesLista = [];
-    const usadasLista = [];
-
-    Object.keys(data).forEach((producto) => {
-      const cuentasProducto = data[producto] || {};
-
-      Object.keys(cuentasProducto).forEach((cuentaId) => {
-        const item = cuentasProducto[cuentaId] || {};
-        const estado = String(item.estado || "").toLowerCase().trim();
-        const fechaCreacionMs = timestampSeguro(item.fechaCreacion);
-        const fechaEntregaMs = timestampSeguro(item.fechaEntrega);
-
-        const registro = {
-          producto,
-          cuentaId,
-          item,
-          fechaCreacionMs,
-          fechaEntregaMs
-        };
-
-        if (estado === "disponible") disponiblesLista.push(registro);
-        else usadasLista.push(registro);
-      });
-    });
-
-    disponiblesLista.sort((a, b) => b.fechaCreacionMs - a.fechaCreacionMs);
-    usadasLista.sort((a, b) => {
-      const fechaA = a.fechaEntregaMs || a.fechaCreacionMs;
-      const fechaB = b.fechaEntregaMs || b.fechaCreacionMs;
-      return fechaB - fechaA;
-    });
-
-    disponiblesLista.forEach(({ producto, cuentaId, item }) => {
-      hayDisponibles = true;
-      const key = safeDomKey(producto + "_" + cuentaId);
-
-      tbodyDisponibles.innerHTML += `
-        <tr>
-          <td>${escaparHTML(producto)}</td>
-          <td>${escaparHTML(textoSeguro(item.correo))}</td>
-          <td>
-            <div class="accountPassWrap">
-              <input type="password" id="clave_${key}" class="accountPassInput" value="${escaparHTML(textoSeguro(item.clave, ""))}" readonly>
-              <button class="accountEye" onclick="toggleCuentaPassword('clave_${key}', this)">👁️</button>
-            </div>
-          </td>
-          <td>${escaparHTML(textoSeguro(item.perfil))}</td>
-          <td>${escaparHTML(textoSeguro(item.pin))}</td>
-          <td>${escaparHTML(obtenerDuracionTextoAdmin(item.duracionDias))}</td>
-          <td>${escaparHTML(formatearFecha(item.fechaCreacion))}</td>
-          <td>${escaparHTML(formatearFecha(item.fechaVencimiento))}</td>
-          <td>${escaparHTML(textoSeguro(item.observacion))}</td>
-          <td>${badgeEstado("disponible")}</td>
-          <td>
-            <div class="actionGroup">
-              <button class="smallBtn btnDangerSoft" onclick="marcarCuentaUsadaManual('${escaparParaJS(producto)}', '${escaparParaJS(cuentaId)}')">Marcar usada</button>
-              <button class="smallBtn btnDelete" onclick="eliminarCuenta('${escaparParaJS(producto)}', '${escaparParaJS(cuentaId)}')">Eliminar</button>
-            </div>
-          </td>
-        </tr>
-      `;
-    });
-
-    usadasLista.forEach(({ producto, cuentaId, item }) => {
-      hayUsadas = true;
-      const key = safeDomKey(producto + "_" + cuentaId);
-
-      tbodyUsadas.innerHTML += `
-        <tr>
-          <td>${escaparHTML(producto)}</td>
-          <td><input id="usedCorreo_${key}" class="tableInput tableInputWide" value="${escaparHTML(textoSeguro(item.correo, ""))}"></td>
-          <td>
-            <div class="accountPassWrap">
-              <input type="password" id="usedClave_${key}" class="accountPassInput" value="${escaparHTML(textoSeguro(item.clave, ""))}">
-              <button class="accountEye" onclick="toggleCuentaPassword('usedClave_${key}', this)">👁️</button>
-            </div>
-          </td>
-          <td><input id="usedPerfil_${key}" class="tableInput" value="${escaparHTML(textoSeguro(item.perfil, ""))}"></td>
-          <td>${escaparHTML(textoSeguro(item.comprador))}</td>
-          <td>${escaparHTML(textoSeguro(item.uidUsuario))}</td>
-          <td>${escaparHTML(obtenerDuracionTextoAdmin(item.duracionDias))}</td>
-          <td>${escaparHTML(formatearFecha(item.fechaCreacion))}</td>
-          <td>${escaparHTML(formatearFecha(item.fechaEntrega))}</td>
-          <td>${escaparHTML(formatearFecha(item.fechaVencimiento))}</td>
-          <td><input id="usedPin_${key}" class="tableInput" value="${escaparHTML(textoSeguro(item.pin, ""))}"></td>
-          <td><input id="usedObs_${key}" class="tableInput tableInputWide" value="${escaparHTML(textoSeguro(item.observacion, ""))}"></td>
-          <td>${badgeEstado(item.estado || "usada")}</td>
-          <td>
-            <div class="actionGroup">
-              <button class="smallBtn btnSave" onclick="guardarCuentaUsada('${escaparParaJS(producto)}', '${escaparParaJS(cuentaId)}')">Guardar cambios</button>
-              <button class="smallBtn btnDelete" onclick="eliminarCuenta('${escaparParaJS(producto)}', '${escaparParaJS(cuentaId)}')">Eliminar</button>
-            </div>
-          </td>
-        </tr>
-      `;
-    });
-
-    if (hayDisponibles) {
-      tablaDisponibles.classList.remove("hidden");
-      vacioDisponibles.classList.add("hidden");
-    } else {
-      tablaDisponibles.classList.add("hidden");
-      vacioDisponibles.classList.remove("hidden");
-    }
-
-    if (hayUsadas) {
-      tablaUsadas.classList.remove("hidden");
-      vacioUsadas.classList.add("hidden");
-    } else {
-      tablaUsadas.classList.add("hidden");
-      vacioUsadas.classList.remove("hidden");
-    }
+    cuentasCache = snapshot.val() || {};
+    renderCuentas();
   }, () => {
+    cuentasCache = {};
+    renderCuentas();
     mostrarMensajeCuenta("No se pudieron leer cuentas. Revisa tus rules.", true);
   });
 }
-
 /* =========================
 CÓDIGOS
 ========================= */
@@ -1484,7 +2124,8 @@ function crearCodigo() {
         fechaUso: "",
         uidUsuario: "",
         comprador: "",
-        proveedorId: "admin_principal"
+        proveedorId: prod.proveedorId || "admin_principal",
+        proveedorNombre: prod.proveedorNombre || "Josking"
       });
     })
     .then(() => {
@@ -1517,71 +2158,96 @@ function eliminarCodigo(codigoId) {
     .catch((error) => mostrarMensajeCodigo("Error: " + error.message, true));
 }
 
-function cargarCodigos() {
-  db.ref("codigos").on("value", (snapshot) => {
-    const data = snapshot.val();
-    const tbody = document.querySelector("#tablaCodigos tbody");
-    const tabla = document.getElementById("tablaCodigos");
-    const vacio = document.getElementById("codigosVacio");
+function renderCodigos() {
+  const data = codigosCache || {};
+  const tbody = document.querySelector("#tablaCodigos tbody");
+  const tabla = document.getElementById("tablaCodigos");
+  const vacio = document.getElementById("codigosVacio");
 
-    if (!tbody || !tabla || !vacio) return;
-    tbody.innerHTML = "";
+  if (!tbody || !tabla || !vacio) return;
+  tbody.innerHTML = "";
 
-    if (!data) {
-      tabla.classList.add("hidden");
-      vacio.classList.remove("hidden");
-      document.getElementById("totalCodigos").textContent = "0";
-      return;
-    }
+  if (!data || typeof data !== "object" || !Object.keys(data).length) {
+    tabla.classList.add("hidden");
+    vacio.classList.remove("hidden");
+    document.getElementById("totalCodigos").textContent = "0";
+    return;
+  }
 
-    const keys = Object.keys(data)
-      .filter((codigoId) => {
-        const item = data[codigoId] || {};
-        return !["descarga", "plugin", "daw"].includes(String(item.tipoEntrega || "").toLowerCase());
-      })
-      .sort((a, b) => {
-        const da = data[a] || {};
-        const dbb = data[b] || {};
-        return timestampSeguro(dbb.fechaCreacion) - timestampSeguro(da.fechaCreacion);
-      });
-
-    document.getElementById("totalCodigos").textContent = keys.length;
-
-    if (!keys.length) {
-      tabla.classList.add("hidden");
-      vacio.classList.remove("hidden");
-      return;
-    }
-
-    keys.forEach((codigoId) => {
+  let keys = Object.keys(data)
+    .filter((codigoId) => {
       const item = data[codigoId] || {};
-      const activo = item.activo !== false;
-      const usado = item.usado === true;
-
-      tbody.innerHTML += `
-        <tr>
-          <td>${escaparHTML(codigoId)}</td>
-          <td>${escaparHTML(textoSeguro(item.producto))}</td>
-          <td>${escaparHTML(textoSeguro(item.codigo))}</td>
-          <td>${escaparHTML(textoSeguro(item.observacion))}</td>
-          <td>${escaparHTML(textoSeguro(item.tipoEntrega || "-"))}</td>
-          <td>${badgeEstado(String(activo))}</td>
-          <td>${badgeEstado(usado ? "usado" : "no usado")}</td>
-          <td>${escaparHTML(formatearFecha(item.fechaCreacion))}</td>
-          <td>${escaparHTML(formatearFecha(item.fechaUso))}</td>
-          <td>${escaparHTML(textoSeguro(item.comprador))}</td>
-          <td>
-            <div class="actionGroup">
-              <button class="smallBtn btnToggle" onclick="toggleCodigoActivo('${escaparParaJS(codigoId)}', ${!activo})">${activo ? "Desactivar" : "Activar"}</button>
-              <button class="smallBtn btnDelete" onclick="eliminarCodigo('${escaparParaJS(codigoId)}')">Eliminar</button>
-            </div>
-          </td>
-        </tr>
-      `;
+      return !["descarga", "plugin", "daw"].includes(String(item.tipoEntrega || "").toLowerCase());
+    })
+    .sort((a, b) => {
+      const da = data[a] || {};
+      const dbb = data[b] || {};
+      return timestampSeguro(dbb.fechaCreacion) - timestampSeguro(da.fechaCreacion);
     });
 
-    tabla.classList.remove("hidden");
-    vacio.classList.add("hidden");
+  if (filtroCodigosAdmin) {
+    keys = keys.filter((codigoId) => {
+      const item = data[codigoId] || {};
+      const texto = [
+        codigoId,
+        item.producto || "",
+        item.codigo || "",
+        item.observacion || "",
+        item.comprador || "",
+        item.tipoEntrega || "",
+        item.proveedorNombre || ""
+      ].join(" ");
+      return coincideFiltroTexto(texto, filtroCodigosAdmin);
+    });
+  }
+
+  document.getElementById("totalCodigos").textContent = keys.length;
+
+  if (!keys.length) {
+    tabla.classList.add("hidden");
+    vacio.classList.remove("hidden");
+    return;
+  }
+
+  keys.forEach((codigoId) => {
+    const item = data[codigoId] || {};
+    const activo = item.activo !== false;
+    const usado = item.usado === true;
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${escaparHTML(codigoId)}</td>
+        <td>${escaparHTML(textoSeguro(item.producto))}</td>
+        <td>${escaparHTML(textoSeguro(item.codigo))}</td>
+        <td>${escaparHTML(textoSeguro(item.observacion))}</td>
+        <td>${escaparHTML(textoSeguro(item.tipoEntrega || "-"))}</td>
+        <td>${badgeEstado(String(activo))}</td>
+        <td>${badgeEstado(usado ? "usado" : "no usado")}</td>
+        <td>${escaparHTML(formatearFecha(item.fechaCreacion))}</td>
+        <td>${escaparHTML(formatearFecha(item.fechaUso))}</td>
+        <td>${escaparHTML(textoSeguro(item.comprador))}</td>
+        <td>
+          <div class="actionGroup">
+            <button class="smallBtn btnToggle" onclick="toggleCodigoActivo('${escaparParaJS(codigoId)}', ${!activo})">${activo ? "Desactivar" : "Activar"}</button>
+            <button class="smallBtn btnDelete" onclick="eliminarCodigo('${escaparParaJS(codigoId)}')">Eliminar</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  tabla.classList.remove("hidden");
+  vacio.classList.add("hidden");
+}
+
+function cargarCodigos() {
+  db.ref("codigos").on("value", (snapshot) => {
+    codigosCache = snapshot.val() || {};
+    renderCodigos();
+    renderStock();
+  }, () => {
+    codigosCache = {};
+    renderCodigos();
   });
 }
 
@@ -1632,6 +2298,7 @@ function eliminarDescargaProducto(productoId, plataforma) {
 
   const updates = {};
   updates["productos/" + productoId + "/opcionesEntrega/" + plataforma] = null;
+
   if (plataforma === "general") {
     updates["productos/" + productoId + "/linkDescarga"] = "";
   }
@@ -1641,77 +2308,166 @@ function eliminarDescargaProducto(productoId, plataforma) {
     .catch((error) => mostrarMensajeDescarga("Error: " + error.message, true));
 }
 
-function cargarDescargas() {
-  db.ref("productos").on("value", (snapshot) => {
-    const data = snapshot.val() || {};
-    const tbody = document.querySelector("#tablaDescargas tbody");
-    const tabla = document.getElementById("tablaDescargas");
-    const vacio = document.getElementById("descargasVacio");
-    if (!tbody || !tabla || !vacio) return;
+function renderDescargas() {
+  const data = productosCache || {};
+  const tbody = document.querySelector("#tablaDescargas tbody");
+  const tabla = document.getElementById("tablaDescargas");
+  const vacio = document.getElementById("descargasVacio");
 
-    tbody.innerHTML = "";
+  if (!tbody || !tabla || !vacio) return;
+  tbody.innerHTML = "";
 
-    const ids = Object.keys(data).filter((id) => esProductoDescargaAdmin(id, data[id] || {}));
+  let ids = Object.keys(data).filter((id) => esProductoDescargaAdmin(id, data[id] || {}));
 
-    if (!ids.length) {
-      tabla.classList.add("hidden");
-      vacio.classList.remove("hidden");
-      return;
-    }
-
-    ids.sort().forEach((id) => {
+  if (filtroDescargasAdmin) {
+    ids = ids.filter((id) => {
       const item = data[id] || {};
       const opciones = item.opcionesEntrega || {};
-      const win = opciones.windows || {};
-      const mac = opciones.mac || {};
-      const general = opciones.general || {};
-
-      tbody.innerHTML += `
-        <tr>
-          <td>${escaparHTML(textoSeguro(item.nombre, id))} (${escaparHTML(id)})</td>
-          <td><span class="downloadTag">${escaparHTML(textoSeguro(item.tipoEntrega, "descarga"))}</span></td>
-          <td>
-            <div><strong>${escaparHTML(textoSeguro(win.nombre, "-"))}</strong></div>
-            <div style="margin-top:6px; word-break:break-all;">${escaparHTML(textoSeguro(win.link, "-"))}</div>
-          </td>
-          <td>
-            <div><strong>${escaparHTML(textoSeguro(mac.nombre, "-"))}</strong></div>
-            <div style="margin-top:6px; word-break:break-all;">${escaparHTML(textoSeguro(mac.link, "-"))}</div>
-          </td>
-          <td>
-            <div><strong>${escaparHTML(textoSeguro(general.nombre, "-"))}</strong></div>
-            <div style="margin-top:6px; word-break:break-all;">${escaparHTML(textoSeguro(general.link || item.linkDescarga, "-"))}</div>
-          </td>
-          <td>
-            <div class="actionGroup">
-              <button class="smallBtn btnDelete" onclick="eliminarDescargaProducto('${escaparParaJS(id)}','windows')">Quitar Win</button>
-              <button class="smallBtn btnDelete" onclick="eliminarDescargaProducto('${escaparParaJS(id)}','mac')">Quitar Mac</button>
-              <button class="smallBtn btnDelete" onclick="eliminarDescargaProducto('${escaparParaJS(id)}','general')">Quitar General</button>
-            </div>
-          </td>
-        </tr>
-      `;
+      const texto = [
+        id,
+        item.nombre || "",
+        item.categoria || "",
+        item.tipoEntrega || "",
+        item.linkDescarga || "",
+        opciones?.windows?.nombre || "",
+        opciones?.windows?.link || "",
+        opciones?.mac?.nombre || "",
+        opciones?.mac?.link || "",
+        opciones?.general?.nombre || "",
+        opciones?.general?.link || ""
+      ].join(" ");
+      return coincideFiltroTexto(texto, filtroDescargasAdmin);
     });
+  }
 
-    tabla.classList.remove("hidden");
-    vacio.classList.add("hidden");
+  if (!ids.length) {
+    tabla.classList.add("hidden");
+    vacio.classList.remove("hidden");
+    return;
+  }
+
+  ids.sort().forEach((id) => {
+    const item = data[id] || {};
+    const opciones = item.opcionesEntrega || {};
+    const win = opciones.windows || {};
+    const mac = opciones.mac || {};
+    const general = opciones.general || {};
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${escaparHTML(textoSeguro(item.nombre, id))} (${escaparHTML(id)})</td>
+        <td><span class="downloadTag">${escaparHTML(textoSeguro(item.tipoEntrega, "descarga"))}</span></td>
+        <td>
+          <div><strong>${escaparHTML(textoSeguro(win.nombre, "-"))}</strong></div>
+          <div style="margin-top:6px; word-break:break-all;">${escaparHTML(textoSeguro(win.link, "-"))}</div>
+        </td>
+        <td>
+          <div><strong>${escaparHTML(textoSeguro(mac.nombre, "-"))}</strong></div>
+          <div style="margin-top:6px; word-break:break-all;">${escaparHTML(textoSeguro(mac.link, "-"))}</div>
+        </td>
+        <td>
+          <div><strong>${escaparHTML(textoSeguro(general.nombre, "-"))}</strong></div>
+          <div style="margin-top:6px; word-break:break-all;">${escaparHTML(textoSeguro(general.link || item.linkDescarga, "-"))}</div>
+        </td>
+        <td>
+          <div class="actionGroup">
+            <button class="smallBtn btnDelete" onclick="eliminarDescargaProducto('${escaparParaJS(id)}','windows')">Quitar Win</button>
+            <button class="smallBtn btnDelete" onclick="eliminarDescargaProducto('${escaparParaJS(id)}','mac')">Quitar Mac</button>
+            <button class="smallBtn btnDelete" onclick="eliminarDescargaProducto('${escaparParaJS(id)}','general')">Quitar General</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  tabla.classList.remove("hidden");
+  vacio.classList.add("hidden");
+}
+
+function cargarDescargas() {
+  db.ref("productos").on("value", (snapshot) => {
+    productosCache = snapshot.val() || {};
+    renderDescargas();
+  }, () => {
+    renderDescargas();
   });
 }
 
-function esOrdenDescargaOPlugin(item = {}) {
-  const tipoEntrega = String(item.tipoEntrega || "").toLowerCase().trim();
-  const entregaVisual = String(item.entregaVisual || "").toLowerCase().trim();
-  const linkEntrega = String(item.linkEntrega || "").trim();
+/* =========================
+ÓRDENES DESCARGAS VENDIDAS
+========================= */
 
-  return (
-    tipoEntrega === "descarga" ||
-    tipoEntrega === "plugin" ||
-    tipoEntrega === "daw" ||
-    entregaVisual === "descarga" ||
-    entregaVisual === "plugin" ||
-    entregaVisual === "daw" ||
-    linkEntrega !== ""
+function obtenerComisionPlataformaOrden(item = {}) {
+  const precio = Number(
+    item.precio ??
+    item.total ??
+    item.precioTotal ??
+    item.montoTotal ??
+    0
   );
+
+  if (precio <= 0) return 0;
+
+  if (item.montoPlataforma !== undefined && item.montoPlataforma !== null) {
+    return redondearMonto(item.montoPlataforma);
+  }
+
+  const porcentaje = Number(item.porcentajePlataforma ?? item.comisionPlataforma ?? 4);
+  return redondearMonto((precio * porcentaje) / 100);
+}
+
+function obtenerGananciaProveedorOrden(item = {}) {
+  const precio = Number(
+    item.precio ??
+    item.total ??
+    item.precioTotal ??
+    item.montoTotal ??
+    0
+  );
+
+  if (precio <= 0) return 0;
+
+  if (item.montoProveedor !== undefined && item.montoProveedor !== null) {
+    return redondearMonto(item.montoProveedor);
+  }
+
+  return redondearMonto(precio - obtenerComisionPlataformaOrden(item));
+}
+
+function obtenerProveedorOrden(item = {}) {
+  if (item.proveedorNombre) return item.proveedorNombre;
+  if (item.proveedor) return item.proveedor;
+  if (item.vendedor) return item.vendedor;
+  if (item.proveedorId && usuariosCache[item.proveedorId]) {
+    const proveedor = usuariosCache[item.proveedorId] || {};
+    return proveedor.nombreCompleto || proveedor.nombre || proveedor.usuario || item.proveedorId;
+  }
+
+  const productoId = String(item.producto || item.productoId || "").trim();
+  const prod = productosCache[productoId] || {};
+  return prod.proveedorNombre || prod.proveedorId || item.proveedorId || "-";
+}
+
+function obtenerLinkEntregaOrden(item = {}) {
+  const linkDirecto = String(item.linkEntrega || "").trim();
+  if (linkDirecto) return linkDirecto;
+
+  const productoId = String(item.producto || item.productoId || "").trim();
+  const prod = productosCache[productoId] || {};
+  const opciones = prod.opcionesEntrega || {};
+  const plataforma = String(item.plataformaElegida || "general").toLowerCase().trim();
+
+  const linkPorPlataforma = String(opciones?.[plataforma]?.link || "").trim();
+  if (linkPorPlataforma) return linkPorPlataforma;
+
+  const linkGeneral = String(opciones?.general?.link || "").trim();
+  if (linkGeneral) return linkGeneral;
+
+  return String(prod.linkDescarga || "").trim();
+}
+
+function obtenerFechaEntregaOrden(item = {}) {
+  return item.fechaEntrega || item.fechaCompra || item.fecha || "";
 }
 
 function eliminarOrdenDescargaAdmin(uid, ordenId) {
@@ -1737,66 +2493,112 @@ function copiarTextoAdmin(texto) {
     });
 }
 
+function renderDescargasEntregadas() {
+  const data = ordenesCache || {};
+  const tbody = document.querySelector("#tablaDescargasEntregadas tbody");
+  const tabla = document.getElementById("tablaDescargasEntregadas");
+  const vacio = document.getElementById("descargasEntregadasVacio");
+
+  if (!tbody || !tabla || !vacio) return;
+  tbody.innerHTML = "";
+
+  const lista = [];
+
+  Object.keys(data).forEach((uid) => {
+    const ordenesUsuario = data[uid] || {};
+    Object.keys(ordenesUsuario).forEach((ordenId) => {
+      const item = ordenesUsuario[ordenId] || {};
+      if (!esOrdenDescargaOPlugin(item)) return;
+
+      const linkEntregaFinal = obtenerLinkEntregaOrden(item);
+      const proveedorFinal = obtenerProveedorOrden(item);
+      const tipoFinal = obtenerTipoEntregaDesdeOrdenOProducto(item);
+
+      const textoFiltro = [
+        uid,
+        ordenId,
+        item.servicio || "",
+        item.producto || "",
+        item.comprador || "",
+        item.uid || "",
+        item.plataformaElegida || "",
+        linkEntregaFinal || "",
+        proveedorFinal || "",
+        tipoFinal || ""
+      ].join(" ");
+
+      lista.push({
+        uid,
+        ordenId,
+        ...item,
+        linkEntregaFinal,
+        proveedorFinal,
+        tipoFinal,
+        textoFiltro
+      });
+    });
+  });
+
+  let listaFiltrada = lista;
+
+  if (filtroDescargasVendidasAdmin) {
+    listaFiltrada = lista.filter((item) => coincideFiltroTexto(item.textoFiltro, filtroDescargasVendidasAdmin));
+  }
+
+  listaFiltrada.sort((a, b) => timestampSeguro(b.fechaCompra || b.fechaEntrega || b.fecha) - timestampSeguro(a.fechaCompra || a.fechaEntrega || a.fecha));
+
+  if (!listaFiltrada.length) {
+    tabla.classList.add("hidden");
+    vacio.classList.remove("hidden");
+    return;
+  }
+
+  listaFiltrada.forEach((item) => {
+    const plataforma = item.plataformaElegida || "-";
+    const linkEntrega = item.linkEntregaFinal || "";
+    const proveedor = item.proveedorFinal || "-";
+    const precio = Number(item.precio || item.total || item.precioTotal || item.montoTotal || 0);
+    const gananciaPagina = obtenerComisionPlataformaOrden(item);
+    const gananciaProveedor = obtenerGananciaProveedorOrden(item);
+    const fechaEntrega = obtenerFechaEntregaOrden(item);
+
+    const linkHtml = linkEntrega
+      ? `<a href="${escaparHTML(linkEntrega)}" target="_blank" rel="noopener noreferrer">Abrir link</a>`
+      : "-";
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${escaparHTML(textoSeguro(item.uid || item.uidUsuario || item.uidComprador || item.uidCliente || item.uidUsuarioOrden || item.uid || ""))}</td>
+        <td>${escaparHTML(textoSeguro(item.ordenId || item.id || item.ordenIdOriginal || item.ordenIdInterno || item.ordenId || item.ordenIdRef || item.ordenIdManual || item.ordenIdAsignado || item.ordenIdVenta || item.ordenIdCompra || item.ordenIdGenerado || item.ordenIdUnico || item.ordenIdSistema || item.ordenIdFinal || item.ordenIdTmp || item.ordenIdSecundario || item.ordenId || item.ordenIdAux || item.ordenIdExtra || item.ordenIdReal || item.ordenIdMostrado || item.ordenIdVisible || item.ordenIdLocal || item.ordenIdGlobal || item.ordenIdPanel || item.ordenIdStream || item.ordenIdCliente || item.ordenIdProveedor || item.ordenIdAdmin || item.ordenIdEntrega || item.ordenIdReferencia || item.ordenIdNumero || item.ordenIdTexto || item.ordenIdData || item.ordenIdValor || item.ordenIdKey || item.ordenIdCode || item.ordenIdTag || item.ordenIdName || item.ordenIdUid || item.ordenIdDb || item.ordenIdStore || item.ordenIdVentaRef || item.ordenIdPedido || item.ordenIdPedidoRef || item.ordenIdTicket || item.ordenIdRegistro || item.ordenIdPersistente || item.ordenIdInternoSistema || item.ordenIdItem || item.ordenIdFila || item.ordenIdDoc || item.ordenIdDocRef || item.ordenIdRef || item.ordenId || "-"))}</td>
+        <td>${escaparHTML(textoSeguro(item.servicio || item.producto))}</td>
+        <td>${escaparHTML(textoSeguro(item.comprador))}</td>
+        <td>${escaparHTML(textoSeguro(proveedor))}</td>
+        <td>${escaparHTML(textoSeguro(item.tipoFinal))}</td>
+        <td>${formatearDinero(precio)}</td>
+        <td>${formatearDinero(gananciaPagina)}</td>
+        <td>${formatearDinero(gananciaProveedor)}</td>
+        <td>${escaparHTML(textoSeguro(plataforma))}</td>
+        <td style="word-break:break-all;">${linkHtml}</td>
+        <td>${escaparHTML(formatearFecha(fechaEntrega))}</td>
+        <td>${badgeEstado(item.estado || "activa")}</td>
+        <td>
+          <div class="actionGroup">
+            ${linkEntrega ? `<button class="smallBtn btnToggle" onclick="copiarTextoAdmin('${escaparParaJS(linkEntrega)}')">Copiar link</button>` : ""}
+            <button class="smallBtn btnDelete" onclick="eliminarOrdenDescargaAdmin('${escaparParaJS(item.uid)}', '${escaparParaJS(item.ordenId)}')">Eliminar</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  tabla.classList.remove("hidden");
+  vacio.classList.add("hidden");
+}
+
 function cargarDescargasEntregadas() {
   db.ref("ordenes").on("value", (snapshot) => {
     ordenesCache = snapshot.val() || {};
-    const data = ordenesCache;
-    const tbody = document.querySelector("#tablaDescargasEntregadas tbody");
-    const tabla = document.getElementById("tablaDescargasEntregadas");
-    const vacio = document.getElementById("descargasEntregadasVacio");
-
-    if (!tbody || !tabla || !vacio) return;
-    tbody.innerHTML = "";
-
-    const lista = [];
-
-    Object.keys(data).forEach((uid) => {
-      const ordenesUsuario = data[uid] || {};
-      Object.keys(ordenesUsuario).forEach((ordenId) => {
-        const item = ordenesUsuario[ordenId] || {};
-        if (!esOrdenDescargaOPlugin(item)) return;
-        lista.push({ uid, ordenId, ...item });
-      });
-    });
-
-    lista.sort((a, b) => timestampSeguro(b.fechaCompra) - timestampSeguro(a.fechaCompra));
-
-    if (!lista.length) {
-      tabla.classList.add("hidden");
-      vacio.classList.remove("hidden");
-      return;
-    }
-
-    lista.forEach((item) => {
-      const plataforma = item.plataformaElegida || "-";
-      const linkEntrega = item.linkEntrega || "";
-      const linkHtml = linkEntrega
-        ? `<a href="${escaparHTML(linkEntrega)}" target="_blank" rel="noopener noreferrer">Abrir link</a>`
-        : "-";
-
-      tbody.innerHTML += `
-        <tr>
-          <td>${escaparHTML(textoSeguro(item.uid))}</td>
-          <td>${escaparHTML(textoSeguro(item.ordenId))}</td>
-          <td>${escaparHTML(textoSeguro(item.servicio || item.producto))}</td>
-          <td>${escaparHTML(textoSeguro(item.comprador))}</td>
-          <td>${formatearDinero(item.precio || 0)}</td>
-          <td>${escaparHTML(textoSeguro(plataforma))}</td>
-          <td style="word-break:break-all;">${linkHtml}</td>
-          <td>${escaparHTML(formatearFecha(item.fechaCompra))}</td>
-          <td>${badgeEstado(item.estado || "activa")}</td>
-          <td>
-            <div class="actionGroup">
-              ${linkEntrega ? `<button class="smallBtn btnToggle" onclick="copiarTextoAdmin('${escaparParaJS(linkEntrega)}')">Copiar link</button>` : ""}
-              <button class="smallBtn btnDelete" onclick="eliminarOrdenDescargaAdmin('${escaparParaJS(item.uid)}', '${escaparParaJS(item.ordenId)}')">Eliminar</button>
-            </div>
-          </td>
-        </tr>
-      `;
-    });
-
-    tabla.classList.remove("hidden");
-    vacio.classList.add("hidden");
+    renderDescargasEntregadas();
   }, (error) => {
     console.error("Error leyendo descargas entregadas:", error);
     const tablaDescargasEntregadas = document.getElementById("tablaDescargasEntregadas");
@@ -1844,88 +2646,110 @@ function guardarSaldoUsuarioAdmin(uid) {
     });
 }
 
-function cargarUsuarios() {
-  db.ref("usuarios").on("value", (snapshot) => {
-    const data = snapshot.val();
-    usuariosCache = data || {};
-    const tbody = document.querySelector("#tablaUsuarios tbody");
-    const tabla = document.getElementById("tablaUsuarios");
-    const vacio = document.getElementById("usuariosVacio");
+function renderUsuarios() {
+  const data = usuariosCache || {};
+  const tbody = document.querySelector("#tablaUsuarios tbody");
+  const tabla = document.getElementById("tablaUsuarios");
+  const vacio = document.getElementById("usuariosVacio");
 
-    if (!tbody || !tabla || !vacio) return;
-    tbody.innerHTML = "";
+  if (!tbody || !tabla || !vacio) return;
+  tbody.innerHTML = "";
 
-    if (!data) {
-      tabla.classList.add("hidden");
-      vacio.classList.remove("hidden");
-      const totalUsuarios = document.getElementById("totalUsuarios");
-      if (totalUsuarios) totalUsuarios.textContent = "0";
-      renderProveedores();
-      return;
-    }
-
-    const usuariosLista = Object.keys(data)
-      .map((id) => {
-        const item = data[id] || {};
-        return { id, item, fechaOrden: timestampSeguro(item.fechaRegistro || item.fecha || 0) };
-      })
-      .filter(({ item }) => String(item.rol || "").toLowerCase() !== "proveedor");
-
-    const totalUsuarios = document.getElementById("totalUsuarios");
-    if (totalUsuarios) totalUsuarios.textContent = usuariosLista.length;
-
-    usuariosLista.sort((a, b) => b.fechaOrden - a.fechaOrden);
-
-    usuariosLista.forEach(({ id, item }) => {
-      const estado = item.estado || "activo";
-      const key = safeDomKey(id);
-
-      tbody.innerHTML += `
-        <tr>
-          <td>${escaparHTML(id)}</td>
-          <td>${escaparHTML(textoSeguro(item.nombreCompleto || item.nombre || item.usuario))}</td>
-          <td>${escaparHTML(textoSeguro(item.correo || item.email))}</td>
-          <td>
-            <div style="display:flex; gap:8px; align-items:center; min-width:220px;">
-              <input
-                id="saldoUser_${key}"
-                class="tableInput"
-                type="text"
-                inputmode="decimal"
-                autocomplete="off"
-                value="${Number(item.saldo || 0)}"
-                style="max-width:120px;"
-              >
-              <button class="smallBtn btnSave" onclick="guardarSaldoUsuarioAdmin('${escaparParaJS(id)}')">Guardar</button>
-            </div>
-          </td>
-          <td>${escaparHTML(formatearFecha(item.fechaRegistro || item.fecha))}</td>
-          <td>${badgeEstado(estado)}</td>
-          <td>
-            <div class="actionGroup">
-              <button class="smallBtn ${estado === "bloqueado" ? "btnToggle" : "btnDangerSoft"}" onclick="toggleUsuarioEstado('${escaparParaJS(id)}', '${estado === "bloqueado" ? "activo" : "bloqueado"}')">
-                ${estado === "bloqueado" ? "Activar" : "Bloquear"}
-              </button>
-            </div>
-          </td>
-        </tr>
-      `;
-    });
-
-    tbody.querySelectorAll('input[id^="saldoUser_"]').forEach(prepararInputSaldoUsuario);
-
-    tabla.classList.remove("hidden");
-    vacio.classList.add("hidden");
-    renderProveedores();
-  }, () => {
-    const tabla = document.getElementById("tablaUsuarios");
-    const vacio = document.getElementById("usuariosVacio");
-    if (tabla) tabla.classList.add("hidden");
-    if (vacio) vacio.classList.remove("hidden");
+  if (!data || typeof data !== "object" || !Object.keys(data).length) {
+    tabla.classList.add("hidden");
+    vacio.classList.remove("hidden");
     const totalUsuarios = document.getElementById("totalUsuarios");
     if (totalUsuarios) totalUsuarios.textContent = "0";
-    usuariosCache = {};
     renderProveedores();
+    return;
+  }
+
+  let usuariosLista = Object.keys(data)
+    .map((id) => {
+      const item = data[id] || {};
+      const textoFiltro = [
+        id,
+        item.nombreCompleto || "",
+        item.nombre || "",
+        item.apellido || "",
+        item.usuario || "",
+        item.correo || "",
+        item.email || "",
+        item.estado || "",
+        item.rol || ""
+      ].join(" ");
+
+      return {
+        id,
+        item,
+        fechaOrden: timestampSeguro(item.fechaRegistro || item.fecha || 0),
+        textoFiltro
+      };
+    })
+    .filter(({ item }) => String(item.rol || "").toLowerCase() !== "proveedor");
+
+  if (filtroUsuariosAdmin) {
+    usuariosLista = usuariosLista.filter(({ textoFiltro }) => coincideFiltroTexto(textoFiltro, filtroUsuariosAdmin));
+  }
+
+  const totalUsuarios = document.getElementById("totalUsuarios");
+  if (totalUsuarios) totalUsuarios.textContent = usuariosLista.length;
+
+  usuariosLista.sort((a, b) => b.fechaOrden - a.fechaOrden);
+
+  usuariosLista.forEach(({ id, item }) => {
+    const estado = item.estado || "activo";
+    const key = safeDomKey(id);
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${escaparHTML(id)}</td>
+        <td>${escaparHTML(textoSeguro(item.nombreCompleto || item.nombre || item.usuario))}</td>
+        <td>${escaparHTML(textoSeguro(item.correo || item.email))}</td>
+        <td>
+          <div style="display:flex; gap:8px; align-items:center; min-width:220px;">
+            <input
+              id="saldoUser_${key}"
+              class="tableInput"
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              value="${Number(item.saldo || 0)}"
+              style="max-width:120px;"
+            >
+            <button class="smallBtn btnSave" onclick="guardarSaldoUsuarioAdmin('${escaparParaJS(id)}')">Guardar</button>
+          </div>
+        </td>
+        <td>${escaparHTML(formatearFecha(item.fechaRegistro || item.fecha))}</td>
+        <td>${badgeEstado(estado)}</td>
+        <td>
+          <div class="actionGroup">
+            <button class="smallBtn ${estado === "bloqueado" ? "btnToggle" : "btnDangerSoft"}" onclick="toggleUsuarioEstado('${escaparParaJS(id)}', '${estado === "bloqueado" ? "activo" : "bloqueado"}')">
+              ${estado === "bloqueado" ? "Activar" : "Bloquear"}
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  tbody.querySelectorAll('input[id^="saldoUser_"]').forEach(prepararInputSaldoUsuario);
+
+  tabla.classList.remove("hidden");
+  vacio.classList.add("hidden");
+  renderProveedores();
+}
+
+function cargarUsuarios() {
+  db.ref("usuarios").on("value", (snapshot) => {
+    usuariosCache = snapshot.val() || {};
+    renderUsuarios();
+    renderVentas();
+    renderComprasHoy();
+    renderDescargasEntregadas();
+  }, () => {
+    usuariosCache = {};
+    renderUsuarios();
   });
 }
 
@@ -1940,12 +2764,32 @@ function renderProveedores() {
   const vacio = document.getElementById("proveedoresVacio");
 
   const data = usuariosCache || {};
-  const proveedoresLista = Object.keys(data)
+  let proveedoresLista = Object.keys(data)
     .map((id) => {
       const item = data[id] || {};
-      return { id, item, fechaOrden: timestampSeguro(item.fechaRegistro || item.fecha || 0) };
+      const textoFiltro = [
+        id,
+        item.nombreCompleto || "",
+        item.nombre || "",
+        item.usuario || "",
+        item.correo || "",
+        item.email || "",
+        item.rol || "",
+        item.estado || ""
+      ].join(" ");
+
+      return {
+        id,
+        item,
+        fechaOrden: timestampSeguro(item.fechaRegistro || item.fecha || 0),
+        textoFiltro
+      };
     })
     .filter(({ item }) => String(item.rol || "").toLowerCase() === "proveedor");
+
+  if (filtroProveedoresAdmin) {
+    proveedoresLista = proveedoresLista.filter(({ textoFiltro }) => coincideFiltroTexto(textoFiltro, filtroProveedoresAdmin));
+  }
 
   const proveedoresActivos = proveedoresLista.filter(({ item }) => {
     return String(item.estado || "activo").toLowerCase() !== "bloqueado";
@@ -1994,6 +2838,194 @@ function renderProveedores() {
 
 function cargarProveedores() {
   renderProveedores();
+}
+/* =========================
+HELPERS EXTRA VENTAS / DESCARGAS / PROVEEDORES
+========================= */
+
+function buscarProductoAdminPorIdONombre(valor) {
+  const texto = String(valor || "").trim().toLowerCase();
+  if (!texto) return null;
+
+  const data = productosCache || {};
+  const ids = Object.keys(data);
+
+  for (let i = 0; i < ids.length; i++) {
+    const id = ids[i];
+    const item = data[id] || {};
+    const nombre = String(item.nombre || "").trim().toLowerCase();
+
+    if (String(id).trim().toLowerCase() === texto || nombre === texto) {
+      return { id, item };
+    }
+  }
+
+  return null;
+}
+
+function obtenerProductoRelacionadoAdmin(item = {}) {
+  const productoId = String(item.productoId || item.producto || "").trim();
+  const encontradoPorId = buscarProductoAdminPorIdONombre(productoId);
+  if (encontradoPorId) return encontradoPorId;
+
+  const servicio = String(item.servicio || item.nombreProducto || "").trim();
+  const encontradoPorServicio = buscarProductoAdminPorIdONombre(servicio);
+  if (encontradoPorServicio) return encontradoPorServicio;
+
+  return null;
+}
+
+function obtenerProveedorOrden(item = {}) {
+  const directo = String(
+    item.proveedorNombre ||
+    item.proveedor ||
+    item.vendedor ||
+    ""
+  ).trim();
+
+  if (directo) return directo;
+
+  const proveedorId = String(item.proveedorId || "").trim();
+  if (proveedorId && usuariosCache[proveedorId]) {
+    const prov = usuariosCache[proveedorId] || {};
+    return prov.nombreCompleto || prov.nombre || prov.usuario || proveedorId;
+  }
+
+  const relacionado = obtenerProductoRelacionadoAdmin(item);
+  if (relacionado && relacionado.item) {
+    return relacionado.item.proveedorNombre || relacionado.item.proveedorId || "-";
+  }
+
+  return proveedorId || "-";
+}
+
+function obtenerComisionPlataformaOrden(item = {}) {
+  const montoDirecto = Number(
+    item.montoPlataforma ??
+    item.gananciaPlataforma ??
+    0
+  );
+
+  if (!isNaN(montoDirecto) && montoDirecto > 0) {
+    return redondearMonto(montoDirecto);
+  }
+
+  const precio = Number(
+    item.montoTotal ??
+    item.total ??
+    item.precioTotal ??
+    item.monto ??
+    item.precio ??
+    0
+  );
+
+  if (isNaN(precio) || precio <= 0) return 0;
+
+  const porcentaje = Number(item.porcentajePlataforma ?? item.comisionPlataforma ?? 4);
+  return redondearMonto((precio * porcentaje) / 100);
+}
+
+function obtenerGananciaProveedorOrden(item = {}) {
+  const montoDirecto = Number(item.montoProveedor ?? 0);
+  if (!isNaN(montoDirecto) && montoDirecto > 0) return redondearMonto(montoDirecto);
+
+  const precio = Number(
+    item.montoTotal ??
+    item.total ??
+    item.precioTotal ??
+    item.monto ??
+    item.precio ??
+    0
+  );
+
+  if (isNaN(precio) || precio <= 0) return 0;
+
+  return redondearMonto(precio - obtenerComisionPlataformaOrden(item));
+}
+
+function obtenerTipoEntregaDesdeOrdenOProducto(item = {}) {
+  const tipoEntrega = String(item.tipoEntrega || "").toLowerCase().trim();
+  if (["descarga", "plugin", "daw", "codigo", "cuenta"].includes(tipoEntrega)) {
+    return tipoEntrega;
+  }
+
+  const entregaVisual = String(item.entregaVisual || "").toLowerCase().trim();
+  if (["descarga", "plugin", "daw", "codigo", "cuenta"].includes(entregaVisual)) {
+    return entregaVisual;
+  }
+
+  const relacionado = obtenerProductoRelacionadoAdmin(item);
+  if (relacionado && relacionado.item) {
+    const prod = relacionado.item || {};
+    const tipoProd = String(prod.tipoEntrega || "").toLowerCase().trim();
+    const categoria = String(prod.categoria || "").toLowerCase().trim();
+    const nombre = String(prod.nombre || "").toLowerCase().trim();
+
+    if (["descarga", "plugin", "daw", "codigo", "cuenta"].includes(tipoProd)) return tipoProd;
+    if (categoria.includes("plugin")) return "plugin";
+    if (categoria.includes("daw")) return "daw";
+    if (categoria.includes("descarga")) return "descarga";
+    if (categoria.includes("licencia")) return "codigo";
+    if (nombre.includes("windows 11 pro")) return "codigo";
+  }
+
+  return "cuenta";
+}
+
+function esOrdenDescargaOPlugin(item = {}) {
+  const tipo = obtenerTipoEntregaDesdeOrdenOProducto(item);
+  const linkEntrega = String(item.linkEntrega || "").trim();
+  const plataforma = String(item.plataformaElegida || "").trim();
+
+  return (
+    tipo === "descarga" ||
+    tipo === "plugin" ||
+    tipo === "daw" ||
+    linkEntrega !== "" ||
+    plataforma !== ""
+  );
+}
+
+function obtenerLinkEntregaOrden(item = {}) {
+  const directo = String(item.linkEntrega || "").trim();
+  if (directo) return directo;
+
+  const relacionado = obtenerProductoRelacionadoAdmin(item);
+  const prod = relacionado ? (relacionado.item || {}) : {};
+  const opciones = prod.opcionesEntrega || {};
+  const plataforma = String(item.plataformaElegida || "general").toLowerCase().trim();
+
+  const linkPlataforma = String(opciones?.[plataforma]?.link || "").trim();
+  if (linkPlataforma) return linkPlataforma;
+
+  const linkGeneral = String(opciones?.general?.link || "").trim();
+  if (linkGeneral) return linkGeneral;
+
+  return String(prod.linkDescarga || "").trim();
+}
+
+function actualizarCabeceraTablaVentasAdmin() {
+  const tabla = document.getElementById("tablaVentas");
+  if (!tabla) return;
+
+  const ths = tabla.querySelectorAll("thead th");
+  if (!ths || !ths.length) return;
+
+  if (ths[3]) ths[3].textContent = "Proveedor";
+  if (ths[4]) ths[4].textContent = "Comisión plataforma";
+  if (ths[5]) ths[5].textContent = "Ganancia proveedor";
+}
+
+function actualizarCabeceraTablaComprasHoyAdmin() {
+  const tabla = document.getElementById("tablaComprasHoy");
+  if (!tabla) return;
+
+  const ths = tabla.querySelectorAll("thead th");
+  if (!ths || !ths.length) return;
+
+  if (ths[3]) ths[3].textContent = "Proveedor";
+  if (ths[4]) ths[4].textContent = "Comisión plataforma";
+  if (ths[5]) ths[5].textContent = "Ganancia proveedor";
 }
 
 /* =========================
@@ -2060,10 +3092,12 @@ function actualizarContenidoModalRecarga(item, id) {
   }
 
   const wrap = document.getElementById("recargaPreviewWrap");
-  if (item.comprobanteURL) {
-    wrap.innerHTML = `<img id="recargaPreviewImg" src="${escaparHTML(item.comprobanteURL)}" alt="Comprobante">`;
-  } else {
-    wrap.innerHTML = `<div class="adminModalEmpty">Esta recarga no tiene comprobante adjunto.</div>`;
+  if (wrap) {
+    if (item.comprobanteURL) {
+      wrap.innerHTML = `<img id="recargaPreviewImg" src="${escaparHTML(item.comprobanteURL)}" alt="Comprobante">`;
+    } else {
+      wrap.innerHTML = `<div class="adminModalEmpty">Esta recarga no tiene comprobante adjunto.</div>`;
+    }
   }
 
   const btnAbrir = document.getElementById("modalBtnAbrirArchivo");
@@ -2071,14 +3105,16 @@ function actualizarContenidoModalRecarga(item, id) {
   const btnRechazar = document.getElementById("modalBtnRechazar");
   const btnEliminar = document.getElementById("modalBtnEliminar");
 
-  btnAbrir.textContent = item.comprobanteURL ? "Abrir imagen" : "Sin archivo";
-  btnAbrir.onclick = () => {
-    if (item.comprobanteURL) window.open(item.comprobanteURL, "_blank");
-  };
+  if (btnAbrir) {
+    btnAbrir.textContent = item.comprobanteURL ? "Abrir imagen" : "Sin archivo";
+    btnAbrir.onclick = () => {
+      if (item.comprobanteURL) window.open(item.comprobanteURL, "_blank");
+    };
+  }
 
-  btnAprobar.onclick = () => aprobarRecarga(id);
-  btnRechazar.onclick = () => rechazarRecarga(id);
-  btnEliminar.onclick = () => eliminarRegistroConfirmado("recargas/" + id, "Recarga eliminada del historial.", mostrarMensajeRecarga);
+  if (btnAprobar) btnAprobar.onclick = () => aprobarRecarga(id);
+  if (btnRechazar) btnRechazar.onclick = () => rechazarRecarga(id);
+  if (btnEliminar) btnEliminar.onclick = () => eliminarRegistroConfirmado("recargas/" + id, "Recarga eliminada del historial.", mostrarMensajeRecarga);
 
   actualizarBotonesModalRecarga(item);
 }
@@ -2092,13 +3128,15 @@ function abrirModalRecarga(id) {
 
   recargaProcesando = false;
   actualizarContenidoModalRecarga(item, id);
-  document.getElementById("modalRecarga").classList.add("show");
+  const modal = document.getElementById("modalRecarga");
+  if (modal) modal.classList.add("show");
 }
 
 function cerrarModalRecarga() {
   modalRecargaActual = null;
   recargaProcesando = false;
-  document.getElementById("modalRecarga").classList.remove("show");
+  const modal = document.getElementById("modalRecarga");
+  if (modal) modal.classList.remove("show");
 }
 
 function cerrarModalRecargaFondo(event) {
@@ -2240,7 +3278,7 @@ function escucharNuevasRecargasPendientes() {
 
     const idsActuales = Object.keys(nuevasPendientes);
     const idsAnteriores = Object.keys(recargasPendientesCache);
-    const hayNueva = idsActuales.some(id => !idsAnteriores.includes(id));
+    const hayNueva = idsActuales.some((id) => !idsAnteriores.includes(id));
 
     if (hayNueva) {
       reproducirSonidoRecarga();
@@ -2271,7 +3309,7 @@ function cargarRecargas() {
     }
 
     const keys = Object.keys(data)
-      .filter(id => data[id] && typeof data[id] === "object" && id !== "temp")
+      .filter((id) => data[id] && typeof data[id] === "object" && id !== "temp")
       .sort((a, b) => {
         return timestampSeguro(data[b].updatedAt || data[b].fecha || data[b].fechaHora) -
                timestampSeguro(data[a].updatedAt || data[a].fecha || data[a].fechaHora);
@@ -2309,7 +3347,7 @@ function cargarRecargas() {
           <td>${escaparHTML(textoSeguro(item.metodoPago))}</td>
           <td>${escaparHTML(textoSeguro(item.operacion || item.numeroOperacion))}</td>
           <td>
-            <button class="smallBtn btnSave" onclick="abrirModalRecarga('${escaparParaJS(id)}')">Ver Info</button>
+            <button class="smallBtn btnSave" onclick="abrirModalRecarga('${escaparParaJS(id)}')">Ver info</button>
           </td>
           <td>${badgeEstado(estado)}</td>
           <td>${escaparHTML(formatearFecha(item.fecha || item.fechaHora || item.updatedAt || item.fechaAprobacion || item.fechaRechazo))}</td>
@@ -2335,21 +3373,23 @@ function cargarRecargas() {
     }
   }, (error) => {
     console.error("Error leyendo recargas:", error);
-    document.getElementById("tablaRecargas").classList.add("hidden");
-    document.getElementById("recargasVacio").classList.remove("hidden");
-    document.getElementById("totalRecargas").textContent = "0";
+    const tabla = document.getElementById("tablaRecargas");
+    const vacio = document.getElementById("recargasVacio");
+    const total = document.getElementById("totalRecargas");
+    if (tabla) tabla.classList.add("hidden");
+    if (vacio) vacio.classList.remove("hidden");
+    if (total) total.textContent = "0";
     mostrarMensajeRecarga("No se pudieron leer las recargas. Revisa tus rules.", true);
   });
 }
+
 /* =========================
 REEMBOLSOS
 ========================= */
 
 function restaurarCuentaPorReembolso(uid, ordenId, orden = {}) {
   const producto = String(orden.producto || orden.servicio || "").trim().toLowerCase();
-  if (!uid || !ordenId || !producto) {
-    return Promise.resolve(false);
-  }
+  if (!uid || !ordenId || !producto) return Promise.resolve(false);
 
   return db.ref("cuentas/" + producto).once("value")
     .then((snapshot) => {
@@ -2370,9 +3410,7 @@ function restaurarCuentaPorReembolso(uid, ordenId, orden = {}) {
         }
       });
 
-      if (!cuentaIdEncontrada || !cuentaData) {
-        return false;
-      }
+      if (!cuentaIdEncontrada || !cuentaData) return false;
 
       const duracionDias = Number(cuentaData.duracionDias || orden.duracionDias || 30);
       const nuevaFechaCreacion = new Date().toISOString();
@@ -2508,7 +3546,7 @@ function cargarReembolsos() {
     }
 
     const keys = Object.keys(data)
-      .filter(id => data[id] && typeof data[id] === "object")
+      .filter((id) => data[id] && typeof data[id] === "object")
       .sort((a, b) => timestampSeguro(data[b].fechaSolicitud) - timestampSeguro(data[a].fechaSolicitud));
 
     let totalPendientes = 0;
@@ -2596,17 +3634,20 @@ function aprobarRetiroProveedor(id) {
         const nuevoSaldo = redondearMonto(saldoActual - monto);
         const ahora = Date.now();
 
+        const movimientoRef = db.ref("movimientosSaldo").push();
         const updates = {};
         updates["usuarios/" + proveedorId + "/saldo"] = nuevoSaldo;
         updates["retirosProveedores/" + id + "/estado"] = "aprobado";
         updates["retirosProveedores/" + id + "/fechaResolucion"] = ahora;
         updates["retirosProveedores/" + id + "/adminUid"] = auth.currentUser ? auth.currentUser.uid : "";
-        updates["movimientosSaldo/" + id] = {
-          proveedorId: proveedorId,
+        updates["retirosProveedores/" + id + "/movimientoId"] = movimientoRef.key;
+        updates["movimientosSaldo/" + movimientoRef.key] = {
+          proveedorId,
           tipo: "retiro aprobado",
           detalle: "Retiro aprobado por administrador",
-          monto: monto,
+          monto,
           signo: "-",
+          retiroId: id,
           fecha: ahora
         };
 
@@ -2713,6 +3754,124 @@ function cargarRetirosProveedores() {
 }
 
 /* =========================
+COMISIONES PROVEEDORES PENDIENTES
+========================= */
+
+function programarProcesoComisionesProveedores() {
+  if (!listenerComisionesProveedoresActivo) return;
+  clearTimeout(timeoutComisionesProveedores);
+  timeoutComisionesProveedores = setTimeout(() => {
+    procesarComisionesProveedoresPendientes();
+  }, 1200);
+}
+
+function escucharComisionesProveedoresPendientes() {
+  if (listenerComisionesProveedoresActivo) return;
+  listenerComisionesProveedoresActivo = true;
+  programarProcesoComisionesProveedores();
+}
+
+function acreditarSaldoProveedorDesdeAdmin(proveedorId, monto) {
+  return new Promise((resolve, reject) => {
+    if (!proveedorId || Number(monto || 0) <= 0) {
+      resolve({ ok: false, motivo: "SIN_PROVEEDOR_O_MONTO" });
+      return;
+    }
+
+    db.ref("usuarios/" + proveedorId + "/saldo").transaction((saldoActual) => {
+      const saldo = Number(saldoActual || 0);
+      return redondearMonto(saldo + Number(monto || 0));
+    }, (error, committed, snapshot) => {
+      if (error) return reject(error);
+      if (!committed) return reject(new Error("NO_SE_PUDO_ACREDITAR_SALDO_PROVEEDOR"));
+
+      resolve({
+        ok: true,
+        saldoFinal: Number(snapshot.val() || 0)
+      });
+    });
+  });
+}
+
+async function procesarComisionProveedorIndividual(ventaData) {
+  const path = ventaData.path;
+  const item = ventaData.item || {};
+  const proveedorId = String(item.proveedorId || "").trim();
+  const montoProveedor = Number(item.montoProveedor || 0);
+  const productoId = String(item.productoId || ventaData.productoId || "").trim();
+  const productoNombre = item.producto || item.productoNombre || productoId || "";
+  const compradorNombre = item.nombre || item.comprador || item.cliente || "";
+  const ventaId = ventaData.ventaId || "";
+
+  if (!proveedorId || proveedorId === "admin_principal" || montoProveedor <= 0) return;
+
+  await db.ref(path).update({
+    comisionProveedorProcesando: true,
+    errorComisionProveedor: null
+  });
+
+  let movimientoRef = null;
+
+  try {
+    await acreditarSaldoProveedorDesdeAdmin(proveedorId, montoProveedor);
+
+    movimientoRef = db.ref("movimientosSaldo").push();
+    await movimientoRef.set({
+      proveedorId,
+      tipo: "venta",
+      detalle: "Venta acreditada por administrador",
+      monto: redondearMonto(montoProveedor),
+      signo: "+",
+      productoId,
+      productoNombre,
+      compradorNombre,
+      ventaId,
+      fecha: Date.now()
+    });
+
+    await db.ref(path).update({
+      comisionProveedorProcesada: true,
+      comisionProveedorProcesando: false,
+      comisionProveedorPendiente: false,
+      fechaComisionProveedor: Date.now(),
+      movimientoProveedorId: movimientoRef.key || "",
+      errorComisionProveedor: null
+    });
+  } catch (error) {
+    if (movimientoRef && movimientoRef.key) {
+      try { await movimientoRef.remove(); } catch (_) {}
+    }
+
+    await db.ref(path).update({
+      comisionProveedorProcesada: false,
+      comisionProveedorProcesando: false,
+      comisionProveedorPendiente: true,
+      errorComisionProveedor: String(error.message || error || "ERROR_COMISION")
+    });
+  }
+}
+
+async function procesarComisionesProveedoresPendientes() {
+  if (!listenerComisionesProveedoresActivo) return;
+  if (procesandoComisionesProveedores) return;
+
+  procesandoComisionesProveedores = true;
+
+  try {
+    const pendientes = extraerVentasPendientesProveedor(ventasCache || {});
+    if (!pendientes.length) return;
+
+    for (let i = 0; i < pendientes.length; i++) {
+      await procesarComisionProveedorIndividual(pendientes[i]);
+    }
+  } catch (error) {
+    console.error("Error procesando comisiones de proveedores:", error);
+  } finally {
+    procesandoComisionesProveedores = false;
+  }
+}
+
+/* =========================
 ELIMINAR / VACIAR
 ========================= */
 
@@ -2726,6 +3885,7 @@ function eliminarRegistroConfirmado(path, exitoTexto, callbackMsg) {
         delete recargasCacheAdmin[id];
         if (modalRecargaActual && modalRecargaActual.id === id) cerrarModalRecarga();
       }
+
       if (typeof callbackMsg === "function") callbackMsg(exitoTexto, false);
     })
     .catch((error) => {
@@ -2753,6 +3913,8 @@ function vaciarNodoConfirmado(path, aviso) {
         programarRecalculoStockSilencioso();
       } else if (path === "retirosProveedores") {
         mostrarMensajeProducto("Historial de retiros de proveedores eliminado.");
+      } else if (path === "comprasHoy") {
+        mostrarMensajeProducto("Historial de compras hoy eliminado.");
       }
     })
     .catch((error) => {
@@ -2761,13 +3923,17 @@ function vaciarNodoConfirmado(path, aviso) {
       if (path === "ventas") mostrarMensajeProducto("Error: " + error.message, true);
       if (path === "codigos") mostrarMensajeCodigo("Error: " + error.message, true);
       if (path === "retirosProveedores") mostrarMensajeProducto("Error: " + error.message, true);
+      if (path === "comprasHoy") mostrarMensajeProducto("Error: " + error.message, true);
     });
 }
 
 function vaciarComprasHoyConfirmado() {
   if (!confirm("Se vaciará el historial de compras hoy. Esta acción no se puede deshacer.")) return;
 
-  db.ref("comprasHoy").set(0)
+  Promise.all([
+    db.ref("comprasHoy").remove(),
+    db.ref("comprasHoyEliminadas").remove()
+  ])
     .then(() => mostrarMensajeProducto("Compras hoy reiniciado correctamente."))
     .catch((error) => mostrarMensajeProducto("Error: " + error.message, true));
 }
@@ -2805,23 +3971,7 @@ VENTAS Y COMPRAS HOY
 ========================= */
 
 function obtenerMontoVenta(item = {}) {
-  const monto = Number(
-    item.montoPlataforma ??
-    item.gananciaPlataforma ??
-    item.monto ??
-    item.total ??
-    item.precio ??
-    item.precioTotal ??
-    item.montoTotal ??
-    0
-  );
-
-  if (!isNaN(monto) && monto > 0) return monto;
-
-  const precio = Number(item.precio ?? item.total ?? item.precioTotal ?? 0);
-  if (!isNaN(precio) && precio > 0) return precio;
-
-  return 0;
+  return obtenerComisionPlataformaOrden(item);
 }
 
 function extraerVentasDesdeNodoVentas(data) {
@@ -2868,8 +4018,10 @@ function extraerVentasDesdeOrdenes(data) {
         __path: "",
         producto: item.producto || item.servicio || "",
         nombre: item.comprador || item.nombreCliente || "",
-        operacion: item.operacion || item.numeroOperacion || "-",
-        monto: item.precio || 0,
+        proveedorNombre: obtenerProveedorOrden(item),
+        montoPlataforma: obtenerComisionPlataformaOrden(item),
+        montoProveedor: obtenerGananciaProveedorOrden(item),
+        precio: item.precio || 0,
         fecha: item.fechaCompra || "",
         estado: item.estado || "activa"
       });
@@ -2886,12 +4038,26 @@ function renderVentas() {
 
   if (!tbody || !tabla || !vacio) return;
 
+  actualizarCabeceraTablaVentasAdmin();
   tbody.innerHTML = "";
 
-  let ventasLista = extraerVentasDesdeNodoVentas(ventasCache);
-
+  let ventasLista = extraerVentasDesdeNodoVentas(ventasCache || {});
   if (!ventasLista.length) {
-    ventasLista = extraerVentasDesdeOrdenes(ordenesCache);
+    ventasLista = extraerVentasDesdeOrdenes(ordenesCache || {});
+  }
+
+  if (filtroVentasAdmin) {
+    ventasLista = ventasLista.filter((item) => {
+      const texto = [
+        item.id || "",
+        item.producto || item.plan || item.nombreProducto || item.servicio || "",
+        item.nombre || item.cliente || item.usuario || item.nombreCliente || item.comprador || "",
+        obtenerProveedorOrden(item),
+        item.estado || ""
+      ].join(" ");
+
+      return coincideFiltroTexto(texto, filtroVentasAdmin);
+    });
   }
 
   ventasLista.sort((a, b) => {
@@ -2909,19 +4075,22 @@ function renderVentas() {
     return;
   }
 
-  let suma = 0;
+  let sumaComision = 0;
 
   ventasLista.forEach((item) => {
-    const monto = obtenerMontoVenta(item);
-    suma += monto;
+    const comision = obtenerComisionPlataformaOrden(item);
+    const gananciaProveedor = obtenerGananciaProveedorOrden(item);
+    const proveedor = obtenerProveedorOrden(item);
+    sumaComision += comision;
 
     tbody.innerHTML += `
       <tr>
         <td>${escaparHTML(textoSeguro(item.id))}</td>
         <td>${escaparHTML(textoSeguro(item.producto || item.plan || item.nombreProducto || item.servicio))}</td>
         <td>${escaparHTML(textoSeguro(item.nombre || item.cliente || item.usuario || item.nombreCliente || item.comprador))}</td>
-        <td>${escaparHTML(textoSeguro(item.operacion || item.numeroOperacion || item.transaccion || "-"))}</td>
-        <td>${formatearDinero(monto)}</td>
+        <td>${escaparHTML(textoSeguro(proveedor))}</td>
+        <td>${formatearDinero(comision)}</td>
+        <td>${formatearDinero(gananciaProveedor)}</td>
         <td>${escaparHTML(formatearFecha(item.fecha || item.fechaHora || item.hora || item.fechaCompra))}</td>
         <td>${badgeEstado(item.estado || "registrado")}</td>
         <td>
@@ -2934,22 +4103,36 @@ function renderVentas() {
     `;
   });
 
-  document.getElementById("gananciaTotal").textContent = formatearDinero(suma);
+  document.getElementById("gananciaTotal").textContent = formatearDinero(sumaComision);
   tabla.classList.remove("hidden");
   vacio.classList.add("hidden");
 }
 
-function cargarVentas() {
-  db.ref("ventas").on("value", (snapshot) => {
-    ventasCache = snapshot.val() || {};
-    renderVentas();
-  });
+function eliminarCompraHoy(uid, ordenId, compraId) {
+  if (!confirm("¿Seguro que quieres eliminar esta compra de la tabla Compras hoy?")) return;
 
-  db.ref("ordenes").on("value", (snapshot) => {
-    ordenesCache = snapshot.val() || {};
-    renderVentas();
-    renderComprasHoy();
-  });
+  const idFinal = String(compraId || ordenId || "").trim();
+  if (!idFinal) {
+    mostrarMensajeProducto("No se pudo identificar la compra a eliminar.", true);
+    return;
+  }
+
+  const updates = {};
+  updates["comprasHoy/" + idFinal] = null;
+  updates["comprasHoyEliminadas/" + idFinal] = {
+    eliminado: true,
+    uid: uid || "",
+    ordenId: ordenId || "",
+    fechaEliminacion: Date.now()
+  };
+
+  db.ref().update(updates)
+    .then(() => {
+      mostrarMensajeProducto("Compra eliminada de Compras hoy correctamente.");
+    })
+    .catch((error) => {
+      mostrarMensajeProducto("Error al eliminar compra de hoy: " + error.message, true);
+    });
 }
 
 function renderComprasHoy() {
@@ -2959,6 +4142,7 @@ function renderComprasHoy() {
 
   if (!tbody || !tabla || !vacio) return;
 
+  actualizarCabeceraTablaComprasHoyAdmin();
   tbody.innerHTML = "";
 
   if (typeof comprasHoyCache === "number") {
@@ -2970,12 +4154,22 @@ function renderComprasHoy() {
   }
 
   let comprasLista = [];
+  const eliminadas = comprasHoyEliminadasCache || {};
 
   if (comprasHoyCache && typeof comprasHoyCache === "object") {
     Object.keys(comprasHoyCache).forEach((id) => {
       const item = comprasHoyCache[id];
       if (!item || typeof item !== "object") return;
-      comprasLista.push({ id, __path: "comprasHoy/" + id, ...item });
+      if (eliminadas[id]) return;
+
+      comprasLista.push({
+        id,
+        compraId: id,
+        uid: item.uidUsuario || item.uid || "",
+        ordenId: item.ordenId || id,
+        __path: "comprasHoy/" + id,
+        ...item
+      });
     });
   }
 
@@ -2986,18 +4180,38 @@ function renderComprasHoy() {
         const item = ordenesUsuario[ordenId] || {};
         const fecha = item.fechaCompra || item.fecha || item.fechaHora || item.hora;
         if (!esMismoDiaHoy(fecha)) return;
+        if (eliminadas[ordenId]) return;
 
         comprasLista.push({
           id: ordenId,
+          compraId: ordenId,
+          uid,
+          ordenId,
           __path: "",
           producto: item.producto || item.servicio || "",
           nombre: item.comprador || item.nombreCliente || "",
-          operacion: item.operacion || item.numeroOperacion || "-",
-          monto: item.precio || 0,
-          fecha: fecha,
+          precio: item.precio || 0,
+          montoPlataforma: obtenerComisionPlataformaOrden(item),
+          montoProveedor: obtenerGananciaProveedorOrden(item),
+          proveedorNombre: obtenerProveedorOrden(item),
+          fecha,
           estado: item.estado || "activa"
         });
       });
+    });
+  }
+
+  if (filtroComprasHoyAdmin) {
+    comprasLista = comprasLista.filter((item) => {
+      const texto = [
+        item.id || "",
+        item.producto || item.servicio || "",
+        item.nombre || item.comprador || item.nombreCliente || "",
+        obtenerProveedorOrden(item),
+        item.estado || ""
+      ].join(" ");
+
+      return coincideFiltroTexto(texto, filtroComprasHoyAdmin);
     });
   }
 
@@ -3019,23 +4233,23 @@ function renderComprasHoy() {
   let sumaHoy = 0;
 
   comprasLista.forEach((item) => {
-    const monto = obtenerMontoVenta(item);
-    sumaHoy += monto;
+    const comision = obtenerComisionPlataformaOrden(item);
+    const gananciaProveedor = obtenerGananciaProveedorOrden(item);
+    const proveedor = obtenerProveedorOrden(item);
+    sumaHoy += comision;
 
     tbody.innerHTML += `
       <tr>
         <td>${escaparHTML(textoSeguro(item.id))}</td>
-        <td>${escaparHTML(textoSeguro(item.producto || item.plan || item.nombreProducto || item.servicio))}</td>
-        <td>${escaparHTML(textoSeguro(item.nombre || item.cliente || item.usuario || item.nombreCliente || item.comprador))}</td>
-        <td>${escaparHTML(textoSeguro(item.operacion || item.numeroOperacion || item.transaccion || "-"))}</td>
-        <td>${formatearDinero(monto)}</td>
-        <td>${escaparHTML(formatearFecha(item.fecha || item.fechaHora || item.hora || item.fechaCompra))}</td>
+        <td>${escaparHTML(textoSeguro(item.producto || item.servicio))}</td>
+        <td>${escaparHTML(textoSeguro(item.nombre || item.comprador || item.nombreCliente || item.cliente || "-"))}</td>
+        <td>${escaparHTML(textoSeguro(proveedor))}</td>
+        <td>${formatearDinero(comision)}</td>
+        <td>${formatearDinero(gananciaProveedor)}</td>
+        <td>${escaparHTML(formatearFecha(item.fecha || item.fechaCompra))}</td>
         <td>${badgeEstado(item.estado || "registrado")}</td>
         <td>
-          ${item.__path
-            ? `<button class="smallBtn btnDelete" onclick="eliminarRegistroConfirmado('${escaparParaJS(item.__path)}', 'Registro eliminado de compras hoy.', mostrarMensajeProducto)">Eliminar</button>`
-            : "-"
-          }
+          <button class="smallBtn btnDelete" onclick="eliminarCompraHoy('${escaparParaJS(item.uid || "")}', '${escaparParaJS(item.ordenId || item.id || "")}', '${escaparParaJS(item.compraId || item.id || "")}')">Eliminar</button>
         </td>
       </tr>
     `;
@@ -3046,9 +4260,29 @@ function renderComprasHoy() {
   vacio.classList.add("hidden");
 }
 
+function cargarVentas() {
+  db.ref("ventas").on("value", (snapshot) => {
+    ventasCache = snapshot.val() || {};
+    renderVentas();
+    programarProcesoComisionesProveedores();
+  });
+
+  db.ref("ordenes").on("value", (snapshot) => {
+    ordenesCache = snapshot.val() || {};
+    renderVentas();
+    renderComprasHoy();
+    renderDescargasEntregadas();
+  });
+}
+
 function cargarComprasHoy() {
   db.ref("comprasHoy").on("value", (snapshot) => {
     comprasHoyCache = snapshot.val();
+    renderComprasHoy();
+  });
+
+  db.ref("comprasHoyEliminadas").on("value", (snapshot) => {
+    comprasHoyEliminadasCache = snapshot.val() || {};
     renderComprasHoy();
   });
 }
