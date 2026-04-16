@@ -21,6 +21,7 @@
       --text:#f5f7ff;
       --muted:#a9afc3;
       --primary:#7c4dff;
+      --primary2:#6b46ff;
       --primary3:#5f92ff;
       --success:#20c997;
       --warning:#ffb020;
@@ -29,9 +30,16 @@
       --shadow:0 18px 40px rgba(0,0,0,0.35);
       --selectBg:#23233a;
       --inputBg:rgba(255,255,255,0.05);
+      --glass:rgba(255,255,255,0.04);
+      --glass2:rgba(255,255,255,0.06);
     }
 
-    *{margin:0;padding:0;box-sizing:border-box}
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
     html,body{
       width:100%;
       min-height:100%;
@@ -47,7 +55,17 @@
       overflow-x:hidden;
     }
 
-    a{text-decoration:none;color:inherit}
+    a{
+      text-decoration:none;
+      color:inherit;
+    }
+
+    button,
+    input,
+    select,
+    textarea{
+      font-family:inherit;
+    }
 
     .app{
       display:flex;
@@ -90,6 +108,7 @@
       font-weight:700;
       background:linear-gradient(135deg, var(--primary), #4d8dff);
       color:#fff;
+      flex-shrink:0;
     }
 
     .brandText h1{
@@ -109,6 +128,7 @@
       border-radius:18px;
       padding:14px;
       margin-bottom:16px;
+      box-shadow:var(--shadow);
     }
 
     .userRow{
@@ -160,12 +180,14 @@
     .walletMini strong{
       font-size:23px;
       color:#fff;
+      display:block;
+      word-break:break-word;
     }
 
     .menuTitle{
       color:var(--muted);
       font-size:12px;
-      letter-spacing:0.5px;
+      letter-spacing:.5px;
       text-transform:uppercase;
       margin:14px 10px 10px;
     }
@@ -234,7 +256,6 @@
       flex-wrap:wrap;
     }
 
-    /* ===== BOTON MENU MOVIL FLOTANTE ===== */
     .mobileMenuBtn{
       display:none;
       width:48px;
@@ -270,6 +291,7 @@
     .pageTitle p{
       color:var(--muted);
       font-size:13px;
+      line-height:1.5;
     }
 
     .topActions{
@@ -404,6 +426,7 @@
       font-size:12px;
       color:var(--muted);
       margin-top:4px;
+      line-height:1.5;
     }
 
     .gridTwo{
@@ -428,6 +451,7 @@
       display:flex;
       flex-direction:column;
       gap:8px;
+      min-width:0;
     }
 
     .field.full{
@@ -668,6 +692,7 @@
       font-weight:800;
       margin-bottom:10px;
       letter-spacing:.4px;
+      word-break:break-word;
     }
 
     .walletHero p{
@@ -702,6 +727,7 @@
       display:block;
       font-size:20px;
       margin-bottom:6px;
+      word-break:break-word;
     }
 
     .debugBox{
@@ -745,7 +771,7 @@
 
     .modalBox{
       width:100%;
-      max-width:1150px;
+      max-width:1180px;
       max-height:90vh;
       overflow:auto;
       background:linear-gradient(180deg,#121221,#0e0e18);
@@ -757,7 +783,7 @@
 
     .modalHead{
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
       gap:12px;
       margin-bottom:18px;
@@ -765,12 +791,13 @@
 
     .modalHead h3{
       font-size:24px;
+      margin-bottom:6px;
     }
 
     .modalHead p{
       color:var(--muted);
       font-size:13px;
-      margin-top:6px;
+      line-height:1.5;
     }
 
     .modalCerrar{
@@ -782,6 +809,30 @@
       background:rgba(255,255,255,0.08);
       color:#fff;
       font-size:18px;
+      flex-shrink:0;
+    }
+
+    .modalCerrar:hover{
+      background:rgba(255,255,255,0.12);
+    }
+
+    .modalSearchWrap{
+      margin-bottom:16px;
+    }
+
+    .modalSearchGrid{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr) 120px;
+      gap:12px;
+      align-items:end;
+      margin-bottom:10px;
+    }
+
+    .modalResultsText{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.5;
+      padding:2px 2px 0;
     }
 
     .tiendaGrid{
@@ -795,6 +846,9 @@
       background:linear-gradient(180deg,#171727,#1d1d31);
       border:1px solid rgba(255,255,255,0.07);
       overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      min-width:0;
     }
 
     .tiendaCardImg{
@@ -807,28 +861,32 @@
 
     .tiendaCardBody{
       padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      flex:1;
     }
 
     .tiendaCardBody h4{
       font-size:17px;
-      margin-bottom:8px;
+      line-height:1.35;
     }
 
     .tiendaMeta{
       font-size:12px;
       color:var(--muted);
-      line-height:1.6;
-      margin-bottom:10px;
+      line-height:1.7;
     }
 
     .tiendaPrecio{
       font-size:22px;
       font-weight:800;
-      margin-bottom:10px;
+      margin-top:auto;
     }
 
     .tiendaTag{
       display:inline-flex;
+      width:max-content;
       padding:7px 10px;
       border-radius:999px;
       font-size:11px;
@@ -1000,7 +1058,6 @@
       flex-wrap:wrap;
     }
 
-    /* ===== CHAT BURBUJA FLOTANTE ===== */
     #chatBubble{
       position:fixed;
       right:18px;
@@ -1125,6 +1182,209 @@
       background:#fff;
     }
 
+    /* ===== NOTIFICACIONES PROFESIONALES ===== */
+
+    .notifyWrap{
+      position:fixed;
+      top:18px;
+      right:18px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      z-index:10050;
+      width:min(390px, calc(100vw - 24px));
+      pointer-events:none;
+    }
+
+    .notifyItem{
+      display:flex;
+      align-items:flex-start;
+      gap:12px;
+      padding:14px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,0.08);
+      background:linear-gradient(180deg,#101423,#0b0f1a);
+      box-shadow:0 18px 40px rgba(0,0,0,0.35);
+      transform:translateY(-10px);
+      opacity:0;
+      pointer-events:auto;
+      animation:notifyIn .22s ease forwards;
+    }
+
+    .notifyIcon{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      flex-shrink:0;
+      color:#fff;
+      font-weight:700;
+    }
+
+    .notifyItem.success .notifyIcon{
+      background:linear-gradient(135deg,#14c97f,#1ea7ff);
+    }
+
+    .notifyItem.error .notifyIcon{
+      background:linear-gradient(135deg,#ff5d73,#ff885d);
+    }
+
+    .notifyItem.warning .notifyIcon{
+      background:linear-gradient(135deg,#ffb020,#ff884d);
+    }
+
+    .notifyItem.info .notifyIcon{
+      background:linear-gradient(135deg,#5f92ff,#7c4dff);
+    }
+
+    .notifyContent{
+      min-width:0;
+      flex:1;
+    }
+
+    .notifyContent strong{
+      display:block;
+      font-size:14px;
+      margin-bottom:4px;
+      color:#fff;
+    }
+
+    .notifyContent p{
+      font-size:12.5px;
+      line-height:1.55;
+      color:#dce3ff;
+      word-break:break-word;
+    }
+
+    .notifyClose{
+      width:30px;
+      height:30px;
+      border:none;
+      border-radius:10px;
+      background:rgba(255,255,255,0.08);
+      color:#fff;
+      cursor:pointer;
+      flex-shrink:0;
+      font-size:15px;
+    }
+
+    .notifyClose:hover{
+      background:rgba(255,255,255,0.12);
+    }
+
+    @keyframes notifyIn{
+      to{
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+
+    .confirmOverlay{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.66);
+      z-index:10060;
+      padding:18px;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .confirmOverlay.show{
+      display:flex;
+    }
+
+    .confirmBox{
+      width:100%;
+      max-width:480px;
+      background:linear-gradient(180deg,#121625,#0d1018);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:22px;
+      box-shadow:0 24px 60px rgba(0,0,0,0.48);
+      padding:20px;
+    }
+
+    .confirmHead{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      margin-bottom:14px;
+    }
+
+    .confirmIcon{
+      width:44px;
+      height:44px;
+      border-radius:14px;
+      background:linear-gradient(135deg,#7c4dff,#36a3ff);
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:19px;
+      flex-shrink:0;
+    }
+
+    .confirmText h3{
+      font-size:18px;
+      margin-bottom:6px;
+    }
+
+    .confirmText p{
+      font-size:13px;
+      color:#dce3ff;
+      line-height:1.65;
+    }
+
+    .confirmActions{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      margin-top:18px;
+      flex-wrap:wrap;
+    }
+
+    /* ===== RETIROS RESPONSIVE PRO ===== */
+
+    #section-retiros .gridStats.twoCols{
+      grid-template-columns:minmax(0, 1.08fr) minmax(0, .92fr);
+      gap:16px;
+      margin-bottom:18px;
+    }
+
+    #section-retiros .gridTwo{
+      grid-template-columns:minmax(320px, 370px) minmax(0, 1fr);
+      gap:16px;
+      align-items:stretch;
+    }
+
+    #section-retiros .panelCard{
+      overflow:hidden;
+    }
+
+    #section-retiros .panelCard:first-child{
+      align-self:start;
+    }
+
+    #section-retiros .panelCard:last-child{
+      min-width:0;
+    }
+
+    #section-retiros .formGrid{
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:14px;
+    }
+
+    #section-retiros .field.full{
+      grid-column:1 / -1;
+    }
+
+    #section-retiros table{
+      min-width:860px;
+    }
+
     @media (max-width: 1200px){
       .gridStats{grid-template-columns:repeat(2,minmax(0,1fr))}
       .gridStats.twoCols{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -1133,6 +1393,12 @@
       .tiendaGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
       .compactFormGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
       .miniStatsRow{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+
+    @media (max-width: 1100px){
+      #section-retiros .gridTwo{
+        grid-template-columns:1fr;
+      }
     }
 
     @media (max-width: 900px){
@@ -1166,7 +1432,8 @@
 
       .formGrid,
       .salesFilters,
-      .compactFormGrid{
+      .compactFormGrid,
+      .modalSearchGrid{
         grid-template-columns:1fr;
       }
 
@@ -1200,239 +1467,61 @@
         width:58px;
         height:58px;
       }
-    }
-
-    /* =========================
-RETIROS RESPONSIVE PRO
-========================= */
-
-    #section-retiros .gridStats.twoCols{
-      grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
-      gap: 16px;
-      margin-bottom: 18px;
-    }
-
-    #section-retiros .gridTwo{
-      grid-template-columns: minmax(320px, 370px) minmax(0, 1fr);
-      gap: 16px;
-      align-items: stretch;
-    }
-
-    #section-retiros .panelCard{
-      overflow: hidden;
-    }
-
-    #section-retiros .panelCard:first-child{
-      align-self: start;
-    }
-
-    #section-retiros .panelCard:last-child{
-      min-width: 0;
-    }
-
-    #section-retiros .panelHeader{
-      margin-bottom: 14px;
-    }
-
-    #section-retiros .panelHeader h3{
-      font-size: 18px;
-      line-height: 1.15;
-    }
-
-    #section-retiros .panelHeader p{
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    #section-retiros .formGrid{
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 14px;
-    }
-
-    #section-retiros .field.full{
-      grid-column: 1 / -1;
-    }
-
-    #section-retiros .field{
-      min-width: 0;
-    }
-
-    #section-retiros .field label{
-      font-size: 13px;
-    }
-
-    #section-retiros .field input,
-    #section-retiros .field select{
-      height: 44px;
-      padding: 0 14px;
-      border-radius: 14px;
-    }
-
-    #section-retiros #formRetiro .btn{
-      width: 100%;
-      min-height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      line-height: 1.2;
-    }
-
-    #section-retiros .notice{
-      margin-top: 14px;
-      padding: 12px 14px;
-      border-radius: 14px;
-      font-size: 12px;
-      line-height: 1.55;
-    }
-
-    #section-retiros .tableWrap{
-      width: 100%;
-      overflow-x: auto;
-      overflow-y: hidden;
-      border-radius: 16px;
-    }
-
-    #section-retiros table{
-      width: 100%;
-      min-width: 860px;
-    }
-
-    #section-retiros th,
-    #section-retiros td{
-      padding: 13px 12px;
-      font-size: 12.5px;
-      white-space: nowrap;
-    }
-
-    #section-retiros td:nth-child(3),
-    #section-retiros th:nth-child(3){
-      min-width: 210px;
-    }
-
-    #section-retiros td:nth-child(5),
-    #section-retiros th:nth-child(5),
-    #section-retiros td:nth-child(6),
-    #section-retiros th:nth-child(6){
-      min-width: 150px;
-    }
-
-    @media (max-width: 1100px){
-      #section-retiros .gridTwo{
-        grid-template-columns: 1fr;
-      }
-
-      #section-retiros .panelCard:first-child,
-      #section-retiros .panelCard:last-child{
-        width: 100%;
-      }
-    }
-
-    @media (max-width: 900px){
-      #section-retiros .gridStats.twoCols{
-        grid-template-columns: 1fr;
-        gap: 12px;
-        margin-bottom: 16px;
-      }
-
-      #section-retiros .gridTwo{
-        grid-template-columns: 1fr;
-        gap: 14px;
-      }
-
-      #section-retiros .panelCard{
-        padding: 14px;
-        border-radius: 18px;
-        margin-bottom: 14px;
-      }
-
-      #section-retiros .panelHeader{
-        margin-bottom: 12px;
-      }
-
-      #section-retiros .panelHeader h3{
-        font-size: 17px;
-      }
-
-      #section-retiros .panelHeader p{
-        font-size: 12px;
-        line-height: 1.5;
-      }
 
       #section-retiros .formGrid{
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-
-      #section-retiros .field{
-        gap: 6px;
-      }
-
-      #section-retiros .field label{
-        font-size: 12.5px;
-      }
-
-      #section-retiros .field input,
-      #section-retiros .field select{
-        height: 46px;
-        padding: 0 13px;
-        font-size: 14px;
-        border-radius: 12px;
-      }
-
-      #section-retiros #formRetiro .btn{
-        min-height: 48px;
-        padding: 12px 14px;
-        font-size: 14px;
-        border-radius: 12px;
-      }
-
-      #section-retiros .notice{
-        font-size: 11.5px;
-        line-height: 1.55;
-        padding: 10px 12px;
-        border-radius: 12px;
-      }
-
-      #section-retiros .tableWrap{
-        border-radius: 14px;
+        grid-template-columns:1fr;
       }
 
       #section-retiros table{
-        min-width: 720px;
-      }
-
-      #section-retiros th,
-      #section-retiros td{
-        padding: 12px 10px;
-        font-size: 12px;
+        min-width:720px;
       }
     }
 
     @media (max-width: 560px){
       #section-retiros .panelCard{
-        padding: 12px;
+        padding:12px;
       }
 
       #section-retiros .field input,
       #section-retiros .field select{
-        height: 44px;
-        font-size: 13.5px;
+        height:44px;
+        font-size:13.5px;
       }
 
       #section-retiros #formRetiro .btn{
-        min-height: 46px;
-        font-size: 13.5px;
+        min-height:46px;
+        font-size:13.5px;
       }
 
-      #section-retiros .notice{
-        font-size: 11px;
+      .notifyWrap{
+        top:12px;
+        right:12px;
+        width:calc(100vw - 24px);
       }
     }
   </style>
 </head>
 <body>
   <div class="overlay" id="overlay" onclick="cerrarMenuMovil()"></div>
+
+  <div class="notifyWrap" id="notifyWrap"></div>
+
+  <div class="confirmOverlay" id="confirmOverlay">
+    <div class="confirmBox">
+      <div class="confirmHead">
+        <div class="confirmIcon" id="confirmIcon">?</div>
+        <div class="confirmText">
+          <h3 id="confirmTitle">Confirmación</h3>
+          <p id="confirmMessage">¿Deseas continuar?</p>
+        </div>
+      </div>
+
+      <div class="confirmActions">
+        <button class="btn btnGhost" id="confirmCancelBtn" type="button">Cancelar</button>
+        <button class="btn btnPrimary" id="confirmAcceptBtn" type="button">Aceptar</button>
+      </div>
+    </div>
+  </div>
 
   <div class="app">
     <aside class="sidebar" id="sidebar">
@@ -1584,7 +1673,7 @@ RETIROS RESPONSIVE PRO
             </div>
 
             <div class="notice">
-              Este panel está pensado para que el proveedor gestione su propio catálogo, vea sus ventas, controle su saldo y solicite retiros de forma ordenada y profesional.
+              Este panel está pensado para que el proveedor gestione su propio catálogo, vea sus ventas, controle su saldo y solicite retiros de forma ordenada, limpia y profesional.
             </div>
           </div>
 
@@ -1602,7 +1691,8 @@ RETIROS RESPONSIVE PRO
           </div>
         </div>
       </section>
-            <section class="section" id="section-productos">
+
+      <section class="section" id="section-productos">
         <div class="topHint">
           En esta sección puedes alternar entre <strong>Productos</strong> y <strong>Cuentas</strong>.
           En cuentas, el producto seleccionado se mantiene, puedes editar o eliminar registros y ver el historial de cuentas usadas.
@@ -1663,6 +1753,8 @@ RETIROS RESPONSIVE PRO
                   <option value="cuenta">Cuenta</option>
                   <option value="codigo">Código</option>
                   <option value="descarga">Descarga</option>
+                  <option value="plugin">Plugin</option>
+                  <option value="daw">DAW</option>
                 </select>
               </div>
 
@@ -1723,15 +1815,16 @@ RETIROS RESPONSIVE PRO
                 </thead>
                 <tbody id="tablaProductos">
                   <tr>
-                    <td colspan="10"><div class="emptyState">Aún no tienes productos registrados.</div></td>
+                    <td colspan="10">
+                      <div class="emptyState">Aún no tienes productos registrados.</div>
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
         </div>
-
-        <div class="subPanel" id="cuentasPanel">
+                <div class="subPanel" id="cuentasPanel">
           <div class="panelCard">
             <div class="panelHeader">
               <div>
@@ -1800,14 +1893,17 @@ RETIROS RESPONSIVE PRO
               <span>Total cuentas</span>
               <strong id="miniTotalCuentas">0</strong>
             </div>
+
             <div class="miniStatBox">
               <span>Disponibles</span>
               <strong id="miniCuentasDisponibles">0</strong>
             </div>
+
             <div class="miniStatBox">
               <span>Usadas</span>
               <strong id="miniCuentasUsadas">0</strong>
             </div>
+
             <div class="miniStatBox">
               <span>Producto activo</span>
               <strong id="miniProductoActivo">-</strong>
@@ -1839,7 +1935,9 @@ RETIROS RESPONSIVE PRO
                 </thead>
                 <tbody id="tablaCuentasDisponibles">
                   <tr>
-                    <td colspan="9"><div class="emptyState">No hay cuentas disponibles todavía.</div></td>
+                    <td colspan="9">
+                      <div class="emptyState">No hay cuentas disponibles todavía.</div>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -1871,7 +1969,9 @@ RETIROS RESPONSIVE PRO
                 </thead>
                 <tbody id="tablaCuentasUsadas">
                   <tr>
-                    <td colspan="9"><div class="emptyState">No hay cuentas usadas todavía.</div></td>
+                    <td colspan="9">
+                      <div class="emptyState">No hay cuentas usadas todavía.</div>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -1934,7 +2034,9 @@ RETIROS RESPONSIVE PRO
               </thead>
               <tbody id="tablaCodigos">
                 <tr>
-                  <td colspan="5"><div class="emptyState">No hay códigos registrados todavía.</div></td>
+                  <td colspan="5">
+                    <div class="emptyState">No hay códigos registrados todavía.</div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -1978,6 +2080,25 @@ RETIROS RESPONSIVE PRO
               <input type="text" id="descargaTitulo" placeholder="Ej. FL Studio Producer Windows / Plugin Bundle VST / Pack Mac" required />
             </div>
 
+            <div class="field">
+              <label>Plataforma</label>
+              <select id="descargaPlataforma" required>
+                <option value="windows">Windows</option>
+                <option value="mac">Mac</option>
+                <option value="general">General</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Sistema visible</label>
+              <select id="descargaSistema">
+                <option value="Windows">Windows</option>
+                <option value="Mac">Mac</option>
+                <option value="Windows y Mac">Windows y Mac</option>
+                <option value="General">General</option>
+              </select>
+            </div>
+
             <div class="field full">
               <label>Link de descarga</label>
               <input type="text" id="descargaLink" placeholder="https://..." required />
@@ -1986,15 +2107,6 @@ RETIROS RESPONSIVE PRO
             <div class="field">
               <label>Clave / Password</label>
               <input type="text" id="descargaClave" placeholder="Opcional" />
-            </div>
-
-            <div class="field">
-              <label>Sistema</label>
-              <select id="descargaSistema">
-                <option value="Windows">Windows</option>
-                <option value="Mac">Mac</option>
-                <option value="Windows y Mac">Windows y Mac</option>
-              </select>
             </div>
 
             <div class="field full">
@@ -2022,6 +2134,7 @@ RETIROS RESPONSIVE PRO
                 <tr>
                   <th>Producto</th>
                   <th>Título</th>
+                  <th>Plataforma</th>
                   <th>Sistema</th>
                   <th>Clave</th>
                   <th>Estado</th>
@@ -2030,7 +2143,44 @@ RETIROS RESPONSIVE PRO
               </thead>
               <tbody id="tablaDescargas">
                 <tr>
-                  <td colspan="6"><div class="emptyState">No hay descargas registradas todavía.</div></td>
+                  <td colspan="7">
+                    <div class="emptyState">No hay descargas registradas todavía.</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panelCard">
+          <div class="panelHeader">
+            <div>
+              <h3>Descargas / Plugins / DAW vendidos</h3>
+              <p>Aquí verás solo las ventas digitales entregadas de tus productos.</p>
+            </div>
+          </div>
+
+          <div class="tableWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Cliente</th>
+                  <th>Proveedor</th>
+                  <th>Plataforma</th>
+                  <th>Link entregado</th>
+                  <th>Fecha entrega</th>
+                  <th>Precio</th>
+                  <th>Comisión plataforma</th>
+                  <th>Ganancia proveedor</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="tablaDescargasVendidas">
+                <tr>
+                  <td colspan="10">
+                    <div class="emptyState">No hay ventas digitales registradas todavía.</div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -2098,20 +2248,22 @@ RETIROS RESPONSIVE PRO
                   <th>Estado</th>
                   <th>Tiempo activo</th>
                   <th>Precio</th>
+                  <th>Comisión plataforma</th>
                   <th>Tu ganancia</th>
                 </tr>
               </thead>
               <tbody id="tablaVentas">
                 <tr>
-                  <td colspan="8"><div class="emptyState">Todavía no hay ventas registradas para este proveedor.</div></td>
+                  <td colspan="9">
+                    <div class="emptyState">Todavía no hay ventas registradas para este proveedor.</div>
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
       </section>
-
-      <section class="section" id="section-retiros">
+            <section class="section" id="section-retiros">
         <div class="gridStats twoCols">
           <div class="statCard">
             <span>Saldo disponible</span>
@@ -2162,7 +2314,8 @@ RETIROS RESPONSIVE PRO
             </form>
 
             <div class="notice">
-              La solicitud quedará pendiente hasta que el administrador la revise. Solo cuando sea aprobada se descontará el saldo correspondiente.
+              La solicitud quedará pendiente hasta que el administrador la revise.
+              Solo cuando sea aprobada se descontará el saldo correspondiente.
             </div>
           </div>
 
@@ -2188,7 +2341,9 @@ RETIROS RESPONSIVE PRO
                 </thead>
                 <tbody id="tablaRetiros">
                   <tr>
-                    <td colspan="6"><div class="emptyState">Aún no has enviado solicitudes de retiro.</div></td>
+                    <td colspan="6">
+                      <div class="emptyState">Aún no has enviado solicitudes de retiro.</div>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -2204,9 +2359,32 @@ RETIROS RESPONSIVE PRO
       <div class="modalHead">
         <div>
           <h3>Productos de tienda</h3>
-          <p>Vista rápida del catálogo activo, sin banner ni menú.</p>
+          <p>Vista rápida del catálogo activo. Puedes buscar por nombre del producto o por nombre del proveedor.</p>
         </div>
         <button class="modalCerrar" onclick="cerrarModalTiendaProveedor()">✕</button>
+      </div>
+
+      <div class="panelCard" style="padding:14px; margin-bottom:16px;">
+        <div class="salesFilters" style="grid-template-columns:1fr 1fr 150px; margin-bottom:10px;">
+          <div class="field">
+            <label>Buscar por producto</label>
+            <input type="text" id="buscarTiendaProducto" placeholder="🔎 Buscar por producto..." />
+          </div>
+
+          <div class="field">
+            <label>Buscar por proveedor</label>
+            <input type="text" id="buscarTiendaProveedor" placeholder="🛡 Buscar por proveedor..." />
+          </div>
+
+          <div class="field">
+            <label>&nbsp;</label>
+            <button type="button" class="btn btnGhost" id="btnLimpiarBuscadorTienda">Limpiar</button>
+          </div>
+        </div>
+
+        <div class="helperText" id="textoResultadoTiendaProveedor">
+          Mostrando 0 productos activos.
+        </div>
       </div>
 
       <div class="tiendaGrid" id="tiendaProveedorGrid">
@@ -2215,7 +2393,6 @@ RETIROS RESPONSIVE PRO
     </div>
   </div>
 
-  <!-- ===== CHAT FLOTANTE CBOX ===== -->
   <div id="chatBubble" title="Abrir chat">💬</div>
 
   <div id="chatFloat">
@@ -2243,7 +2420,8 @@ RETIROS RESPONSIVE PRO
       </iframe>
     </div>
   </div>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -2274,29 +2452,31 @@ RETIROS RESPONSIVE PRO
     let codigosProveedor = [];
     let descargasProveedor = [];
     let ventasProveedor = [];
+    let ventasDigitalesProveedor = [];
     let retirosProveedor = [];
     let movimientosProveedor = [];
     let cuentasProveedor = [];
+
+    let productosTiendaModal = [];
 
     let cuentaEditando = null;
     let productoEditando = null;
     let mantenerActivo = false;
     let temporizadorInactividad = null;
     let uiPreparada = false;
-
     let ultimoScrollMenu = 0;
 
-    function abrirMenuMovil(){
+    function abrirMenuMovil() {
       document.getElementById("sidebar").classList.add("show");
       document.getElementById("overlay").classList.add("show");
     }
 
-    function cerrarMenuMovil(){
+    function cerrarMenuMovil() {
       document.getElementById("sidebar").classList.remove("show");
       document.getElementById("overlay").classList.remove("show");
     }
 
-    function abrirChatFlotante(){
+    function abrirChatFlotante() {
       const bubble = document.getElementById("chatBubble");
       const chat = document.getElementById("chatFloat");
 
@@ -2304,7 +2484,7 @@ RETIROS RESPONSIVE PRO
       if (bubble) bubble.classList.add("hidden");
     }
 
-    function minimizarChatFlotante(){
+    function minimizarChatFlotante() {
       const bubble = document.getElementById("chatBubble");
       const chat = document.getElementById("chatFloat");
 
@@ -2312,14 +2492,13 @@ RETIROS RESPONSIVE PRO
       if (bubble) bubble.classList.remove("hidden");
     }
 
-    function prepararChatFlotante(){
+    function prepararChatFlotante() {
       const bubble = document.getElementById("chatBubble");
       if (!bubble) return;
-
       bubble.addEventListener("click", abrirChatFlotante);
     }
 
-    function prepararBotonMenuFlotante(){
+    function prepararBotonMenuFlotante() {
       const btn = document.getElementById("mobileMenuBtn");
       if (!btn) return;
 
@@ -2327,36 +2506,32 @@ RETIROS RESPONSIVE PRO
         if (window.innerWidth > 900) return;
 
         const actual = window.scrollY || 0;
-
-        if (actual > ultimoScrollMenu) {
-          btn.style.transform = "translateY(12px)";
-        } else {
-          btn.style.transform = "translateY(0px)";
-        }
+        if (actual > ultimoScrollMenu) btn.style.transform = "translateY(12px)";
+        else btn.style.transform = "translateY(0px)";
 
         ultimoScrollMenu = actual <= 0 ? 0 : actual;
       }, { passive: true });
     }
 
-    function escaparHTML(texto){
+    function escaparHTML(texto) {
       const div = document.createElement("div");
       div.textContent = texto == null ? "" : String(texto);
       return div.innerHTML;
     }
 
-    function formatearMoneda(valor){
+    function formatearMoneda(valor) {
       const n = Number(valor || 0);
       return `S/ ${n.toFixed(2)}`;
     }
 
-    function formatearFecha(timestamp){
+    function formatearFecha(timestamp) {
       if (!timestamp) return "-";
       const d = new Date(timestamp);
       if (isNaN(d.getTime())) return String(timestamp);
       return d.toLocaleDateString("es-PE");
     }
 
-    function formatearHora(timestamp){
+    function formatearHora(timestamp) {
       if (!timestamp) return "-";
       const d = new Date(timestamp);
       if (isNaN(d.getTime())) return "-";
@@ -2367,14 +2542,14 @@ RETIROS RESPONSIVE PRO
       });
     }
 
-    function formatearFechaHora(timestamp){
+    function formatearFechaHora(timestamp) {
       if (!timestamp) return "-";
       const d = new Date(timestamp);
       if (isNaN(d.getTime())) return String(timestamp);
       return d.toLocaleString("es-PE");
     }
 
-    function obtenerIniciales(nombre){
+    function obtenerIniciales(nombre) {
       const limpio = String(nombre || "P").trim();
       if (!limpio) return "P";
       const partes = limpio.split(/\s+/).filter(Boolean);
@@ -2382,7 +2557,7 @@ RETIROS RESPONSIVE PRO
       return (partes[0].charAt(0) + partes[1].charAt(0)).toUpperCase();
     }
 
-    function obtenerDuracionTexto(dias){
+    function obtenerDuracionTexto(dias) {
       const d = Number(dias || 0);
       if (d === 1) return "1 día";
       if (d === 7) return "7 días";
@@ -2397,7 +2572,7 @@ RETIROS RESPONSIVE PRO
       return `${d} días`;
     }
 
-    function obtenerEstadoBadge(estado){
+    function obtenerEstadoBadge(estado) {
       const e = String(estado || "").toLowerCase();
       if (e === "activo" || e === "activa" || e === "aprobado" || e === "entregada" || e === "usado" || e === "disponible") return "success";
       if (e === "pendiente") return "warning";
@@ -2405,7 +2580,7 @@ RETIROS RESPONSIVE PRO
       return "info";
     }
 
-    function obtenerTiempoActivo(venta){
+    function obtenerTiempoActivo(venta) {
       if (!venta) return "-";
       const ahora = Date.now();
 
@@ -2435,10 +2610,15 @@ RETIROS RESPONSIVE PRO
       return "-";
     }
 
-    function calcularGananciaProveedor(precio){
+    function calcularGananciaProveedor(precio) {
       const monto = Number(precio || 0);
       const montoPlataforma = +(monto * 0.04).toFixed(2);
       return +(monto - montoPlataforma).toFixed(2);
+    }
+
+    function calcularComisionPlataforma(precio) {
+      const monto = Number(precio || 0);
+      return +(monto * 0.04).toFixed(2);
     }
 
     function obtenerImagenProductoPanel(item = {}) {
@@ -2475,8 +2655,12 @@ RETIROS RESPONSIVE PRO
       if (tipoEntrega === "cuenta") return "Cuenta";
       if (tipoEntrega === "codigo") return "Código";
       if (tipoEntrega === "descarga") return "Descarga";
+      if (tipoEntrega === "plugin") return "Plugin";
+      if (tipoEntrega === "daw") return "DAW";
 
-      if (categoria === "plugin" || categoria === "daw" || categoria === "descarga") return "Descarga";
+      if (categoria === "plugin") return "Plugin";
+      if (categoria === "daw") return "DAW";
+      if (categoria === "descarga") return "Descarga";
       if (categoria === "codigo" || categoria === "licencia") return "Código";
 
       if (
@@ -2491,12 +2675,12 @@ RETIROS RESPONSIVE PRO
       return "Cuenta";
     }
 
-    function setDebug(texto){
+    function setDebug(texto) {
       const el = document.getElementById("debugProveedor");
       if (el) el.textContent = texto;
     }
 
-    function normalizarIdProducto(texto){
+    function normalizarIdProducto(texto) {
       return String(texto || "")
         .trim()
         .toLowerCase()
@@ -2507,7 +2691,107 @@ RETIROS RESPONSIVE PRO
         .slice(0, 50);
     }
 
-    function irASeccion(nombre){
+    function normalizarTexto(texto) {
+      return String(texto || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+    }
+
+    function mostrarNotificacion(titulo, mensaje, tipo = "success") {
+      let wrap = document.getElementById("notificacionStreamproWrap");
+
+      if (!wrap) {
+        wrap = document.createElement("div");
+        wrap.id = "notificacionStreamproWrap";
+        wrap.style.position = "fixed";
+        wrap.style.top = "18px";
+        wrap.style.right = "18px";
+        wrap.style.zIndex = "10000";
+        wrap.style.display = "flex";
+        wrap.style.flexDirection = "column";
+        wrap.style.gap = "10px";
+        wrap.style.maxWidth = "380px";
+        document.body.appendChild(wrap);
+      }
+
+      const colors = {
+        success: "linear-gradient(135deg, rgba(32,201,151,0.96), rgba(54,163,255,0.92))",
+        error: "linear-gradient(135deg, rgba(255,93,115,0.96), rgba(255,93,115,0.82))",
+        warning: "linear-gradient(135deg, rgba(255,176,32,0.96), rgba(124,77,255,0.82))",
+        info: "linear-gradient(135deg, rgba(54,163,255,0.96), rgba(124,77,255,0.82))"
+      };
+
+      const icons = {
+        success: "✓",
+        error: "✕",
+        warning: "⚠",
+        info: "i"
+      };
+
+      const card = document.createElement("div");
+      card.style.background = colors[tipo] || colors.info;
+      card.style.color = "#fff";
+      card.style.borderRadius = "18px";
+      card.style.padding = "14px 16px";
+      card.style.boxShadow = "0 18px 38px rgba(0,0,0,0.34)";
+      card.style.border = "1px solid rgba(255,255,255,0.12)";
+      card.style.display = "flex";
+      card.style.alignItems = "flex-start";
+      card.style.gap = "12px";
+      card.style.transform = "translateY(-8px)";
+      card.style.opacity = "0";
+      card.style.transition = "all .22s ease";
+
+      card.innerHTML = `
+        <div style="
+          width:34px;
+          height:34px;
+          min-width:34px;
+          border-radius:12px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          background:rgba(255,255,255,0.16);
+          font-weight:900;
+          font-size:16px;
+        ">${icons[tipo] || "i"}</div>
+
+        <div style="min-width:0; flex:1;">
+          <div style="font-size:14px; font-weight:800; margin-bottom:4px;">${escaparHTML(titulo)}</div>
+          <div style="font-size:12.5px; line-height:1.5; color:rgba(255,255,255,0.92);">${escaparHTML(mensaje)}</div>
+        </div>
+
+        <button type="button" style="
+          border:none;
+          background:transparent;
+          color:#fff;
+          cursor:pointer;
+          font-size:18px;
+          opacity:.86;
+        ">×</button>
+      `;
+
+      wrap.appendChild(card);
+
+      requestAnimationFrame(() => {
+        card.style.transform = "translateY(0)";
+        card.style.opacity = "1";
+      });
+
+      const closeBtn = card.querySelector("button");
+      const removeCard = () => {
+        card.style.transform = "translateY(-8px)";
+        card.style.opacity = "0";
+        setTimeout(() => card.remove(), 220);
+      };
+
+      closeBtn.addEventListener("click", removeCard);
+      setTimeout(removeCard, 4200);
+    }
+
+    function irASeccion(nombre) {
       const secciones = document.querySelectorAll(".section");
       const botones = document.querySelectorAll(".menuBtn[data-section]");
 
@@ -2526,7 +2810,7 @@ RETIROS RESPONSIVE PRO
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    function actualizarCabeceraSeccion(nombre){
+    function actualizarCabeceraSeccion(nombre) {
       const map = {
         resumen: { titulo: "Billetera del proveedor", subtitulo: "Controla tu saldo, ventas, productos y solicitudes de retiro." },
         productos: { titulo: "Productos / Cuentas", subtitulo: "Administra tus productos y las cuentas de entrega de forma compacta." },
@@ -2541,7 +2825,7 @@ RETIROS RESPONSIVE PRO
       document.getElementById("pageSubtitle").textContent = info.subtitulo;
     }
 
-    function actualizarStatsVisibles(nombre){
+    function actualizarStatsVisibles(nombre) {
       const resumen = document.querySelector("#section-resumen .gridStats");
       const ventas = document.querySelector("#section-ventas .gridStats");
       const retiros = document.querySelector("#section-retiros .gridStats");
@@ -2553,7 +2837,7 @@ RETIROS RESPONSIVE PRO
       if (descargas) descargas.style.display = nombre === "descargas" ? "grid" : "none";
     }
 
-    function esVentaDeHoy(venta){
+    function esVentaDeHoy(venta) {
       const fecha = Number(venta.fecha || venta.fechaCompra || venta.timestamp || 0);
       if (!fecha) return false;
 
@@ -2565,22 +2849,22 @@ RETIROS RESPONSIVE PRO
              hoy.getDate() === d.getDate();
     }
 
-    async function safeReadEqualTo(path, child, value){
-      try{
+    async function safeReadEqualTo(path, child, value) {
+      try {
         const snap = await db.ref(path).orderByChild(child).equalTo(value).once("value");
         const val = snap.val() || {};
         return Object.keys(val).map(key => ({ id: key, ...val[key] }));
-      }catch(error){
+      } catch (error) {
         console.warn("Lectura fallida en", path, error);
         return [];
       }
     }
 
-    async function safeReadRoot(path){
-      try{
+    async function safeReadRoot(path) {
+      try {
         const snap = await db.ref(path).once("value");
         return snap.val() || {};
-      }catch(error){
+      } catch (error) {
         console.warn("Lectura raíz fallida en", path, error);
         return {};
       }
@@ -2614,17 +2898,17 @@ RETIROS RESPONSIVE PRO
       localStorage.setItem("streampro_producto_cuenta_" + proveedorActual.uid, productoId || "");
     }
 
-    function obtenerPreferenciaActivoGuardada(){
+    function obtenerPreferenciaActivoGuardada() {
       if (!proveedorActual?.uid) return false;
       return localStorage.getItem("streampro_mantener_activo_" + proveedorActual.uid) === "true";
     }
 
-    function guardarPreferenciaActivo(valor){
+    function guardarPreferenciaActivo(valor) {
       if (!proveedorActual?.uid) return;
       localStorage.setItem("streampro_mantener_activo_" + proveedorActual.uid, valor ? "true" : "false");
     }
 
-    function actualizarBotonTiempoActivo(){
+    function actualizarBotonTiempoActivo() {
       const btn = document.getElementById("btnToggleActivo");
       if (!btn) return;
 
@@ -2639,26 +2923,28 @@ RETIROS RESPONSIVE PRO
       }
     }
 
-    function limpiarTemporizadorInactividad(){
+    function limpiarTemporizadorInactividad() {
       if (temporizadorInactividad) {
         clearTimeout(temporizadorInactividad);
         temporizadorInactividad = null;
       }
     }
 
-    function cerrarSesionPorInactividad(){
+    function cerrarSesionPorInactividad() {
       limpiarTemporizadorInactividad();
-      alert("La sesión del panel proveedor se cerró por inactividad.");
-      auth.signOut()
-        .then(() => window.location.replace("index.html"))
-        .catch(() => window.location.replace("index.html"));
+      mostrarNotificacion("Sesión finalizada", "La sesión del panel proveedor se cerró por inactividad.", "warning");
+
+      setTimeout(() => {
+        auth.signOut()
+          .then(() => window.location.replace("index.html"))
+          .catch(() => window.location.replace("index.html"));
+      }, 900);
     }
 
-    function reiniciarTemporizadorInactividad(){
+    function reiniciarTemporizadorInactividad() {
       if (!proveedorActual) return;
 
       limpiarTemporizadorInactividad();
-
       if (mantenerActivo) return;
 
       temporizadorInactividad = setTimeout(() => {
@@ -2666,8 +2952,9 @@ RETIROS RESPONSIVE PRO
       }, TIEMPO_INACTIVIDAD_STREAMPRO);
     }
 
-    function iniciarControlInactividad(){
-      const eventos = ["mousemove","mousedown","click","scroll","keydown","touchstart","touchmove"];
+    function iniciarControlInactividad() {
+      const eventos = ["mousemove", "mousedown", "click", "scroll", "keydown", "touchstart", "touchmove"];
+
       eventos.forEach(evento => {
         document.addEventListener(evento, reiniciarTemporizadorInactividad, true);
       });
@@ -2680,14 +2967,20 @@ RETIROS RESPONSIVE PRO
       reiniciarTemporizadorInactividad();
     }
 
-    function alternarTiempoActivo(){
+    function alternarTiempoActivo() {
       mantenerActivo = !mantenerActivo;
       guardarPreferenciaActivo(mantenerActivo);
       actualizarBotonTiempoActivo();
       reiniciarTemporizadorInactividad();
+
+      mostrarNotificacion(
+        "Tiempo activo actualizado",
+        mantenerActivo ? "El panel permanecerá activo." : "El panel volverá a usar cierre por inactividad.",
+        "info"
+      );
     }
 
-    function activarSubpanelProductos(id){
+    function activarSubpanelProductos(id) {
       document.querySelectorAll(".subToggleBtn").forEach(btn => {
         btn.classList.toggle("active", btn.getAttribute("data-subpanel") === id);
       });
@@ -2697,7 +2990,7 @@ RETIROS RESPONSIVE PRO
       });
     }
 
-    function obtenerRutaCuentaCompleta(itemCuenta){
+    function obtenerRutaCuentaCompleta(itemCuenta) {
       if (!itemCuenta) return "";
       if (itemCuenta.fullPath) return itemCuenta.fullPath;
       if (itemCuenta.productoId && itemCuenta.id) return "cuentas/" + itemCuenta.productoId + "/" + itemCuenta.id;
@@ -2739,7 +3032,7 @@ RETIROS RESPONSIVE PRO
       return resultado;
     }
 
-    function renderDatosProveedorCabecera(){
+    function renderDatosProveedorCabecera() {
       const nombre =
         datosProveedorActual.nombreCompleto ||
         `${datosProveedorActual.nombre || ""} ${datosProveedorActual.apellido || ""}`.trim() ||
@@ -2767,7 +3060,7 @@ RETIROS RESPONSIVE PRO
       if (walletHeroSaldo) walletHeroSaldo.textContent = formatearMoneda(saldo);
     }
 
-    function mostrarModoEdicionCuenta(infoCuenta){
+    function mostrarModoEdicionCuenta(infoCuenta) {
       cuentaEditando = infoCuenta || null;
 
       const banner = document.getElementById("editingBannerCuenta");
@@ -2782,7 +3075,7 @@ RETIROS RESPONSIVE PRO
       }
     }
 
-    function limpiarFormularioCuenta(){
+    function limpiarFormularioCuenta() {
       document.getElementById("cuentaCorreo").value = "";
       document.getElementById("cuentaClave").value = "";
       document.getElementById("cuentaPerfil").value = "";
@@ -2790,7 +3083,7 @@ RETIROS RESPONSIVE PRO
       document.getElementById("cuentaObservacion").value = "";
     }
 
-    function cancelarEdicionCuenta(){
+    function cancelarEdicionCuenta() {
       cuentaEditando = null;
       mostrarModoEdicionCuenta(null);
       limpiarFormularioCuenta();
@@ -2801,7 +3094,7 @@ RETIROS RESPONSIVE PRO
       }
     }
 
-    function mostrarModoEdicionProducto(prod){
+    function mostrarModoEdicionProducto(prod) {
       productoEditando = prod || null;
       const banner = document.getElementById("editingBannerProducto");
       const btn = document.getElementById("btnGuardarProducto");
@@ -2820,19 +3113,18 @@ RETIROS RESPONSIVE PRO
       }
     }
 
-    function limpiarFormularioProducto(){
+    function limpiarFormularioProducto() {
       document.getElementById("formProducto").reset();
       document.getElementById("prodStock").value = "0";
       document.getElementById("prodDuracion").value = "30";
     }
 
-    function cancelarEdicionProducto(){
+    function cancelarEdicionProducto() {
       productoEditando = null;
       mostrarModoEdicionProducto(null);
       limpiarFormularioProducto();
     }
-
-    async function cargarTodoPanel(){
+        async function cargarTodoPanel() {
       if (!proveedorActual) return;
 
       await recargarDatosProveedor();
@@ -2861,30 +3153,31 @@ RETIROS RESPONSIVE PRO
         " | Códigos: " + codigosProveedor.length +
         " | Descargas: " + descargasProveedor.length +
         " | Ventas: " + ventasProveedor.length +
+        " | Ventas digitales: " + ventasDigitalesProveedor.length +
         " | Retiros: " + retirosProveedor.length
       );
     }
 
-    async function recargarDatosProveedor(){
-      try{
+    async function recargarDatosProveedor() {
+      try {
         const snap = await db.ref(`usuarios/${proveedorActual.uid}`).once("value");
         datosProveedorActual = snap.val() || {};
         renderDatosProveedorCabecera();
-      }catch(error){
+      } catch (error) {
         console.warn("Error recargando datos proveedor:", error);
       }
     }
 
-    async function cargarProductosProveedor(){
+    async function cargarProductosProveedor() {
       productosProveedor = (await safeReadEqualTo("productos", "proveedorId", proveedorActual.uid))
-        .sort((a,b) => Number(b.fechaCreacion || 0) - Number(a.fechaCreacion || 0));
+        .sort((a, b) => Number(b.fechaCreacion || 0) - Number(a.fechaCreacion || 0));
     }
 
-    async function cargarCuentasProveedor(){
+    async function cargarCuentasProveedor() {
       cuentasProveedor = [];
 
       for (const prod of productosProveedor) {
-        try{
+        try {
           const snap = await db.ref("cuentas/" + prod.id).once("value");
           const data = snap.val() || {};
 
@@ -2895,70 +3188,232 @@ RETIROS RESPONSIVE PRO
             "cuentas/" + prod.id,
             cuentasProveedor
           );
-        }catch(error){
+        } catch (error) {
           console.warn("Error cargando cuentas de producto:", prod.id, error);
         }
       }
 
-      cuentasProveedor.sort((a,b) => {
+      cuentasProveedor.sort((a, b) => {
         const fa = Number(b.fechaVenta || b.fechaCreacion || 0);
         const fb = Number(a.fechaVenta || a.fechaCreacion || 0);
         return fa - fb;
       });
     }
 
-    async function cargarCodigosProveedor(){
+    async function cargarCodigosProveedor() {
       codigosProveedor = (await safeReadEqualTo("codigos", "proveedorId", proveedorActual.uid))
-        .sort((a,b) => Number(b.fechaCreacion || 0) - Number(a.fechaCreacion || 0));
+        .sort((a, b) => Number(b.fechaCreacion || 0) - Number(a.fechaCreacion || 0));
     }
 
-    async function cargarDescargasProveedor(){
-      descargasProveedor = (await safeReadEqualTo("descargas", "proveedorId", proveedorActual.uid))
-        .sort((a,b) => Number(b.fechaCreacion || 0) - Number(a.fechaCreacion || 0));
+    async function cargarDescargasProveedor() {
+      const descargasExpl = (await safeReadEqualTo("descargas", "proveedorId", proveedorActual.uid))
+        .sort((a, b) => Number(b.fechaCreacion || 0) - Number(a.fechaCreacion || 0));
+
+      const descargasDesdeProductos = [];
+
+      productosProveedor.forEach((prod) => {
+        const tipo = String(prod.tipoEntrega || "").toLowerCase();
+        const categoria = String(prod.categoria || "").toLowerCase();
+
+        const esDigital =
+          tipo === "descarga" ||
+          tipo === "plugin" ||
+          tipo === "daw" ||
+          categoria === "descarga" ||
+          categoria === "plugin" ||
+          categoria === "daw";
+
+        if (!esDigital) return;
+
+        const opciones = prod.opcionesEntrega || {};
+
+        const plataformas = [
+          { key: "windows", titulo: "Windows", link: opciones?.windows?.link || "" },
+          { key: "mac", titulo: "Mac", link: opciones?.mac?.link || "" },
+          { key: "general", titulo: "General", link: opciones?.general?.link || prod.linkDescarga || "" }
+        ];
+
+        plataformas.forEach((pl) => {
+          if (!String(pl.link || "").trim()) return;
+
+          descargasDesdeProductos.push({
+            id: "prod_" + prod.id + "_" + pl.key,
+            productoId: prod.id,
+            productoNombre: prod.nombre || "",
+            titulo: `${prod.nombre || prod.id} - ${pl.titulo}`,
+            link: pl.link,
+            clave: "",
+            sistema: pl.titulo,
+            observacion: prod.descripcion || "",
+            proveedorId: proveedorActual.uid,
+            activo: prod.activo !== false,
+            usado: false,
+            estado: prod.activo === false ? "inactivo" : "activo",
+            fechaCreacion: Number(prod.fechaCreacion || 0),
+            origen: "producto"
+          });
+        });
+      });
+
+      const mapa = new Map();
+
+      [...descargasExpl, ...descargasDesdeProductos].forEach((item) => {
+        const key = `${item.productoId || ""}_${item.titulo || ""}_${item.sistema || ""}_${item.link || ""}`;
+        if (!mapa.has(key)) mapa.set(key, item);
+      });
+
+      descargasProveedor = Array.from(mapa.values()).sort(
+        (a, b) => Number(b.fechaCreacion || 0) - Number(a.fechaCreacion || 0)
+      );
     }
 
-    async function cargarVentasProveedor(){
+    async function cargarVentasProveedor() {
       ventasProveedor = [];
+      ventasDigitalesProveedor = [];
 
-      try{
-        const rootVentas = await safeReadRoot("ventas");
-        const lista = [];
+      try {
+        const productosMap = {};
+        productosProveedor.forEach((p) => {
+          productosMap[p.id] = p;
+        });
 
-        Object.keys(rootVentas).forEach((key) => {
-          const bloque = rootVentas[key];
-          if (!bloque || typeof bloque !== "object") return;
+        const usuariosRoot = await safeReadRoot("usuarios");
+        const ordenesRoot = await safeReadRoot("ordenes");
 
-          if (String(bloque.proveedorId || "") === proveedorActual.uid) {
-            lista.push({ id: key, ...bloque });
-            return;
-          }
+        const listaVentas = [];
 
-          Object.keys(bloque).forEach((subKey) => {
-            const item = bloque[subKey];
-            if (item && typeof item === "object" && String(item.proveedorId || "") === proveedorActual.uid) {
-              lista.push({ id: subKey, grupo: key, ...item });
-            }
+        Object.keys(ordenesRoot || {}).forEach((uidCliente) => {
+          const ordenesUsuario = ordenesRoot[uidCliente] || {};
+
+          Object.keys(ordenesUsuario).forEach((ordenId) => {
+            const orden = ordenesUsuario[ordenId] || {};
+            const productoId = String(orden.producto || "").trim();
+            const producto = productosMap[productoId];
+
+            if (!producto) return;
+
+            const perfilCliente = usuariosRoot[uidCliente] || {};
+            const precio = Number(
+              orden.precio ??
+              orden.montoTotal ??
+              orden.total ??
+              0
+            );
+
+            const estado = String(orden.estado || "entregada").toLowerCase();
+            const fechaCompra = Number(new Date(orden.fechaCompra || orden.fecha || Date.now()).getTime() || 0);
+
+            const nombreCliente =
+              orden.comprador ||
+              orden.nombreCliente ||
+              orden.clienteNombre ||
+              perfilCliente.nombreCompleto ||
+              [perfilCliente.nombre, perfilCliente.apellido].filter(Boolean).join(" ").trim() ||
+              perfilCliente.nombre ||
+              perfilCliente.usuario ||
+              "Cliente";
+
+            const emailCliente =
+              perfilCliente.correo ||
+              perfilCliente.email ||
+              "";
+
+            const tipoEntrega = String(
+              orden.tipoEntrega ||
+              producto.tipoEntrega ||
+              ""
+            ).toLowerCase().trim();
+
+            const categoria = String(producto.categoria || "").toLowerCase().trim();
+
+            const esDigital =
+              tipoEntrega === "descarga" ||
+              tipoEntrega === "plugin" ||
+              tipoEntrega === "daw" ||
+              categoria === "descarga" ||
+              categoria === "plugin" ||
+              categoria === "daw" ||
+              String(orden.linkEntrega || "").trim() !== "";
+
+            const montoProveedor = Number(
+              orden.montoProveedor ??
+              +(precio * (Number(producto.comisionProveedor ?? 96) / 100)).toFixed(2)
+            );
+
+            const montoPlataforma = Number(
+              orden.montoPlataforma ??
+              +(precio * (Number(producto.comisionPlataforma ?? 4) / 100)).toFixed(2)
+            );
+
+            const ventaFinal = {
+              id: ordenId,
+              ordenId,
+              uidCliente,
+              productoId,
+              productoNombre: producto.nombre || productoId,
+              usuarioCliente: nombreCliente,
+              nombreCliente,
+              emailCliente,
+              fecha: fechaCompra,
+              fechaCompra,
+              estado,
+              duracionDias: Number(producto.duracionDias || 0),
+              fechaInicio: fechaCompra,
+              fechaVencimiento: orden.fechaExpira ? new Date(orden.fechaExpira).getTime() : null,
+              precio,
+              montoProveedor,
+              montoPlataforma,
+              proveedorId: proveedorActual.uid,
+              proveedorNombre: producto.proveedorNombre || datosProveedorActual?.usuario || "Proveedor",
+              tipoEntrega,
+              categoria,
+              linkEntrega: orden.linkEntrega || "",
+              plataformaElegida: orden.plataformaElegida || "",
+              cuenta: orden.cuenta || "",
+              clave: orden.clave || "",
+              perfil: orden.perfil || "",
+              pin: orden.pin || "",
+              observacion: orden.observacion || ""
+            };
+
+            listaVentas.push(ventaFinal);
           });
         });
 
-        ventasProveedor = lista.sort((a,b) => Number(b.fecha || b.fechaCompra || b.timestamp || 0) - Number(a.fecha || a.fechaCompra || a.timestamp || 0));
-      }catch(error){
+        listaVentas.sort((a, b) => Number(b.fecha || 0) - Number(a.fecha || 0));
+
+        ventasProveedor = listaVentas;
+        ventasDigitalesProveedor = listaVentas.filter((v) => {
+          const tipo = String(v.tipoEntrega || "").toLowerCase();
+          const cat = String(v.categoria || "").toLowerCase();
+          return (
+            tipo === "descarga" ||
+            tipo === "plugin" ||
+            tipo === "daw" ||
+            cat === "descarga" ||
+            cat === "plugin" ||
+            cat === "daw" ||
+            String(v.linkEntrega || "").trim() !== ""
+          );
+        });
+      } catch (error) {
         console.warn("Error cargando ventas proveedor:", error);
         ventasProveedor = [];
+        ventasDigitalesProveedor = [];
       }
     }
 
-    async function cargarRetirosProveedor(){
+    async function cargarRetirosProveedor() {
       retirosProveedor = (await safeReadEqualTo("retirosProveedores", "proveedorId", proveedorActual.uid))
-        .sort((a,b) => Number(b.fechaSolicitud || 0) - Number(a.fechaSolicitud || 0));
+        .sort((a, b) => Number(b.fechaSolicitud || 0) - Number(a.fechaSolicitud || 0));
     }
 
-    async function cargarMovimientosProveedor(){
+    async function cargarMovimientosProveedor() {
       movimientosProveedor = (await safeReadEqualTo("movimientosSaldo", "proveedorId", proveedorActual.uid))
-        .sort((a,b) => Number(b.fecha || 0) - Number(a.fecha || 0));
+        .sort((a, b) => Number(b.fecha || 0) - Number(a.fecha || 0));
     }
 
-    function renderStats(){
+    function renderStats() {
       const saldo = Number(datosProveedorActual?.saldo || 0);
       const ventasHoy = ventasProveedor.filter(esVentaDeHoy).length;
       const ventasTotales = ventasProveedor.length;
@@ -2973,11 +3428,11 @@ RETIROS RESPONSIVE PRO
         statVentasHoy: ventasHoy,
         statVentasTotales: ventasTotales,
         statRetirosPendientes: retirosPendientes,
-        statDescargasTotal: descargasProveedor.length,
+        statDescargasTotal: ventasDigitalesProveedor.length,
         statProductosDigitales: productosProveedor.filter(p => {
           const cat = String(p.categoria || "").toLowerCase();
           const tipo = String(p.tipoEntrega || "").toLowerCase();
-          return cat === "descarga" || cat === "plugin" || cat === "daw" || tipo === "descarga";
+          return cat === "descarga" || cat === "plugin" || cat === "daw" || tipo === "descarga" || tipo === "plugin" || tipo === "daw";
         }).length
       };
 
@@ -2992,10 +3447,11 @@ RETIROS RESPONSIVE PRO
       if (walletHeroSaldo) walletHeroSaldo.textContent = formatearMoneda(saldo);
       if (sidebarSaldo) sidebarSaldo.textContent = formatearMoneda(saldo);
     }
-        async function guardarProductoProveedor(e){
+
+    async function guardarProductoProveedor(e) {
       e.preventDefault();
 
-      try{
+      try {
         const idManual = normalizarIdProducto(document.getElementById("prodId").value.trim());
         const nombre = document.getElementById("prodNombre").value.trim();
         const precio = Number(document.getElementById("prodPrecio").value || 0);
@@ -3007,9 +3463,9 @@ RETIROS RESPONSIVE PRO
         const descripcion = document.getElementById("prodDescripcion").value.trim();
         const reglas = document.getElementById("prodReglas").value.trim();
 
-        if (!idManual) return alert("Ingresa un ID válido para el producto.");
-        if (!nombre) return alert("Ingresa el nombre del producto.");
-        if (precio < 0) return alert("El precio no puede ser negativo.");
+        if (!idManual) return mostrarNotificacion("Producto inválido", "Ingresa un ID válido para el producto.", "warning");
+        if (!nombre) return mostrarNotificacion("Nombre requerido", "Ingresa el nombre del producto.", "warning");
+        if (precio < 0) return mostrarNotificacion("Precio inválido", "El precio no puede ser negativo.", "warning");
 
         const nombreProveedor =
           datosProveedorActual.nombreCompleto ||
@@ -3017,14 +3473,23 @@ RETIROS RESPONSIVE PRO
           datosProveedorActual.usuario ||
           "Proveedor";
 
+        const opcionesEntregaBase =
+          tipoEntrega === "descarga" || categoria === "plugin" || categoria === "daw" || categoria === "descarga"
+            ? {
+                windows: { nombre: "Windows", link: "" },
+                mac: { nombre: "Mac", link: "" },
+                general: { nombre: "General", link: "" }
+              }
+            : null;
+
         if (!productoEditando) {
           const existe = await db.ref("productos/" + idManual).once("value");
           if (existe.exists()) {
-            alert("Ese ID de producto ya existe. Usa otro distinto.");
+            mostrarNotificacion("ID duplicado", "Ese ID de producto ya existe. Usa otro distinto.", "warning");
             return;
           }
 
-          await db.ref("productos/" + idManual).set({
+          const dataCrear = {
             id: idManual,
             nombre,
             precio: +precio.toFixed(2),
@@ -3042,13 +3507,21 @@ RETIROS RESPONSIVE PRO
             comisionPlataforma: 4,
             comisionProveedor: 96,
             fechaCreacion: Date.now()
-          });
+          };
+
+          if (opcionesEntregaBase) {
+            dataCrear.opcionesEntrega = opcionesEntregaBase;
+            dataCrear.linkDescarga = "";
+          }
+
+          await db.ref("productos/" + idManual).set(dataCrear);
+          mostrarNotificacion("Producto guardado", "Producto creado correctamente.", "success");
         } else {
           const productoIdReal = productoEditando.id;
           const snapActual = await db.ref("productos/" + productoIdReal).once("value");
           const actual = snapActual.val() || {};
 
-          await db.ref("productos/" + productoIdReal).update({
+          const updateData = {
             nombre,
             precio: +precio.toFixed(2),
             categoria,
@@ -3062,32 +3535,40 @@ RETIROS RESPONSIVE PRO
             proveedorId: proveedorActual.uid,
             estado: actual.estado || (actual.activo === false ? "inactivo" : "activo"),
             activo: actual.activo !== false
-          });
+          };
+
+          if (opcionesEntregaBase && !actual.opcionesEntrega) {
+            updateData.opcionesEntrega = opcionesEntregaBase;
+            updateData.linkDescarga = actual.linkDescarga || "";
+          }
+
+          await db.ref("productos/" + productoIdReal).update(updateData);
 
           productoEditando = null;
           mostrarModoEdicionProducto(null);
+          mostrarNotificacion("Producto actualizado", "Los cambios del producto se guardaron correctamente.", "success");
         }
 
         limpiarFormularioProducto();
 
         await cargarProductosProveedor();
         await cargarCuentasProveedor();
+        await cargarDescargasProveedor();
         renderTablaProductos();
         poblarSelectsProductos();
         renderTablasCuentas();
+        renderTablaDescargas();
         renderStats();
-
-        alert("Producto guardado correctamente.");
-      } catch(error){
+      } catch (error) {
         console.error("Error guardando producto:", error);
-        alert("No se pudo guardar el producto.");
+        mostrarNotificacion("Error", "No se pudo guardar el producto.", "error");
       }
     }
 
-    function renderTablaProductos(){
+    function renderTablaProductos() {
       const tbody = document.getElementById("tablaProductos");
 
-      if (!productosProveedor.length){
+      if (!productosProveedor.length) {
         tbody.innerHTML = `<tr><td colspan="10"><div class="emptyState">Aún no tienes productos registrados.</div></td></tr>`;
         return;
       }
@@ -3114,30 +3595,58 @@ RETIROS RESPONSIVE PRO
       `).join("");
     }
 
-    function poblarSelectsProductos(){
+    function poblarSelectsProductos() {
       const selectCodigo = document.getElementById("codigoProducto");
       const selectDescarga = document.getElementById("descargaProducto");
       const selectCuenta = document.getElementById("cuentaProducto");
 
-      const opcionesBase = ['<option value="">Selecciona un producto</option>']
-        .concat(productosProveedor.map(prod => `<option value="${prod.id}">${escaparHTML(prod.nombre || "Sin nombre")}</option>`))
-        .join("");
+      const productosCuenta = productosProveedor.filter((prod) => {
+        const tipo = String(prod.tipoEntrega || "").toLowerCase();
+        const cat = String(prod.categoria || "").toLowerCase();
+        return tipo === "cuenta" && cat !== "descarga" && cat !== "plugin" && cat !== "daw";
+      });
 
-      if (selectCodigo) selectCodigo.innerHTML = opcionesBase;
-      if (selectDescarga) selectDescarga.innerHTML = opcionesBase;
-      if (selectCuenta) selectCuenta.innerHTML = opcionesBase;
+      const productosCodigo = productosProveedor.filter((prod) => {
+        const tipo = String(prod.tipoEntrega || "").toLowerCase();
+        const cat = String(prod.categoria || "").toLowerCase();
+        return tipo === "codigo" || cat === "codigo" || cat === "licencia";
+      });
+
+      const productosDigitales = productosProveedor.filter((prod) => {
+        const tipo = String(prod.tipoEntrega || "").toLowerCase();
+        const cat = String(prod.categoria || "").toLowerCase();
+        return tipo === "descarga" || tipo === "plugin" || tipo === "daw" || cat === "descarga" || cat === "plugin" || cat === "daw";
+      });
+
+      if (selectCuenta) {
+        selectCuenta.innerHTML = ['<option value="">Selecciona producto</option>']
+          .concat(productosCuenta.map(prod => `<option value="${prod.id}">${escaparHTML(prod.nombre || "Sin nombre")}</option>`))
+          .join("");
+      }
+
+      if (selectCodigo) {
+        selectCodigo.innerHTML = ['<option value="">Selecciona un producto</option>']
+          .concat(productosCodigo.map(prod => `<option value="${prod.id}">${escaparHTML(prod.nombre || "Sin nombre")}</option>`))
+          .join("");
+      }
+
+      if (selectDescarga) {
+        selectDescarga.innerHTML = ['<option value="">Selecciona un producto</option>']
+          .concat(productosDigitales.map(prod => `<option value="${prod.id}">${escaparHTML(prod.nombre || "Sin nombre")}</option>`))
+          .join("");
+      }
 
       const guardado = obtenerProductoSeleccionadoCuentaGuardado();
-      if (guardado && productosProveedor.some(p => p.id === guardado) && selectCuenta) {
+      if (guardado && productosCuenta.some(p => p.id === guardado) && selectCuenta) {
         selectCuenta.value = guardado;
       }
     }
 
-    async function editarProductoProveedor(productoId){
-      try{
+    async function editarProductoProveedor(productoId) {
+      try {
         const prod = productosProveedor.find(p => p.id === productoId);
         if (!prod) {
-          alert("No se encontró el producto.");
+          mostrarNotificacion("No encontrado", "No se encontró el producto.", "warning");
           return;
         }
 
@@ -3156,18 +3665,18 @@ RETIROS RESPONSIVE PRO
         irASeccion("productos");
         activarSubpanelProductos("productosPanel");
         document.getElementById("prodNombre").focus();
-      }catch(error){
+      } catch (error) {
         console.error("Error editando producto:", error);
-        alert("No se pudo cargar el producto.");
+        mostrarNotificacion("Error", "No se pudo cargar el producto.", "error");
       }
     }
 
-    async function toggleProductoProveedor(productoId){
-      try{
+    async function toggleProductoProveedor(productoId) {
+      try {
         const snap = await db.ref("productos/" + productoId).once("value");
         const prod = snap.val();
         if (!prod) {
-          alert("No se encontró el producto.");
+          mostrarNotificacion("No encontrado", "No se encontró el producto.", "warning");
           return;
         }
 
@@ -3180,15 +3689,20 @@ RETIROS RESPONSIVE PRO
         await cargarProductosProveedor();
         renderTablaProductos();
         renderStats();
-        alert("Estado del producto actualizado.");
-      }catch(error){
+
+        mostrarNotificacion(
+          "Estado actualizado",
+          nuevoActivo ? "El producto fue activado." : "El producto fue desactivado.",
+          "info"
+        );
+      } catch (error) {
         console.error("Error cambiando estado del producto:", error);
-        alert("No se pudo actualizar el estado del producto.");
+        mostrarNotificacion("Error", "No se pudo actualizar el estado del producto.", "error");
       }
     }
 
-    async function eliminarProductoProveedor(productoId){
-      try{
+    async function eliminarProductoProveedor(productoId) {
+      try {
         const confirmar = confirm("¿Seguro que deseas eliminar este producto? También deberías revisar sus cuentas, códigos o descargas asociadas.");
         if (!confirmar) return;
 
@@ -3200,22 +3714,24 @@ RETIROS RESPONSIVE PRO
 
         await cargarProductosProveedor();
         await cargarCuentasProveedor();
+        await cargarDescargasProveedor();
         renderTablaProductos();
         poblarSelectsProductos();
         renderTablasCuentas();
+        renderTablaDescargas();
         renderStats();
 
-        alert("Producto eliminado correctamente.");
-      }catch(error){
+        mostrarNotificacion("Producto eliminado", "Producto eliminado correctamente.", "success");
+      } catch (error) {
         console.error("Error eliminando producto:", error);
-        alert("No se pudo eliminar el producto.");
+        mostrarNotificacion("Error", "No se pudo eliminar el producto.", "error");
       }
     }
 
-    async function guardarCuentaProveedor(e){
+    async function guardarCuentaProveedor(e) {
       e.preventDefault();
 
-      try{
+      try {
         const productoId = document.getElementById("cuentaProducto").value;
         const correo = document.getElementById("cuentaCorreo").value.trim();
         const clave = document.getElementById("cuentaClave").value.trim();
@@ -3223,15 +3739,22 @@ RETIROS RESPONSIVE PRO
         const pin = document.getElementById("cuentaPin").value.trim();
         const observacion = document.getElementById("cuentaObservacion").value.trim();
 
-        if (!productoId) return alert("Selecciona un producto.");
-        if (!correo) return alert("Ingresa el correo o usuario.");
-        if (!clave) return alert("Ingresa la contraseña.");
+        if (!productoId) return mostrarNotificacion("Producto requerido", "Selecciona un producto.", "warning");
+        if (!correo) return mostrarNotificacion("Dato requerido", "Ingresa el correo o usuario.", "warning");
+        if (!clave) return mostrarNotificacion("Dato requerido", "Ingresa la contraseña.", "warning");
+
+        const producto = productosProveedor.find(p => p.id === productoId);
+        const tipoEntrega = String(producto?.tipoEntrega || "").toLowerCase();
+        const categoria = String(producto?.categoria || "").toLowerCase();
+
+        if (!producto || tipoEntrega !== "cuenta" || categoria === "plugin" || categoria === "daw" || categoria === "descarga") {
+          return mostrarNotificacion("Producto inválido", "Selecciona un producto tipo cuenta.", "warning");
+        }
 
         guardarProductoSeleccionadoCuenta(productoId);
 
         if (cuentaEditando) {
           const rutaAnterior = obtenerRutaCuentaCompleta(cuentaEditando);
-
           const snapOriginal = await db.ref(rutaAnterior).once("value");
           const original = snapOriginal.val() || {};
 
@@ -3262,7 +3785,7 @@ RETIROS RESPONSIVE PRO
 
           await cargarCuentasProveedor();
           renderTablasCuentas();
-          alert("Cuenta actualizada correctamente.");
+          mostrarNotificacion("Cuenta actualizada", "Cuenta actualizada correctamente.", "success");
           return;
         }
 
@@ -3298,14 +3821,14 @@ RETIROS RESPONSIVE PRO
         await cargarCuentasProveedor();
         renderTablasCuentas();
 
-        alert("Cuenta guardada correctamente.");
-      } catch(error){
+        mostrarNotificacion("Cuenta guardada", "Cuenta guardada correctamente.", "success");
+      } catch (error) {
         console.error("Error guardando cuenta:", error);
-        alert("No se pudo guardar la cuenta.");
+        mostrarNotificacion("Error", "No se pudo guardar la cuenta.", "error");
       }
     }
 
-    function renderTablasCuentas(){
+    function renderTablasCuentas() {
       const productoIdSeleccionado = document.getElementById("cuentaProducto")?.value || obtenerProductoSeleccionadoCuentaGuardado() || "";
       const disponiblesTbody = document.getElementById("tablaCuentasDisponibles");
       const usadasTbody = document.getElementById("tablaCuentasUsadas");
@@ -3372,11 +3895,11 @@ RETIROS RESPONSIVE PRO
       }
     }
 
-    async function editarCuentaProveedor(productoId, cuentaId){
-      try{
+    async function editarCuentaProveedor(productoId, cuentaId) {
+      try {
         const info = cuentasProveedor.find(c => c.productoId === productoId && c.id === cuentaId);
         if (!info) {
-          alert("No se encontró la cuenta.");
+          mostrarNotificacion("No encontrada", "No se encontró la cuenta.", "warning");
           return;
         }
 
@@ -3385,7 +3908,7 @@ RETIROS RESPONSIVE PRO
         const data = snap.val();
 
         if (!data) {
-          alert("No se encontró la cuenta.");
+          mostrarNotificacion("No encontrada", "No se encontró la cuenta.", "warning");
           return;
         }
 
@@ -3407,17 +3930,17 @@ RETIROS RESPONSIVE PRO
         mostrarModoEdicionCuenta(cuentaEditando);
         irASeccion("productos");
         document.getElementById("cuentaCorreo").focus();
-      }catch(error){
+      } catch (error) {
         console.error("Error editando cuenta:", error);
-        alert("No se pudo cargar la cuenta para edición.");
+        mostrarNotificacion("Error", "No se pudo cargar la cuenta para edición.", "error");
       }
     }
 
-    async function eliminarCuentaProveedor(productoId, cuentaId){
-      try{
+    async function eliminarCuentaProveedor(productoId, cuentaId) {
+      try {
         const info = cuentasProveedor.find(c => c.productoId === productoId && c.id === cuentaId);
         if (!info) {
-          alert("No se encontró la cuenta.");
+          mostrarNotificacion("No encontrada", "No se encontró la cuenta.", "warning");
           return;
         }
 
@@ -3433,25 +3956,32 @@ RETIROS RESPONSIVE PRO
 
         await cargarCuentasProveedor();
         renderTablasCuentas();
-        alert("Cuenta eliminada correctamente.");
-      }catch(error){
+
+        mostrarNotificacion("Cuenta eliminada", "Cuenta eliminada correctamente.", "success");
+      } catch (error) {
         console.error("Error eliminando cuenta:", error);
-        alert("No se pudo eliminar la cuenta.");
+        mostrarNotificacion("Error", "No se pudo eliminar la cuenta.", "error");
       }
     }
 
-    async function guardarCodigoProveedor(e){
+    async function guardarCodigoProveedor(e) {
       e.preventDefault();
 
-      try{
+      try {
         const productoId = document.getElementById("codigoProducto").value;
         const codigo = document.getElementById("codigoTexto").value.trim();
         const observacion = document.getElementById("codigoObservacion").value.trim();
 
-        if (!productoId) return alert("Selecciona un producto.");
-        if (!codigo) return alert("Ingresa el código.");
+        if (!productoId) return mostrarNotificacion("Producto requerido", "Selecciona un producto.", "warning");
+        if (!codigo) return mostrarNotificacion("Código requerido", "Ingresa el código.", "warning");
 
         const producto = productosProveedor.find(p => p.id === productoId);
+        const tipo = String(producto?.tipoEntrega || "").toLowerCase();
+        const cat = String(producto?.categoria || "").toLowerCase();
+
+        if (!producto || !(tipo === "codigo" || cat === "codigo" || cat === "licencia")) {
+          return mostrarNotificacion("Producto inválido", "Selecciona un producto tipo código o licencia.", "warning");
+        }
 
         const ref = db.ref("codigos").push();
         await ref.set({
@@ -3471,22 +4001,22 @@ RETIROS RESPONSIVE PRO
         await cargarCodigosProveedor();
         renderTablaCodigos();
 
-        alert("Código guardado correctamente.");
-      } catch(error){
+        mostrarNotificacion("Código guardado", "Código guardado correctamente.", "success");
+      } catch (error) {
         console.error("Error guardando código:", error);
-        alert("No se pudo guardar el código.");
+        mostrarNotificacion("Error", "No se pudo guardar el código.", "error");
       }
     }
 
-    function obtenerNombreProducto(productoId){
+    function obtenerNombreProducto(productoId) {
       const p = productosProveedor.find(item => item.id === productoId);
       return p?.nombre || "";
     }
 
-    function renderTablaCodigos(){
+    function renderTablaCodigos() {
       const tbody = document.getElementById("tablaCodigos");
 
-      if (!codigosProveedor.length){
+      if (!codigosProveedor.length) {
         tbody.innerHTML = `<tr><td colspan="5"><div class="emptyState">No hay códigos registrados todavía.</div></td></tr>`;
         return;
       }
@@ -3502,10 +4032,10 @@ RETIROS RESPONSIVE PRO
       `).join("");
     }
 
-    async function guardarDescargaProveedor(e){
+    async function guardarDescargaProveedor(e) {
       e.preventDefault();
 
-      try{
+      try {
         const productoId = document.getElementById("descargaProducto").value;
         const titulo = document.getElementById("descargaTitulo").value.trim();
         const link = document.getElementById("descargaLink").value.trim();
@@ -3513,11 +4043,25 @@ RETIROS RESPONSIVE PRO
         const sistema = document.getElementById("descargaSistema").value;
         const observacion = document.getElementById("descargaObservacion").value.trim();
 
-        if (!productoId) return alert("Selecciona un producto.");
-        if (!titulo) return alert("Ingresa un título.");
-        if (!link) return alert("Ingresa el link de descarga.");
+        if (!productoId) return mostrarNotificacion("Producto requerido", "Selecciona un producto.", "warning");
+        if (!titulo) return mostrarNotificacion("Dato requerido", "Ingresa un título.", "warning");
+        if (!link) return mostrarNotificacion("Dato requerido", "Ingresa el link de descarga.", "warning");
 
         const producto = productosProveedor.find(p => p.id === productoId);
+        const tipo = String(producto?.tipoEntrega || "").toLowerCase();
+        const cat = String(producto?.categoria || "").toLowerCase();
+
+        const esDigital =
+          tipo === "descarga" ||
+          tipo === "plugin" ||
+          tipo === "daw" ||
+          cat === "descarga" ||
+          cat === "plugin" ||
+          cat === "daw";
+
+        if (!producto || !esDigital) {
+          return mostrarNotificacion("Producto inválido", "Selecciona un producto digital: descarga, plugin o DAW.", "warning");
+        }
 
         const ref = db.ref("descargas").push();
         await ref.set({
@@ -3535,22 +4079,41 @@ RETIROS RESPONSIVE PRO
           fechaCreacion: Date.now()
         });
 
+        const sistemaLower = normalizarTexto(sistema);
+        const updatesProducto = {};
+
+        if (sistemaLower === "windows") {
+          updatesProducto["productos/" + productoId + "/opcionesEntrega/windows/nombre"] = "Windows";
+          updatesProducto["productos/" + productoId + "/opcionesEntrega/windows/link"] = link;
+        } else if (sistemaLower === "mac") {
+          updatesProducto["productos/" + productoId + "/opcionesEntrega/mac/nombre"] = "Mac";
+          updatesProducto["productos/" + productoId + "/opcionesEntrega/mac/link"] = link;
+        } else {
+          updatesProducto["productos/" + productoId + "/opcionesEntrega/general/nombre"] = "General";
+          updatesProducto["productos/" + productoId + "/opcionesEntrega/general/link"] = link;
+          updatesProducto["productos/" + productoId + "/linkDescarga"] = link;
+        }
+
+        if (Object.keys(updatesProducto).length) {
+          await db.ref().update(updatesProducto);
+        }
+
         document.getElementById("formDescarga").reset();
         await cargarDescargasProveedor();
         renderTablaDescargas();
         renderStats();
 
-        alert("Descarga guardada correctamente.");
-      } catch(error){
+        mostrarNotificacion("Descarga guardada", "La descarga fue guardada y vinculada al producto.", "success");
+      } catch (error) {
         console.error("Error guardando descarga:", error);
-        alert("No se pudo guardar la descarga.");
+        mostrarNotificacion("Error", "No se pudo guardar la descarga.", "error");
       }
     }
 
-    function renderTablaDescargas(){
+    function renderTablaDescargas() {
       const tbody = document.getElementById("tablaDescargas");
 
-      if (!descargasProveedor.length){
+      if (!descargasProveedor.length) {
         tbody.innerHTML = `<tr><td colspan="6"><div class="emptyState">No hay descargas registradas todavía.</div></td></tr>`;
         return;
       }
@@ -3567,7 +4130,7 @@ RETIROS RESPONSIVE PRO
       `).join("");
     }
 
-    function renderTablaVentas(){
+    function renderTablaVentas() {
       const tbody = document.getElementById("tablaVentas");
       const texto = (document.getElementById("buscarVenta").value || "").trim().toLowerCase();
       const estadoFiltro = document.getElementById("filtroEstadoVenta").value;
@@ -3575,7 +4138,7 @@ RETIROS RESPONSIVE PRO
 
       let lista = [...ventasProveedor];
 
-      if (texto){
+      if (texto) {
         lista = lista.filter(v => {
           const producto = String(v.productoNombre || v.producto || obtenerNombreProducto(v.productoId) || "").toLowerCase();
           const cliente = String(v.usuarioCliente || v.nombreCliente || v.clienteNombre || v.nombre || "").toLowerCase();
@@ -3584,17 +4147,17 @@ RETIROS RESPONSIVE PRO
         });
       }
 
-      if (estadoFiltro !== "todos"){
+      if (estadoFiltro !== "todos") {
         lista = lista.filter(v => String(v.estado || "").toLowerCase() === estadoFiltro);
       }
 
-      lista.sort((a,b) => {
+      lista.sort((a, b) => {
         const fa = Number(a.fecha || a.fechaCompra || a.timestamp || 0);
         const fb = Number(b.fecha || b.fechaCompra || b.timestamp || 0);
         return orden === "antiguas" ? fa - fb : fb - fa;
       });
 
-      if (!lista.length){
+      if (!lista.length) {
         tbody.innerHTML = `<tr><td colspan="8"><div class="emptyState">No hay resultados para los filtros aplicados.</div></td></tr>`;
         return;
       }
@@ -3606,10 +4169,24 @@ RETIROS RESPONSIVE PRO
         const precio = Number(v.precio || v.montoTotal || v.monto || 0);
         const ganancia = Number(v.montoProveedor || calcularGananciaProveedor(precio));
         const estado = v.estado || "pendiente";
+        const esDigital = String(v.linkEntrega || "").trim() !== "" || ["descarga","plugin","daw"].includes(String(v.tipoEntrega || "").toLowerCase());
+
+        const extraProducto = esDigital
+          ? `
+            <div style="color:#9fa7c0; font-size:11px; margin-top:5px; line-height:1.45;">
+              ${escaparHTML((v.tipoEntrega || "digital").toUpperCase())}
+              ${v.plataformaElegida ? " | " + escaparHTML(v.plataformaElegida) : ""}
+              ${v.linkEntrega ? " | Link entregado" : ""}
+            </div>
+          `
+          : "";
 
         return `
           <tr>
-            <td>${escaparHTML(v.productoNombre || v.producto || obtenerNombreProducto(v.productoId) || "-")}</td>
+            <td>
+              <div><strong>${escaparHTML(v.productoNombre || v.producto || obtenerNombreProducto(v.productoId) || "-")}</strong></div>
+              ${extraProducto}
+            </td>
             <td>
               <div><strong>${escaparHTML(clienteNombre)}</strong></div>
               <div style="color:#9fa7c0; font-size:12px; margin-top:4px;">${escaparHTML(clienteCorreo || "-")}</div>
@@ -3625,10 +4202,10 @@ RETIROS RESPONSIVE PRO
       }).join("");
     }
 
-    function renderMovimientos(){
+    function renderMovimientos() {
       const listaResumen = document.getElementById("ultimosMovimientos");
 
-      if (!movimientosProveedor.length){
+      if (!movimientosProveedor.length) {
         listaResumen.innerHTML = `<div class="emptyState">No hay movimientos todavía.</div>`;
         return;
       }
@@ -3650,18 +4227,18 @@ RETIROS RESPONSIVE PRO
       listaResumen.innerHTML = html;
     }
 
-    async function solicitarRetiroProveedor(e){
+    async function solicitarRetiroProveedor(e) {
       e.preventDefault();
 
-      try{
+      try {
         const monto = Number(document.getElementById("retiroMonto").value || 0);
         const metodo = document.getElementById("retiroMetodo").value;
         const datoPago = document.getElementById("retiroDatoPago").value.trim();
         const saldoActual = Number(datosProveedorActual?.saldo || 0);
 
-        if (monto <= 0) return alert("El monto debe ser mayor a 0.");
-        if (monto > saldoActual) return alert("No tienes saldo suficiente para ese retiro.");
-        if (!datoPago) return alert("Ingresa el dato de pago.");
+        if (monto <= 0) return mostrarNotificacion("Monto inválido", "El monto debe ser mayor a 0.", "warning");
+        if (monto > saldoActual) return mostrarNotificacion("Saldo insuficiente", "No tienes saldo suficiente para ese retiro.", "warning");
+        if (!datoPago) return mostrarNotificacion("Dato requerido", "Ingresa el dato de pago.", "warning");
 
         const nombreProveedor =
           datosProveedorActual.nombreCompleto ||
@@ -3690,17 +4267,21 @@ RETIROS RESPONSIVE PRO
         renderTablaRetiros();
         renderStats();
 
-        alert("Solicitud de retiro enviada correctamente.");
-      } catch(error){
+        mostrarNotificacion(
+          "Solicitud enviada",
+          "La solicitud de retiro fue enviada correctamente al panel de administración.",
+          "success"
+        );
+      } catch (error) {
         console.error("Error solicitando retiro:", error);
-        alert("No se pudo enviar la solicitud de retiro.");
+        mostrarNotificacion("Error", "No se pudo enviar la solicitud de retiro.", "error");
       }
     }
 
-    function renderTablaRetiros(){
+    function renderTablaRetiros() {
       const tbody = document.getElementById("tablaRetiros");
 
-      if (!retirosProveedor.length){
+      if (!retirosProveedor.length) {
         tbody.innerHTML = `<tr><td colspan="6"><div class="emptyState">Aún no has enviado solicitudes de retiro.</div></td></tr>`;
         return;
       }
@@ -3717,70 +4298,104 @@ RETIROS RESPONSIVE PRO
       `).join("");
     }
 
-    async function abrirModalTiendaProveedor(){
+    function renderTiendaProveedorGrid() {
+      const grid = document.getElementById("tiendaProveedorGrid");
+      const textoInfo = document.getElementById("textoResultadoTiendaProveedor");
+      if (!grid) return;
+
+      const filtroProducto = normalizarTexto(document.getElementById("buscarTiendaProducto")?.value || "");
+      const filtroProveedor = normalizarTexto(document.getElementById("buscarTiendaProveedor")?.value || "");
+
+      let lista = [...productosTiendaModal];
+
+      if (filtroProducto) {
+        lista = lista.filter((item) => {
+          const nombre = normalizarTexto(item.nombre || item.id || "");
+          return nombre.includes(filtroProducto);
+        });
+      }
+
+      if (filtroProveedor) {
+        lista = lista.filter((item) => {
+          const proveedor = normalizarTexto(item.proveedorNombre || "");
+          return proveedor.includes(filtroProveedor);
+        });
+      }
+
+      if (textoInfo) {
+        textoInfo.textContent = `Mostrando ${lista.length} de ${productosTiendaModal.length} productos activos.`;
+      }
+
+      if (!lista.length) {
+        grid.innerHTML = `<div class="emptyState">No se encontraron productos con esos filtros.</div>`;
+        return;
+      }
+
+      grid.innerHTML = lista.map(item => {
+        const img = obtenerImagenProductoPanel(item);
+        const nombre = item.nombre || item.id || "Producto";
+        const categoria = item.categoria || "Sin categoría";
+        const proveedor = item.proveedorNombre || "Proveedor";
+        const precio = formatearMoneda(item.precio || 0);
+        const duracion = obtenerDuracionTexto(item.duracionDias || 0);
+        const tipoEntregaVisual = obtenerTipoEntregaVisual(item);
+        const stock = Number(item.stock || 0);
+
+        const stockTexto =
+          tipoEntregaVisual === "Descarga" ||
+          tipoEntregaVisual === "Plugin" ||
+          tipoEntregaVisual === "DAW"
+            ? "Ilimitado"
+            : String(stock);
+
+        return `
+          <div class="tiendaCard">
+            <img class="tiendaCardImg" src="${escaparHTML(img)}" alt="${escaparHTML(nombre)}">
+            <div class="tiendaCardBody">
+              <h4>${escaparHTML(nombre)}</h4>
+              <div class="tiendaMeta">
+                Categoría: ${escaparHTML(categoria)}<br>
+                Proveedor: ${escaparHTML(proveedor)}<br>
+                Stock: ${escaparHTML(stockTexto)}<br>
+                ${escaparHTML(duracion)}
+              </div>
+              <div class="tiendaPrecio">${escaparHTML(precio)}</div>
+              <span class="tiendaTag">${escaparHTML(tipoEntregaVisual)}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function abrirModalTiendaProveedor() {
       const modal = document.getElementById("modalTiendaProveedor");
       const grid = document.getElementById("tiendaProveedorGrid");
 
       modal.classList.add("show");
       grid.innerHTML = `<div class="emptyState">Cargando productos...</div>`;
 
-      try{
+      try {
         const data = await safeReadRoot("productos");
-        const lista = Object.keys(data)
+        productosTiendaModal = Object.keys(data)
           .map(id => ({ id, ...data[id] }))
           .filter(item => item && item.activo !== false)
-          .sort((a,b) => String(a.nombre || "").localeCompare(String(b.nombre || ""), "es"));
+          .sort((a, b) => String(a.nombre || "").localeCompare(String(b.nombre || ""), "es"));
 
-        if (!lista.length) {
-          grid.innerHTML = `<div class="emptyState">No hay productos activos para mostrar.</div>`;
-          return;
-        }
+        document.getElementById("buscarTiendaProducto").value = "";
+        document.getElementById("buscarTiendaProveedor").value = "";
 
-        grid.innerHTML = lista.map(item => {
-          const img = obtenerImagenProductoPanel(item);
-          const nombre = item.nombre || item.id || "Producto";
-          const categoria = item.categoria || "Sin categoría";
-          const proveedor = item.proveedorNombre || "Proveedor";
-          const precio = formatearMoneda(item.precio || 0);
-          const duracion = obtenerDuracionTexto(item.duracionDias || 0);
-          const tipoEntregaVisual = obtenerTipoEntregaVisual(item);
-          const stock = Number(item.stock || 0);
-
-          const stockTexto =
-            tipoEntregaVisual === "Descarga" ||
-            String(categoria).toLowerCase() === "plugin" ||
-            String(categoria).toLowerCase() === "daw"
-              ? "Ilimitado"
-              : String(stock);
-
-          return `
-            <div class="tiendaCard">
-              <img class="tiendaCardImg" src="${escaparHTML(img)}" alt="${escaparHTML(nombre)}">
-              <div class="tiendaCardBody">
-                <h4>${escaparHTML(nombre)}</h4>
-                <div class="tiendaMeta">
-                  Categoría: ${escaparHTML(categoria)}<br>
-                  Proveedor: ${escaparHTML(proveedor)}<br>
-                  Stock: ${escaparHTML(stockTexto)}<br>
-                  ${escaparHTML(duracion)}
-                </div>
-                <div class="tiendaPrecio">${escaparHTML(precio)}</div>
-                <span class="tiendaTag">${escaparHTML(tipoEntregaVisual)}</span>
-              </div>
-            </div>
-          `;
-        }).join("");
-      }catch(error){
+        renderTiendaProveedorGrid();
+      } catch (error) {
         console.error("Error abriendo modal tienda:", error);
         grid.innerHTML = `<div class="emptyState">No se pudieron cargar los productos de tienda.</div>`;
       }
     }
 
-    function cerrarModalTiendaProveedor(){
+    function cerrarModalTiendaProveedor() {
       document.getElementById("modalTiendaProveedor").classList.remove("show");
     }
 
-    function prepararEventosUI(){
+    function prepararEventosUI() {
       if (uiPreparada) return;
       uiPreparada = true;
 
@@ -3801,10 +4416,10 @@ RETIROS RESPONSIVE PRO
       });
 
       document.getElementById("btnCerrarSesion").addEventListener("click", async () => {
-        try{
+        try {
           await auth.signOut();
           window.location.replace("index.html");
-        }catch(error){
+        } catch (error) {
           console.error(error);
           window.location.replace("index.html");
         }
@@ -3812,6 +4427,7 @@ RETIROS RESPONSIVE PRO
 
       document.getElementById("btnRecargarTop").addEventListener("click", async () => {
         await cargarTodoPanel();
+        mostrarNotificacion("Panel actualizado", "La información fue actualizada correctamente.", "info");
       });
 
       document.getElementById("btnToggleActivo").addEventListener("click", alternarTiempoActivo);
@@ -3825,6 +4441,15 @@ RETIROS RESPONSIVE PRO
       document.getElementById("buscarVenta").addEventListener("input", renderTablaVentas);
       document.getElementById("filtroEstadoVenta").addEventListener("change", renderTablaVentas);
       document.getElementById("filtroOrdenVenta").addEventListener("change", renderTablaVentas);
+
+      document.getElementById("buscarTiendaProducto").addEventListener("input", renderTiendaProveedorGrid);
+      document.getElementById("buscarTiendaProveedor").addEventListener("input", renderTiendaProveedorGrid);
+
+      document.getElementById("btnLimpiarBuscadorTienda").addEventListener("click", () => {
+        document.getElementById("buscarTiendaProducto").value = "";
+        document.getElementById("buscarTiendaProveedor").value = "";
+        renderTiendaProveedorGrid();
+      });
 
       document.getElementById("cuentaProducto").addEventListener("change", () => {
         guardarProductoSeleccionadoCuenta(document.getElementById("cuentaProducto").value);
@@ -3845,9 +4470,7 @@ RETIROS RESPONSIVE PRO
       });
 
       window.addEventListener("resize", () => {
-        if (window.innerWidth > 900) {
-          cerrarMenuMovil();
-        }
+        if (window.innerWidth > 900) cerrarMenuMovil();
       });
     }
 
@@ -3866,7 +4489,7 @@ RETIROS RESPONSIVE PRO
 
         if (!datos) {
           setDebug("No se encontró usuarios/" + uid);
-          alert("No se encontró tu usuario en la base de datos.");
+          mostrarNotificacion("Acceso inválido", "No se encontró tu usuario en la base de datos.", "error");
           return;
         }
 
@@ -3898,10 +4521,10 @@ RETIROS RESPONSIVE PRO
         iniciarControlInactividad();
         await cargarTodoPanel();
         actualizarStatsVisibles("resumen");
-
       } catch (error) {
         console.error("Error cargando proveedor:", error);
         setDebug("Error general: " + (error.message || error));
+        mostrarNotificacion("Error de carga", "No se pudo cargar el panel del proveedor.", "error");
       }
     });
 
