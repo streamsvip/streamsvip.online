@@ -1058,7 +1058,6 @@ function mostrarAvisoStockPremium(stockMaximo) {
     }
   );
 }
-
 /* =========================
 MODAL DESCARGA / PLUGIN
 ========================= */
@@ -1723,6 +1722,9 @@ function obtenerRutasCuentasCompatibles(productoId, itemProducto = {}) {
 
   return Array.from(variantes).filter(Boolean);
 }
+/* =========================
+TOAST / HELPERS EXTRA
+========================= */
 
 function mostrarToastCompraExitosa(producto, total) {
   let toast = document.getElementById("toastCompraExitosa");
@@ -1839,7 +1841,11 @@ function cerrarSesionPorBloqueo() {
   limpiarReferenciaOnline();
   actualizarBadgeMisCompras(0);
 
-  mostrarAvisoSistema("Cuenta bloqueada", "Tu cuenta ha sido bloqueada. Contacta con soporte.", "error");
+  mostrarAvisoSistema(
+    "Cuenta bloqueada",
+    "Tu cuenta ha sido bloqueada. Contacta con soporte.",
+    "error"
+  );
 
   setTimeout(() => {
     auth.signOut()
@@ -3687,6 +3693,7 @@ function mostrarFormulario() {
   if (qr) qr.style.display = "none";
   if (form) form.style.display = "block";
 }
+
 /* =========================
 BANNER SLIDER
 ========================= */
@@ -3881,6 +3888,7 @@ function iniciarFormularioReservado() {
     });
   }
 }
+
 document.addEventListener("DOMContentLoaded", function () {
   const pagina = obtenerPaginaActual();
 
