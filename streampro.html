@@ -12,78 +12,59 @@
   <style>
     :root{
       --bg:#0b0b12;
-      --bg2:#11111b;
-      --panel:#151523;
-      --panel2:#1b1b2b;
+      --bg2:#10101a;
+      --panel:#141423;
+      --panel2:#1a1a2b;
       --card:#171727;
       --card2:#1d1d31;
-      --line:rgba(255,255,255,0.08);
+      --line:rgba(255,255,255,.08);
       --text:#f5f7ff;
-      --muted:#a9afc3;
+      --muted:#aab2c7;
       --primary:#7c4dff;
-      --primary2:#6b46ff;
-      --primary3:#5f92ff;
+      --primary2:#5f92ff;
       --success:#20c997;
       --warning:#ffb020;
       --danger:#ff5d73;
       --info:#36a3ff;
-      --shadow:0 18px 40px rgba(0,0,0,0.35);
-      --selectBg:#23233a;
-      --inputBg:rgba(255,255,255,0.05);
-      --glass:rgba(255,255,255,0.04);
-      --glass2:rgba(255,255,255,0.06);
+      --shadow:0 20px 46px rgba(0,0,0,.34);
+      --inputBg:rgba(255,255,255,.04);
+      --glass:rgba(255,255,255,.05);
     }
 
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-    }
+    *{margin:0;padding:0;box-sizing:border-box}
 
     html,body{
       width:100%;
       min-height:100%;
-      background:
-        radial-gradient(circle at top left, rgba(124,77,255,0.14), transparent 28%),
-        radial-gradient(circle at top right, rgba(54,163,255,0.10), transparent 24%),
-        linear-gradient(180deg, #0b0b12 0%, #0d0d15 100%);
-      color:var(--text);
       font-family:Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(124,77,255,.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(54,163,255,.12), transparent 26%),
+        linear-gradient(180deg,#090910,#0d0d16 100%);
+      color:var(--text);
     }
 
-    body{
-      overflow-x:hidden;
-    }
-
-    a{
-      text-decoration:none;
-      color:inherit;
-    }
-
-    button,
-    input,
-    select,
-    textarea{
-      font-family:inherit;
-    }
+    body{overflow-x:hidden}
+    a{text-decoration:none;color:inherit}
+    button,input,select,textarea{font-family:inherit}
 
     .app{
-      display:flex;
       min-height:100vh;
+      display:flex;
       width:100%;
     }
 
     .sidebar{
       width:280px;
-      background:linear-gradient(180deg, rgba(18,18,28,0.97), rgba(12,12,20,0.97));
-      border-right:1px solid var(--line);
-      padding:18px 14px 24px;
+      height:100vh;
       position:sticky;
       top:0;
-      height:100vh;
       overflow:auto;
+      padding:18px 14px 24px;
+      background:linear-gradient(180deg, rgba(18,18,28,.97), rgba(12,12,20,.97));
+      border-right:1px solid var(--line);
+      backdrop-filter:blur(14px);
       z-index:30;
-      backdrop-filter:blur(16px);
     }
 
     .brand{
@@ -92,8 +73,8 @@
       gap:12px;
       padding:12px;
       border-radius:18px;
-      background:linear-gradient(135deg, rgba(124,77,255,0.20), rgba(54,163,255,0.10));
-      border:1px solid rgba(255,255,255,0.07);
+      background:linear-gradient(135deg, rgba(124,77,255,.20), rgba(54,163,255,.10));
+      border:1px solid rgba(255,255,255,.07);
       box-shadow:var(--shadow);
       margin-bottom:16px;
     }
@@ -104,9 +85,9 @@
       border-radius:16px;
       display:grid;
       place-items:center;
+      background:linear-gradient(135deg,var(--primary),var(--primary2));
+      font-weight:800;
       font-size:20px;
-      font-weight:700;
-      background:linear-gradient(135deg, var(--primary), #4d8dff);
       color:#fff;
       flex-shrink:0;
     }
@@ -114,16 +95,16 @@
     .brandText h1{
       font-size:17px;
       line-height:1.15;
+      margin-bottom:4px;
     }
 
     .brandText p{
       font-size:12px;
       color:var(--muted);
-      margin-top:4px;
     }
 
     .userCard{
-      background:linear-gradient(180deg, var(--panel), var(--panel2));
+      background:linear-gradient(180deg,var(--panel),var(--panel2));
       border:1px solid var(--line);
       border-radius:18px;
       padding:14px;
@@ -141,18 +122,17 @@
       width:46px;
       height:46px;
       border-radius:50%;
-      background:linear-gradient(135deg, rgba(124,77,255,0.85), rgba(54,163,255,0.85));
       display:grid;
       place-items:center;
-      font-weight:700;
-      font-size:17px;
+      background:linear-gradient(135deg, rgba(124,77,255,.9), rgba(54,163,255,.9));
       color:#fff;
+      font-weight:800;
+      font-size:17px;
       flex-shrink:0;
     }
 
     .userMeta h3{
       font-size:15px;
-      font-weight:700;
       margin-bottom:4px;
     }
 
@@ -166,21 +146,33 @@
       margin-top:12px;
       padding:12px;
       border-radius:14px;
-      background:rgba(255,255,255,0.03);
-      border:1px solid rgba(255,255,255,0.06);
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
     }
 
     .walletMini span{
       display:block;
-      color:var(--muted);
       font-size:12px;
+      color:var(--muted);
       margin-bottom:6px;
     }
 
     .walletMini strong{
-      font-size:23px;
-      color:#fff;
       display:block;
+      font-size:22px;
+      color:#fff;
+      word-break:break-word;
+    }
+
+    .debugBox{
+      margin-top:12px;
+      padding:12px;
+      border-radius:14px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
+      color:#dbe2ff;
+      font-size:12px;
+      line-height:1.6;
       word-break:break-word;
     }
 
@@ -206,31 +198,31 @@
       padding:14px;
       border-radius:14px;
       background:transparent;
-      color:var(--text);
-      font-size:14px;
-      transition:.18s ease;
+      color:#fff;
       display:flex;
       align-items:center;
       gap:10px;
+      font-size:14px;
       border:1px solid transparent;
+      transition:.18s ease;
     }
 
     .menuBtn:hover{
-      background:rgba(255,255,255,0.04);
-      border-color:rgba(255,255,255,0.05);
+      background:rgba(255,255,255,.04);
+      border-color:rgba(255,255,255,.05);
     }
 
     .menuBtn.active{
-      background:linear-gradient(135deg, rgba(124,77,255,0.20), rgba(124,77,255,0.08));
-      border-color:rgba(124,77,255,0.35);
-      box-shadow:0 8px 24px rgba(124,77,255,0.18);
+      background:linear-gradient(135deg, rgba(124,77,255,.20), rgba(124,77,255,.08));
+      border-color:rgba(124,77,255,.35);
+      box-shadow:0 8px 24px rgba(124,77,255,.18);
     }
 
     .menuIcon{
       width:26px;
       text-align:center;
-      font-size:16px;
       flex-shrink:0;
+      font-size:16px;
     }
 
     .main{
@@ -244,9 +236,8 @@
       align-items:center;
       justify-content:space-between;
       gap:14px;
-      margin-bottom:20px;
       flex-wrap:wrap;
-      position:relative;
+      margin-bottom:20px;
     }
 
     .topbarLeft{
@@ -261,18 +252,14 @@
       width:48px;
       height:48px;
       border-radius:16px;
-      border:1px solid rgba(255,255,255,0.10);
-      background:rgba(14,14,24,0.88);
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(14,14,24,.9);
       color:#fff;
       font-size:20px;
       cursor:pointer;
-      box-shadow:0 12px 30px rgba(0,0,0,0.35);
+      box-shadow:0 12px 30px rgba(0,0,0,.35);
       backdrop-filter:blur(12px);
-      transition:transform .22s ease, opacity .22s ease, background .18s ease;
-    }
-
-    .mobileMenuBtn:hover{
-      background:rgba(24,24,38,0.95);
+      transition:transform .22s ease, background .18s ease;
     }
 
     .mobileMenuBtn.is-floating{
@@ -307,14 +294,14 @@
       border-radius:14px;
       padding:12px 16px;
       font-size:14px;
-      font-weight:700;
+      font-weight:800;
       transition:.18s ease;
     }
 
     .btnPrimary{
-      background:linear-gradient(135deg, var(--primary), var(--primary3));
+      background:linear-gradient(135deg,var(--primary),var(--primary2));
       color:#fff;
-      box-shadow:0 10px 24px rgba(124,77,255,0.25);
+      box-shadow:0 10px 24px rgba(124,77,255,.24);
     }
 
     .btnPrimary:hover{
@@ -323,51 +310,73 @@
     }
 
     .btnGhost{
-      background:rgba(255,255,255,0.05);
+      background:rgba(255,255,255,.05);
       color:#fff;
-      border:1px solid rgba(255,255,255,0.07);
+      border:1px solid rgba(255,255,255,.08);
     }
 
     .btnGhost:hover{
-      background:rgba(255,255,255,0.08);
+      background:rgba(255,255,255,.08);
     }
 
     .btnActiveOn{
-      background:linear-gradient(135deg, rgba(32,201,151,0.24), rgba(95,146,255,0.16));
-      border:1px solid rgba(32,201,151,0.34);
+      background:linear-gradient(135deg, rgba(32,201,151,.24), rgba(95,146,255,.16));
+      border:1px solid rgba(32,201,151,.34);
       color:#fff;
     }
 
     .btnActiveOff{
-      background:rgba(255,255,255,0.05);
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
       color:#fff;
-      border:1px solid rgba(255,255,255,0.07);
+    }
+
+    .section{display:none;animation:fadeIn .22s ease}
+    .section.active{display:block}
+
+    @keyframes fadeIn{
+      from{opacity:0;transform:translateY(6px)}
+      to{opacity:1;transform:translateY(0)}
     }
 
     .gridStats{
       display:grid;
-      grid-template-columns:repeat(4, minmax(0,1fr));
+      grid-template-columns:repeat(4,minmax(0,1fr));
       gap:14px;
       margin-bottom:20px;
     }
 
     .gridStats.twoCols{
-      grid-template-columns:repeat(2, minmax(0,1fr));
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .gridTwo{
+      display:grid;
+      grid-template-columns:1.05fr .95fr;
+      gap:16px;
+    }
+
+    .gridWallet{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:16px;
+    }
+
+    .statCard,.panelCard{
+      background:linear-gradient(180deg,var(--card),var(--card2));
+      border:1px solid var(--line);
+      border-radius:20px;
+      box-shadow:var(--shadow);
     }
 
     .statCard{
-      background:linear-gradient(180deg, var(--card), var(--card2));
-      border:1px solid var(--line);
-      border-radius:18px;
       padding:18px;
-      box-shadow:var(--shadow);
-      min-width:0;
     }
 
     .statCard span{
       display:block;
-      color:var(--muted);
       font-size:12px;
+      color:var(--muted);
       margin-bottom:8px;
     }
 
@@ -380,32 +389,14 @@
     }
 
     .statCard small{
-      color:var(--muted);
-      font-size:12px;
       display:block;
+      font-size:12px;
+      color:var(--muted);
       line-height:1.4;
     }
 
-    .section{
-      display:none;
-      animation:fadeIn .22s ease;
-    }
-
-    .section.active{
-      display:block;
-    }
-
-    @keyframes fadeIn{
-      from{opacity:0;transform:translateY(6px)}
-      to{opacity:1;transform:translateY(0)}
-    }
-
     .panelCard{
-      background:linear-gradient(180deg, var(--card), var(--card2));
-      border:1px solid var(--line);
-      border-radius:20px;
       padding:18px;
-      box-shadow:var(--shadow);
       margin-bottom:18px;
     }
 
@@ -420,25 +411,99 @@
 
     .panelHeader h3{
       font-size:18px;
+      margin-bottom:4px;
     }
 
     .panelHeader p{
       font-size:12px;
       color:var(--muted);
-      margin-top:4px;
       line-height:1.5;
     }
 
-    .gridTwo{
-      display:grid;
-      grid-template-columns:1.1fr .9fr;
-      gap:16px;
+    .topHint,.notice,.cuentasHint{
+      margin-bottom:14px;
+      padding:12px 14px;
+      border-radius:14px;
+      font-size:13px;
+      line-height:1.6;
+      border:1px solid rgba(255,255,255,.07);
+      color:#dfe5ff;
     }
 
-    .gridWallet{
+    .topHint{
+      background:linear-gradient(135deg, rgba(124,77,255,.14), rgba(54,163,255,.08));
+      border-color:rgba(124,77,255,.18);
+    }
+
+    .notice,.cuentasHint{
+      background:rgba(255,255,255,.04);
+    }
+
+    .walletHero{
+      position:relative;
+      overflow:hidden;
+      padding:24px;
+      border-radius:22px;
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,.12), transparent 35%),
+        linear-gradient(135deg, rgba(124,77,255,.22), rgba(54,163,255,.12));
+      border:1px solid rgba(124,77,255,.22);
+    }
+
+    .walletHero span{
+      display:block;
+      color:#dfe4ff;
+      font-size:13px;
+      margin-bottom:8px;
+    }
+
+    .walletHero strong{
+      display:block;
+      font-size:40px;
+      font-weight:800;
+      margin-bottom:10px;
+      letter-spacing:.4px;
+      word-break:break-word;
+    }
+
+    .walletHero p{
+      color:#d7def8;
+      font-size:13px;
+      line-height:1.6;
+    }
+
+    .quickCards{
       display:grid;
-      grid-template-columns:1.15fr .85fr;
-      gap:16px;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+      margin-top:14px;
+    }
+
+    .quickCard{
+      padding:16px;
+      border-radius:16px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
+    }
+
+    .quickCard span{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:8px;
+    }
+
+    .quickCard strong{
+      display:block;
+      font-size:20px;
+      margin-bottom:6px;
+      word-break:break-word;
+    }
+
+    .helperText{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.5;
     }
 
     .formGrid{
@@ -454,9 +519,7 @@
       min-width:0;
     }
 
-    .field.full{
-      grid-column:1/-1;
-    }
+    .field.full{grid-column:1/-1}
 
     .field label{
       font-size:13px;
@@ -464,9 +527,7 @@
       font-weight:700;
     }
 
-    .field input,
-    .field select,
-    .field textarea{
+    .field input,.field select,.field textarea{
       width:100%;
       border:none;
       outline:none;
@@ -475,20 +536,17 @@
       font-size:14px;
       color:#fff;
       background:var(--inputBg);
-      border:1px solid rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,.08);
       transition:.18s ease;
     }
 
-    .field input:focus,
-    .field select:focus,
-    .field textarea:focus{
-      border-color:rgba(124,77,255,0.55);
-      box-shadow:0 0 0 4px rgba(124,77,255,0.12);
-      background:rgba(255,255,255,0.06);
+    .field input:focus,.field select:focus,.field textarea:focus{
+      border-color:rgba(124,77,255,.55);
+      box-shadow:0 0 0 4px rgba(124,77,255,.12);
+      background:rgba(255,255,255,.06);
     }
 
-    .field input::placeholder,
-    .field textarea::placeholder{
+    .field input::placeholder,.field textarea::placeholder{
       color:#98a0b6;
     }
 
@@ -502,43 +560,144 @@
       -webkit-appearance:none;
       -moz-appearance:none;
       background:
-        linear-gradient(180deg, rgba(35,35,58,0.98), rgba(29,29,49,0.98)),
+        linear-gradient(180deg, rgba(35,35,58,.98), rgba(29,29,49,.98)),
         url("data:image/svg+xml;utf8,<svg fill='white' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M5.5 7.5L10 12l4.5-4.5'/></svg>")
         no-repeat right 14px center / 16px;
       padding-right:42px;
       color:#f8f9ff;
-      border:1px solid rgba(124,77,255,0.18);
+      border:1px solid rgba(124,77,255,.18);
     }
 
     .field select option{
-      background:var(--selectBg);
+      background:#23233a;
       color:#fff;
     }
 
-    .helperText{
+    .compactFormGrid{
+      display:grid;
+      grid-template-columns:1fr 1.1fr 1.1fr .9fr .8fr 1fr auto;
+      gap:12px;
+      align-items:end;
+    }
+
+    .inputPasswordWrap{
+      position:relative;
+      width:100%;
+    }
+
+    .inputPasswordWrap input{
+      padding-right:46px;
+    }
+
+    .togglePassMini{
+      position:absolute;
+      right:10px;
+      top:50%;
+      transform:translateY(-50%);
+      border:none;
+      background:transparent;
+      color:#fff;
+      cursor:pointer;
+      font-size:16px;
+      opacity:.9;
+    }
+
+    .subToggleWrap{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-bottom:14px;
+    }
+
+    .subToggleBtn{
+      border:none;
+      cursor:pointer;
+      padding:11px 16px;
+      border-radius:14px;
+      color:#fff;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      font-size:13px;
+      font-weight:800;
+      transition:.18s ease;
+    }
+
+    .subToggleBtn.active{
+      background:linear-gradient(135deg, rgba(124,77,255,.24), rgba(95,146,255,.16));
+      border-color:rgba(124,77,255,.38);
+      box-shadow:0 10px 24px rgba(124,77,255,.16);
+    }
+
+    .subPanel{display:none;animation:fadeIn .18s ease}
+    .subPanel.active{display:block}
+
+    .editingBanner{
+      display:none;
+      margin-bottom:14px;
+      padding:12px 14px;
+      border-radius:14px;
+      background:linear-gradient(135deg, rgba(255,176,32,.18), rgba(124,77,255,.10));
+      border:1px solid rgba(255,176,32,.26);
+      color:#fff4d2;
       font-size:12px;
+      line-height:1.6;
+    }
+
+    .editingBanner.show{display:block}
+
+    .editActionsInline{
+      display:flex;
+      gap:8px;
+      margin-top:10px;
+      flex-wrap:wrap;
+    }
+
+    .miniStatsRow{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+      margin-bottom:14px;
+    }
+
+    .miniStatBox{
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:16px;
+      padding:14px;
+    }
+
+    .miniStatBox span{
+      display:block;
       color:var(--muted);
-      line-height:1.5;
+      font-size:12px;
+      margin-bottom:8px;
+    }
+
+    .miniStatBox strong{
+      display:block;
+      font-size:22px;
+      word-break:break-word;
     }
 
     .tableWrap{
       width:100%;
       overflow:auto;
       border-radius:16px;
-      border:1px solid rgba(255,255,255,0.07);
-      background:rgba(9,9,15,0.22);
+      border:1px solid rgba(255,255,255,.07);
+      background:rgba(9,9,15,.22);
     }
 
     table{
       width:100%;
-      min-width:1180px;
+      min-width:1100px;
       border-collapse:collapse;
     }
 
     th,td{
       padding:14px 12px;
       text-align:left;
-      border-bottom:1px solid rgba(255,255,255,0.06);
+      border-bottom:1px solid rgba(255,255,255,.06);
       font-size:13px;
       vertical-align:top;
     }
@@ -546,15 +705,13 @@
     th{
       font-size:12px;
       color:#cad1e7;
-      background:rgba(255,255,255,0.04);
+      background:rgba(255,255,255,.04);
       position:sticky;
       top:0;
       z-index:1;
     }
 
-    td{
-      color:#eef1ff;
-    }
+    td{color:#eef1ff}
 
     .badge{
       display:inline-flex;
@@ -563,33 +720,33 @@
       padding:7px 10px;
       border-radius:999px;
       font-size:11px;
-      font-weight:700;
+      font-weight:800;
       border:1px solid transparent;
       white-space:nowrap;
     }
 
     .badge.success{
-      background:rgba(32,201,151,0.12);
+      background:rgba(32,201,151,.12);
       color:#b7ffe8;
-      border-color:rgba(32,201,151,0.25);
+      border-color:rgba(32,201,151,.25);
     }
 
     .badge.warning{
-      background:rgba(255,176,32,0.12);
+      background:rgba(255,176,32,.12);
       color:#ffe8b8;
-      border-color:rgba(255,176,32,0.25);
+      border-color:rgba(255,176,32,.25);
     }
 
     .badge.danger{
-      background:rgba(255,93,115,0.12);
+      background:rgba(255,93,115,.12);
       color:#ffd4da;
-      border-color:rgba(255,93,115,0.24);
+      border-color:rgba(255,93,115,.24);
     }
 
     .badge.info{
-      background:rgba(54,163,255,0.12);
+      background:rgba(54,163,255,.12);
       color:#d2ecff;
-      border-color:rgba(54,163,255,0.22);
+      border-color:rgba(54,163,255,.22);
     }
 
     .emptyState{
@@ -619,8 +776,8 @@
       gap:14px;
       padding:15px;
       border-radius:16px;
-      background:rgba(255,255,255,0.04);
-      border:1px solid rgba(255,255,255,0.06);
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
       flex-wrap:wrap;
     }
 
@@ -639,135 +796,67 @@
 
     .movAmount{
       font-size:18px;
-      font-weight:700;
+      font-weight:800;
       white-space:nowrap;
     }
 
     .movAmount.plus{color:#9effdc}
     .movAmount.minus{color:#ffb8c1}
 
-    .notice{
-      margin-top:10px;
-      padding:12px 14px;
-      border-radius:14px;
-      font-size:12px;
-      line-height:1.55;
-      border:1px solid rgba(255,255,255,0.06);
-      background:rgba(255,255,255,0.04);
-      color:#dfe5ff;
+    .actionRow{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
     }
 
-    .topHint{
-      margin-bottom:14px;
-      padding:12px 14px;
-      border-radius:14px;
-      background:linear-gradient(135deg, rgba(124,77,255,0.14), rgba(54,163,255,0.08));
-      border:1px solid rgba(124,77,255,0.18);
-      color:#edf0ff;
-      font-size:13px;
-      line-height:1.6;
-    }
-
-    .walletHero{
-      position:relative;
-      overflow:hidden;
-      padding:24px;
-      border-radius:22px;
-      background:
-        radial-gradient(circle at top right, rgba(255,255,255,0.12), transparent 35%),
-        linear-gradient(135deg, rgba(124,77,255,0.22), rgba(54,163,255,0.12));
-      border:1px solid rgba(124,77,255,0.22);
-    }
-
-    .walletHero span{
-      display:block;
-      color:#dfe4ff;
-      font-size:13px;
-      margin-bottom:8px;
-    }
-
-    .walletHero strong{
-      display:block;
-      font-size:40px;
+    .btnMini{
+      border:none;
+      cursor:pointer;
+      border-radius:10px;
+      padding:8px 10px;
+      font-size:11px;
       font-weight:800;
-      margin-bottom:10px;
-      letter-spacing:.4px;
-      word-break:break-word;
+      color:#fff;
+      transition:.18s ease;
     }
 
-    .walletHero p{
-      color:#d7def8;
-      font-size:13px;
-      line-height:1.6;
-      max-width:700px;
+    .btnMiniEdit{
+      background:linear-gradient(135deg, rgba(54,163,255,.28), rgba(124,77,255,.24));
+      border:1px solid rgba(54,163,255,.32);
     }
 
-    .quickCards{
-      display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:14px;
-      margin-top:14px;
+    .btnMiniDelete{
+      background:linear-gradient(135deg, rgba(255,93,115,.24), rgba(255,93,115,.14));
+      border:1px solid rgba(255,93,115,.32);
     }
 
-    .quickCard{
-      padding:16px;
-      border-radius:16px;
-      background:rgba(255,255,255,0.04);
-      border:1px solid rgba(255,255,255,0.06);
-    }
-
-    .quickCard span{
-      display:block;
-      color:var(--muted);
-      font-size:12px;
-      margin-bottom:8px;
-    }
-
-    .quickCard strong{
-      display:block;
-      font-size:20px;
-      margin-bottom:6px;
-      word-break:break-word;
-    }
-
-    .debugBox{
-      margin-top:12px;
-      padding:12px;
-      border-radius:14px;
-      background:rgba(255,255,255,0.04);
-      border:1px solid rgba(255,255,255,0.06);
-      color:#dce2f9;
-      font-size:12px;
-      line-height:1.6;
-      word-break:break-word;
+    .btnMiniToggle{
+      background:linear-gradient(135deg, rgba(255,176,32,.24), rgba(124,77,255,.14));
+      border:1px solid rgba(255,176,32,.32);
     }
 
     .overlay{
       display:none;
       position:fixed;
       inset:0;
-      background:rgba(0,0,0,0.45);
+      background:rgba(0,0,0,.45);
       z-index:25;
     }
 
-    .overlay.show{
-      display:block;
-    }
+    .overlay.show{display:block}
 
     .modalBase{
       display:none;
       position:fixed;
       inset:0;
-      background:rgba(0,0,0,0.68);
+      background:rgba(0,0,0,.68);
       z-index:9999;
       padding:20px;
       align-items:center;
       justify-content:center;
     }
 
-    .modalBase.show{
-      display:flex;
-    }
+    .modalBase.show{display:flex}
 
     .modalBox{
       width:100%;
@@ -775,9 +864,9 @@
       max-height:90vh;
       overflow:auto;
       background:linear-gradient(180deg,#121221,#0e0e18);
-      border:1px solid rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,.08);
       border-radius:22px;
-      box-shadow:0 24px 70px rgba(0,0,0,0.5);
+      box-shadow:0 24px 70px rgba(0,0,0,.5);
       padding:20px;
     }
 
@@ -806,33 +895,14 @@
       border:none;
       border-radius:12px;
       cursor:pointer;
-      background:rgba(255,255,255,0.08);
+      background:rgba(255,255,255,.08);
       color:#fff;
       font-size:18px;
       flex-shrink:0;
     }
 
     .modalCerrar:hover{
-      background:rgba(255,255,255,0.12);
-    }
-
-    .modalSearchWrap{
-      margin-bottom:16px;
-    }
-
-    .modalSearchGrid{
-      display:grid;
-      grid-template-columns:minmax(0,1fr) minmax(0,1fr) 120px;
-      gap:12px;
-      align-items:end;
-      margin-bottom:10px;
-    }
-
-    .modalResultsText{
-      font-size:12px;
-      color:var(--muted);
-      line-height:1.5;
-      padding:2px 2px 0;
+      background:rgba(255,255,255,.12);
     }
 
     .tiendaGrid{
@@ -844,7 +914,7 @@
     .tiendaCard{
       border-radius:18px;
       background:linear-gradient(180deg,#171727,#1d1d31);
-      border:1px solid rgba(255,255,255,0.07);
+      border:1px solid rgba(255,255,255,.07);
       overflow:hidden;
       display:flex;
       flex-direction:column;
@@ -891,298 +961,10 @@
       border-radius:999px;
       font-size:11px;
       font-weight:800;
-      background:rgba(124,77,255,0.12);
-      border:1px solid rgba(124,77,255,0.22);
+      background:rgba(124,77,255,.12);
+      border:1px solid rgba(124,77,255,.22);
       color:#efe7ff;
     }
-
-    .subToggleWrap{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-bottom:14px;
-    }
-
-    .subToggleBtn{
-      border:none;
-      cursor:pointer;
-      padding:11px 16px;
-      border-radius:14px;
-      color:#fff;
-      background:rgba(255,255,255,0.05);
-      border:1px solid rgba(255,255,255,0.08);
-      font-size:13px;
-      font-weight:800;
-      transition:.18s ease;
-    }
-
-    .subToggleBtn:hover{
-      background:rgba(255,255,255,0.08);
-    }
-
-    .subToggleBtn.active{
-      background:linear-gradient(135deg, rgba(124,77,255,0.24), rgba(95,146,255,0.16));
-      border-color:rgba(124,77,255,0.38);
-      box-shadow:0 10px 24px rgba(124,77,255,0.16);
-    }
-
-    .subPanel{
-      display:none;
-      animation:fadeIn .18s ease;
-    }
-
-    .subPanel.active{
-      display:block;
-    }
-
-    .compactFormGrid{
-      display:grid;
-      grid-template-columns:1fr 1.1fr 1.1fr .9fr .8fr 1fr auto;
-      gap:12px;
-      align-items:end;
-    }
-
-    .inputPasswordWrap{
-      position:relative;
-      width:100%;
-    }
-
-    .inputPasswordWrap input{
-      padding-right:46px;
-    }
-
-    .togglePassMini{
-      position:absolute;
-      right:10px;
-      top:50%;
-      transform:translateY(-50%);
-      border:none;
-      background:transparent;
-      color:#fff;
-      cursor:pointer;
-      font-size:16px;
-      opacity:.9;
-    }
-
-    .miniStatsRow{
-      display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
-      gap:12px;
-      margin-bottom:14px;
-    }
-
-    .miniStatBox{
-      background:rgba(255,255,255,0.04);
-      border:1px solid rgba(255,255,255,0.06);
-      border-radius:16px;
-      padding:14px;
-    }
-
-    .miniStatBox span{
-      display:block;
-      color:var(--muted);
-      font-size:12px;
-      margin-bottom:8px;
-    }
-
-    .miniStatBox strong{
-      display:block;
-      font-size:22px;
-      word-break:break-word;
-    }
-
-    .cuentasHint{
-      margin-bottom:14px;
-      padding:12px 14px;
-      border-radius:14px;
-      background:rgba(255,255,255,0.04);
-      border:1px solid rgba(255,255,255,0.06);
-      color:#dfe5ff;
-      font-size:12px;
-      line-height:1.6;
-    }
-
-    .actionRow{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-
-    .btnMini{
-      border:none;
-      cursor:pointer;
-      border-radius:10px;
-      padding:8px 10px;
-      font-size:11px;
-      font-weight:800;
-      color:#fff;
-      transition:.18s ease;
-    }
-
-    .btnMiniEdit{
-      background:linear-gradient(135deg, rgba(54,163,255,0.28), rgba(124,77,255,0.24));
-      border:1px solid rgba(54,163,255,0.32);
-    }
-
-    .btnMiniDelete{
-      background:linear-gradient(135deg, rgba(255,93,115,0.24), rgba(255,93,115,0.14));
-      border:1px solid rgba(255,93,115,0.32);
-    }
-
-    .btnMiniToggle{
-      background:linear-gradient(135deg, rgba(255,176,32,0.24), rgba(124,77,255,0.14));
-      border:1px solid rgba(255,176,32,0.32);
-    }
-
-    .editingBanner{
-      display:none;
-      margin-bottom:14px;
-      padding:12px 14px;
-      border-radius:14px;
-      background:linear-gradient(135deg, rgba(255,176,32,0.18), rgba(124,77,255,0.10));
-      border:1px solid rgba(255,176,32,0.26);
-      color:#fff4d2;
-      font-size:12px;
-      line-height:1.6;
-    }
-
-    .editingBanner.show{
-      display:block;
-    }
-
-    .editActionsInline{
-      display:flex;
-      gap:8px;
-      margin-top:10px;
-      flex-wrap:wrap;
-    }
-
-    #chatBubble{
-      position:fixed;
-      right:18px;
-      bottom:18px;
-      width:62px;
-      height:62px;
-      border-radius:50%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:linear-gradient(135deg, #7c4dff, #36a3ff);
-      color:#fff;
-      font-size:28px;
-      cursor:pointer;
-      box-shadow:0 16px 34px rgba(0,0,0,0.38);
-      z-index:9998;
-      user-select:none;
-      transition:transform .18s ease, box-shadow .18s ease;
-    }
-
-    #chatBubble:hover{
-      transform:scale(1.06);
-      box-shadow:0 20px 40px rgba(0,0,0,0.42);
-    }
-
-    #chatBubble.hidden{
-      display:none;
-    }
-
-    #chatFloat{
-      position:fixed;
-      right:18px;
-      bottom:92px;
-      width:340px;
-      max-width:calc(100vw - 24px);
-      height:460px;
-      border-radius:20px;
-      overflow:hidden;
-      background:linear-gradient(180deg,#131321,#0e0e18);
-      border:1px solid rgba(255,255,255,0.08);
-      box-shadow:0 24px 60px rgba(0,0,0,0.48);
-      z-index:9998;
-      display:none;
-      flex-direction:column;
-    }
-
-    #chatFloat.show{
-      display:flex;
-    }
-
-    .chatFloatHead{
-      min-height:56px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding:0 14px;
-      background:linear-gradient(135deg, rgba(124,77,255,0.95), rgba(54,163,255,0.95));
-      color:#fff;
-      font-weight:800;
-      font-size:14px;
-    }
-
-    .chatFloatLeft{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      min-width:0;
-    }
-
-    .chatFloatDot{
-      width:10px;
-      height:10px;
-      border-radius:50%;
-      background:#9effdc;
-      box-shadow:0 0 0 4px rgba(255,255,255,0.16);
-      flex-shrink:0;
-    }
-
-    .chatFloatTitle{
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
-    .chatFloatActions{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      flex-shrink:0;
-    }
-
-    .chatFloatBtn{
-      width:30px;
-      height:30px;
-      border:none;
-      border-radius:10px;
-      background:rgba(255,255,255,0.14);
-      color:#fff;
-      cursor:pointer;
-      font-size:18px;
-      line-height:1;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-
-    .chatFloatBtn:hover{
-      background:rgba(255,255,255,0.22);
-    }
-
-    .chatFloatBody{
-      flex:1;
-      background:#0d0f17;
-    }
-
-    .chatFloatBody iframe{
-      width:100%;
-      height:100%;
-      border:none;
-      display:block;
-      background:#fff;
-    }
-
-    /* ===== NOTIFICACIONES PROFESIONALES ===== */
 
     .notifyWrap{
       position:fixed;
@@ -1202,9 +984,9 @@
       gap:12px;
       padding:14px;
       border-radius:18px;
-      border:1px solid rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,.08);
       background:linear-gradient(180deg,#101423,#0b0f1a);
-      box-shadow:0 18px 40px rgba(0,0,0,0.35);
+      box-shadow:0 18px 40px rgba(0,0,0,.35);
       transform:translateY(-10px);
       opacity:0;
       pointer-events:auto;
@@ -1221,7 +1003,7 @@
       font-size:18px;
       flex-shrink:0;
       color:#fff;
-      font-weight:700;
+      font-weight:800;
     }
 
     .notifyItem.success .notifyIcon{
@@ -1264,7 +1046,7 @@
       height:30px;
       border:none;
       border-radius:10px;
-      background:rgba(255,255,255,0.08);
+      background:rgba(255,255,255,.08);
       color:#fff;
       cursor:pointer;
       flex-shrink:0;
@@ -1272,7 +1054,7 @@
     }
 
     .notifyClose:hover{
-      background:rgba(255,255,255,0.12);
+      background:rgba(255,255,255,.12);
     }
 
     @keyframes notifyIn{
@@ -1286,24 +1068,22 @@
       display:none;
       position:fixed;
       inset:0;
-      background:rgba(0,0,0,0.66);
+      background:rgba(0,0,0,.66);
       z-index:10060;
       padding:18px;
       align-items:center;
       justify-content:center;
     }
 
-    .confirmOverlay.show{
-      display:flex;
-    }
+    .confirmOverlay.show{display:flex}
 
     .confirmBox{
       width:100%;
       max-width:480px;
       background:linear-gradient(180deg,#121625,#0d1018);
-      border:1px solid rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,.08);
       border-radius:22px;
-      box-shadow:0 24px 60px rgba(0,0,0,0.48);
+      box-shadow:0 24px 60px rgba(0,0,0,.48);
       padding:20px;
     }
 
@@ -1346,113 +1126,155 @@
       flex-wrap:wrap;
     }
 
-    /* ===== RETIROS RESPONSIVE PRO ===== */
-
-    #section-retiros .gridStats.twoCols{
-      grid-template-columns:minmax(0, 1.08fr) minmax(0, .92fr);
-      gap:16px;
-      margin-bottom:18px;
+    #chatBubble{
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      width:62px;
+      height:62px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(135deg,#7c4dff,#36a3ff);
+      color:#fff;
+      font-size:28px;
+      cursor:pointer;
+      box-shadow:0 16px 34px rgba(0,0,0,.38);
+      z-index:9998;
+      user-select:none;
+      transition:transform .18s ease, box-shadow .18s ease;
     }
 
-    #section-retiros .gridTwo{
-      grid-template-columns:minmax(320px, 370px) minmax(0, 1fr);
-      gap:16px;
-      align-items:stretch;
+    #chatBubble:hover{
+      transform:scale(1.06);
+      box-shadow:0 20px 40px rgba(0,0,0,.42);
     }
 
-    #section-retiros .panelCard{
+    #chatBubble.hidden{display:none}
+
+    #chatFloat{
+      position:fixed;
+      right:18px;
+      bottom:92px;
+      width:340px;
+      max-width:calc(100vw - 24px);
+      height:460px;
+      border-radius:20px;
       overflow:hidden;
+      background:linear-gradient(180deg,#131321,#0e0e18);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:0 24px 60px rgba(0,0,0,.48);
+      z-index:9998;
+      display:none;
+      flex-direction:column;
     }
 
-    #section-retiros .panelCard:first-child{
-      align-self:start;
+    #chatFloat.show{display:flex}
+
+    .chatFloatHead{
+      min-height:56px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:0 14px;
+      background:linear-gradient(135deg, rgba(124,77,255,.95), rgba(54,163,255,.95));
+      color:#fff;
+      font-weight:800;
+      font-size:14px;
     }
 
-    #section-retiros .panelCard:last-child{
+    .chatFloatLeft{
+      display:flex;
+      align-items:center;
+      gap:10px;
       min-width:0;
     }
 
-    #section-retiros .formGrid{
-      grid-template-columns:repeat(2, minmax(0,1fr));
-      gap:14px;
+    .chatFloatDot{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:#9effdc;
+      box-shadow:0 0 0 4px rgba(255,255,255,.16);
+      flex-shrink:0;
     }
 
-    #section-retiros .field.full{
-      grid-column:1 / -1;
+    .chatFloatTitle{
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
-    #section-retiros table{
-      min-width:860px;
+    .chatFloatActions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-shrink:0;
     }
 
-    @media (max-width: 1200px){
+    .chatFloatBtn{
+      width:30px;
+      height:30px;
+      border:none;
+      border-radius:10px;
+      background:rgba(255,255,255,.14);
+      color:#fff;
+      cursor:pointer;
+      font-size:18px;
+      line-height:1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .chatFloatBtn:hover{
+      background:rgba(255,255,255,.22);
+    }
+
+    .chatFloatBody{
+      flex:1;
+      background:#0d0f17;
+    }
+
+    .chatFloatBody iframe{
+      width:100%;
+      height:100%;
+      border:none;
+      display:block;
+      background:#fff;
+    }
+
+    @media (max-width:1200px){
       .gridStats{grid-template-columns:repeat(2,minmax(0,1fr))}
       .gridStats.twoCols{grid-template-columns:repeat(2,minmax(0,1fr))}
       .gridTwo,.gridWallet{grid-template-columns:1fr}
       .quickCards{grid-template-columns:1fr}
+      .miniStatsRow{grid-template-columns:repeat(2,minmax(0,1fr))}
       .tiendaGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
       .compactFormGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .miniStatsRow{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
 
-    @media (max-width: 1100px){
-      #section-retiros .gridTwo{
-        grid-template-columns:1fr;
-      }
-    }
-
-    @media (max-width: 900px){
+    @media (max-width:900px){
       .sidebar{
         position:fixed;
         left:-100%;
         top:0;
-        transition:.22s ease;
         width:86%;
         max-width:320px;
+        transition:.22s ease;
       }
 
-      .sidebar.show{
-        left:0;
-      }
-
-      .mobileMenuBtn{
-        display:inline-grid;
-        place-items:center;
-      }
-
-      .main{
-        width:100%;
-        padding:16px;
-      }
-
-      .gridStats,
-      .gridStats.twoCols{
-        grid-template-columns:1fr;
-      }
-
-      .formGrid,
-      .salesFilters,
-      .compactFormGrid,
-      .modalSearchGrid{
-        grid-template-columns:1fr;
-      }
-
-      .miniStatsRow{
-        grid-template-columns:1fr;
-      }
-
-      table{
-        min-width:980px;
-      }
-
-      .walletHero strong{
-        font-size:32px;
-      }
-
-      .tiendaGrid{
-        grid-template-columns:1fr;
-      }
-
+      .sidebar.show{left:0}
+      .mobileMenuBtn{display:inline-grid;place-items:center}
+      .main{width:100%;padding:16px}
+      .gridStats,.gridStats.twoCols{grid-template-columns:1fr}
+      .formGrid,.salesFilters,.compactFormGrid{grid-template-columns:1fr}
+      .miniStatsRow{grid-template-columns:1fr}
+      table{min-width:940px}
+      .walletHero strong{font-size:32px}
+      .tiendaGrid{grid-template-columns:1fr}
       #chatFloat{
         right:12px;
         left:12px;
@@ -1460,39 +1282,15 @@
         height:68vh;
         bottom:86px;
       }
-
       #chatBubble{
         right:14px;
         bottom:14px;
         width:58px;
         height:58px;
       }
-
-      #section-retiros .formGrid{
-        grid-template-columns:1fr;
-      }
-
-      #section-retiros table{
-        min-width:720px;
-      }
     }
 
-    @media (max-width: 560px){
-      #section-retiros .panelCard{
-        padding:12px;
-      }
-
-      #section-retiros .field input,
-      #section-retiros .field select{
-        height:44px;
-        font-size:13.5px;
-      }
-
-      #section-retiros #formRetiro .btn{
-        min-height:46px;
-        font-size:13.5px;
-      }
-
+    @media (max-width:560px){
       .notifyWrap{
         top:12px;
         right:12px;
@@ -1515,7 +1313,6 @@
           <p id="confirmMessage">¿Deseas continuar?</p>
         </div>
       </div>
-
       <div class="confirmActions">
         <button class="btn btnGhost" id="confirmCancelBtn" type="button">Cancelar</button>
         <button class="btn btnPrimary" id="confirmAcceptBtn" type="button">Aceptar</button>
@@ -1558,27 +1355,22 @@
           <span class="menuIcon">💼</span>
           <span>Billetera</span>
         </button>
-
         <button class="menuBtn" data-section="productos">
           <span class="menuIcon">🛒</span>
           <span>Productos / Cuentas</span>
         </button>
-
         <button class="menuBtn" data-section="codigos">
           <span class="menuIcon">🔑</span>
           <span>Códigos</span>
         </button>
-
         <button class="menuBtn" data-section="descargas">
           <span class="menuIcon">💾</span>
           <span>Descargas / Plugins / DAW</span>
         </button>
-
         <button class="menuBtn" data-section="ventas">
           <span class="menuIcon">📦</span>
           <span>Mis ventas</span>
         </button>
-
         <button class="menuBtn" data-section="retiros">
           <span class="menuIcon">🏧</span>
           <span>Retiros</span>
@@ -1598,7 +1390,6 @@
       <div class="topbar">
         <div class="topbarLeft">
           <button class="mobileMenuBtn is-floating" id="mobileMenuBtn" onclick="abrirMenuMovil()">☰</button>
-
           <div class="pageTitle">
             <h2 id="pageTitle">Billetera del proveedor</h2>
             <p id="pageSubtitle">Controla tu saldo, ventas, productos y solicitudes de retiro.</p>
@@ -1708,7 +1499,7 @@
             <div class="panelHeader">
               <div>
                 <h3>Crear / editar producto</h3>
-                <p>Agrega productos profesionales con ID, descripción, reglas y datos completos.</p>
+                <p>Agrega productos completos con proveedor, comisión, reglas y datos profesionales.</p>
               </div>
             </div>
 
@@ -1728,7 +1519,7 @@
 
               <div class="field">
                 <label>Nombre del producto</label>
-                <input type="text" id="prodNombre" placeholder="Ej. Netflix Premium Perfil / Windows 11 Pro / FL Studio Producer" required />
+                <input type="text" id="prodNombre" placeholder="Ej. Crunchyroll Premium Perfil 1 Mes" required />
               </div>
 
               <div class="field">
@@ -1775,12 +1566,12 @@
 
               <div class="field full">
                 <label>Descripción</label>
-                <textarea id="prodDescripcion" placeholder="Ej. Cuenta streaming con garantía durante la duración del servicio / licencia original / instalador completo con soporte..."></textarea>
+                <textarea id="prodDescripcion" placeholder="Descripción profesional del producto"></textarea>
               </div>
 
               <div class="field full">
                 <label>Reglas del producto</label>
-                <textarea id="prodReglas" placeholder="Ej. No cambiar correo ni contraseña / no modificar perfil / no revender / descomprimir e instalar correctamente / clave de uso único..."></textarea>
+                <textarea id="prodReglas" placeholder="Ej. No cambiar correo ni contraseña / no revender / seguir reglas del producto"></textarea>
               </div>
 
               <div class="field full">
@@ -2151,8 +1942,7 @@
             </table>
           </div>
         </div>
-
-        <div class="panelCard">
+                <div class="panelCard">
           <div class="panelHeader">
             <div>
               <h3>Descargas / Plugins / DAW vendidos</h3>
@@ -2263,7 +2053,8 @@
           </div>
         </div>
       </section>
-            <section class="section" id="section-retiros">
+
+      <section class="section" id="section-retiros">
         <div class="gridStats twoCols">
           <div class="statCard">
             <span>Saldo disponible</span>
@@ -2674,8 +2465,7 @@
 
       return "Cuenta";
     }
-
-    function setDebug(texto) {
+        function setDebug(texto) {
       const el = document.getElementById("debugProveedor");
       if (el) el.textContent = texto;
     }
@@ -2700,153 +2490,96 @@
     }
 
     function mostrarNotificacion(titulo, mensaje, tipo = "success") {
-      let wrap = document.getElementById("notificacionStreamproWrap");
+      const wrap = document.getElementById("notifyWrap");
+      if (!wrap) return;
 
-      if (!wrap) {
-        wrap = document.createElement("div");
-        wrap.id = "notificacionStreamproWrap";
-        wrap.style.position = "fixed";
-        wrap.style.top = "18px";
-        wrap.style.right = "18px";
-        wrap.style.zIndex = "10000";
-        wrap.style.display = "flex";
-        wrap.style.flexDirection = "column";
-        wrap.style.gap = "10px";
-        wrap.style.maxWidth = "380px";
-        document.body.appendChild(wrap);
-      }
-
-      const colors = {
-        success: "linear-gradient(135deg, rgba(32,201,151,0.96), rgba(54,163,255,0.92))",
-        error: "linear-gradient(135deg, rgba(255,93,115,0.96), rgba(255,93,115,0.82))",
-        warning: "linear-gradient(135deg, rgba(255,176,32,0.96), rgba(124,77,255,0.82))",
-        info: "linear-gradient(135deg, rgba(54,163,255,0.96), rgba(124,77,255,0.82))"
-      };
-
-      const icons = {
+      const iconos = {
         success: "✓",
         error: "✕",
         warning: "⚠",
         info: "i"
       };
 
-      const card = document.createElement("div");
-      card.style.background = colors[tipo] || colors.info;
-      card.style.color = "#fff";
-      card.style.borderRadius = "18px";
-      card.style.padding = "14px 16px";
-      card.style.boxShadow = "0 18px 38px rgba(0,0,0,0.34)";
-      card.style.border = "1px solid rgba(255,255,255,0.12)";
-      card.style.display = "flex";
-      card.style.alignItems = "flex-start";
-      card.style.gap = "12px";
-      card.style.transform = "translateY(-8px)";
-      card.style.opacity = "0";
-      card.style.transition = "all .22s ease";
+      const item = document.createElement("div");
+      item.className = `notifyItem ${tipo}`;
 
-      card.innerHTML = `
-        <div style="
-          width:34px;
-          height:34px;
-          min-width:34px;
-          border-radius:12px;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          background:rgba(255,255,255,0.16);
-          font-weight:900;
-          font-size:16px;
-        ">${icons[tipo] || "i"}</div>
-
-        <div style="min-width:0; flex:1;">
-          <div style="font-size:14px; font-weight:800; margin-bottom:4px;">${escaparHTML(titulo)}</div>
-          <div style="font-size:12.5px; line-height:1.5; color:rgba(255,255,255,0.92);">${escaparHTML(mensaje)}</div>
+      item.innerHTML = `
+        <div class="notifyIcon">${iconos[tipo] || "i"}</div>
+        <div class="notifyContent">
+          <strong>${escaparHTML(titulo)}</strong>
+          <p>${escaparHTML(mensaje)}</p>
         </div>
-
-        <button type="button" style="
-          border:none;
-          background:transparent;
-          color:#fff;
-          cursor:pointer;
-          font-size:18px;
-          opacity:.86;
-        ">×</button>
+        <button type="button" class="notifyClose" aria-label="Cerrar">×</button>
       `;
 
-      wrap.appendChild(card);
+      wrap.prepend(item);
 
-      requestAnimationFrame(() => {
-        card.style.transform = "translateY(0)";
-        card.style.opacity = "1";
+      const cerrar = () => {
+        item.style.opacity = "0";
+        item.style.transform = "translateY(-8px)";
+        setTimeout(() => {
+          if (item.parentNode) item.parentNode.removeChild(item);
+        }, 180);
+      };
+
+      const btnCerrar = item.querySelector(".notifyClose");
+      if (btnCerrar) btnCerrar.onclick = cerrar;
+
+      setTimeout(cerrar, 4200);
+    }
+
+    function mostrarConfirmacionPro({
+      titulo = "Confirmación",
+      mensaje = "¿Deseas continuar?",
+      textoAceptar = "Aceptar",
+      textoCancelar = "Cancelar",
+      icono = "?"
+    } = {}) {
+      return new Promise((resolve) => {
+        const overlay = document.getElementById("confirmOverlay");
+        const icon = document.getElementById("confirmIcon");
+        const title = document.getElementById("confirmTitle");
+        const message = document.getElementById("confirmMessage");
+        const btnCancel = document.getElementById("confirmCancelBtn");
+        const btnAccept = document.getElementById("confirmAcceptBtn");
+
+        if (!overlay || !icon || !title || !message || !btnCancel || !btnAccept) {
+          resolve(confirm(mensaje));
+          return;
+        }
+
+        icon.textContent = icono;
+        title.textContent = titulo;
+        message.textContent = mensaje;
+        btnAccept.textContent = textoAceptar;
+        btnCancel.textContent = textoCancelar;
+
+        overlay.classList.add("show");
+
+        const limpiar = () => {
+          overlay.classList.remove("show");
+          btnCancel.onclick = null;
+          btnAccept.onclick = null;
+          overlay.onclick = null;
+        };
+
+        btnCancel.onclick = () => {
+          limpiar();
+          resolve(false);
+        };
+
+        btnAccept.onclick = () => {
+          limpiar();
+          resolve(true);
+        };
+
+        overlay.onclick = (e) => {
+          if (e.target === overlay) {
+            limpiar();
+            resolve(false);
+          }
+        };
       });
-
-      const closeBtn = card.querySelector("button");
-      const removeCard = () => {
-        card.style.transform = "translateY(-8px)";
-        card.style.opacity = "0";
-        setTimeout(() => card.remove(), 220);
-      };
-
-      closeBtn.addEventListener("click", removeCard);
-      setTimeout(removeCard, 4200);
-    }
-
-    function irASeccion(nombre) {
-      const secciones = document.querySelectorAll(".section");
-      const botones = document.querySelectorAll(".menuBtn[data-section]");
-
-      secciones.forEach(sec => sec.classList.remove("active"));
-      botones.forEach(btn => btn.classList.remove("active"));
-
-      const section = document.getElementById(`section-${nombre}`);
-      const button = document.querySelector(`.menuBtn[data-section="${nombre}"]`);
-
-      if (section) section.classList.add("active");
-      if (button) button.classList.add("active");
-
-      actualizarCabeceraSeccion(nombre);
-      actualizarStatsVisibles(nombre);
-      cerrarMenuMovil();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    function actualizarCabeceraSeccion(nombre) {
-      const map = {
-        resumen: { titulo: "Billetera del proveedor", subtitulo: "Controla tu saldo, ventas, productos y solicitudes de retiro." },
-        productos: { titulo: "Productos / Cuentas", subtitulo: "Administra tus productos y las cuentas de entrega de forma compacta." },
-        codigos: { titulo: "Códigos / Licencias", subtitulo: "Administra claves digitales y licencias de tus productos." },
-        descargas: { titulo: "Descargas / Plugins / DAW", subtitulo: "Gestiona enlaces, archivos y entregas técnicas." },
-        ventas: { titulo: "Mis ventas", subtitulo: "Revisa a quién vendiste, fecha, hora y tiempo activo." },
-        retiros: { titulo: "Retiros", subtitulo: "Solicita pagos de tu saldo al administrador." }
-      };
-
-      const info = map[nombre] || map.resumen;
-      document.getElementById("pageTitle").textContent = info.titulo;
-      document.getElementById("pageSubtitle").textContent = info.subtitulo;
-    }
-
-    function actualizarStatsVisibles(nombre) {
-      const resumen = document.querySelector("#section-resumen .gridStats");
-      const ventas = document.querySelector("#section-ventas .gridStats");
-      const retiros = document.querySelector("#section-retiros .gridStats");
-      const descargas = document.getElementById("statsDescargas");
-
-      if (resumen) resumen.style.display = nombre === "resumen" ? "grid" : "none";
-      if (ventas) ventas.style.display = nombre === "ventas" ? "grid" : "none";
-      if (retiros) retiros.style.display = nombre === "retiros" ? "grid" : "none";
-      if (descargas) descargas.style.display = nombre === "descargas" ? "grid" : "none";
-    }
-
-    function esVentaDeHoy(venta) {
-      const fecha = Number(venta.fecha || venta.fechaCompra || venta.timestamp || 0);
-      if (!fecha) return false;
-
-      const hoy = new Date();
-      const d = new Date(fecha);
-
-      return hoy.getFullYear() === d.getFullYear() &&
-             hoy.getMonth() === d.getMonth() &&
-             hoy.getDate() === d.getDate();
     }
 
     async function safeReadEqualTo(path, child, value) {
@@ -3032,6 +2765,49 @@
       return resultado;
     }
 
+    async function normalizarProductosProveedorExistentes() {
+      if (!proveedorActual || !datosProveedorActual) return false;
+
+      const nombreProveedor =
+        datosProveedorActual.nombreCompleto ||
+        `${datosProveedorActual.nombre || ""} ${datosProveedorActual.apellido || ""}`.trim() ||
+        datosProveedorActual.usuario ||
+        "Proveedor";
+
+      let huboCambios = false;
+
+      for (const prod of productosProveedor) {
+        const updates = {};
+
+        if (String(prod.proveedorId || "").trim() !== proveedorActual.uid) {
+          updates.proveedorId = proveedorActual.uid;
+        }
+
+        if (!String(prod.proveedorNombre || "").trim()) {
+          updates.proveedorNombre = nombreProveedor;
+        }
+
+        if (String(prod.proveedorTipo || "").toLowerCase().trim() !== "proveedor") {
+          updates.proveedorTipo = "proveedor";
+        }
+
+        if (Number(prod.comisionPlataforma) !== 4) {
+          updates.comisionPlataforma = 4;
+        }
+
+        if (Number(prod.comisionProveedor) !== 96) {
+          updates.comisionProveedor = 96;
+        }
+
+        if (Object.keys(updates).length) {
+          await db.ref("productos/" + prod.id).update(updates);
+          huboCambios = true;
+        }
+      }
+
+      return huboCambios;
+    }
+
     function renderDatosProveedorCabecera() {
       const nombre =
         datosProveedorActual.nombreCompleto ||
@@ -3039,7 +2815,7 @@
         datosProveedorActual.usuario ||
         "Proveedor";
 
-      const correo = datosProveedorActual.correo || proveedorActual.email || "-";
+      const correo = datosProveedorActual.correo || datosProveedorActual.email || proveedorActual.email || "-";
       const saldo = Number(datosProveedorActual.saldo || 0);
 
       document.getElementById("userName").textContent = nombre;
@@ -3124,7 +2900,8 @@
       mostrarModoEdicionProducto(null);
       limpiarFormularioProducto();
     }
-        async function cargarTodoPanel() {
+
+    async function cargarTodoPanel() {
       if (!proveedorActual) return;
 
       await recargarDatosProveedor();
@@ -3141,6 +2918,7 @@
       renderTablaCodigos();
       renderTablaDescargas();
       renderTablaVentas();
+      renderTablaDescargasVendidas();
       renderTablaRetiros();
       renderMovimientos();
       poblarSelectsProductos();
@@ -3157,8 +2935,7 @@
         " | Retiros: " + retirosProveedor.length
       );
     }
-
-    async function recargarDatosProveedor() {
+        async function recargarDatosProveedor() {
       try {
         const snap = await db.ref(`usuarios/${proveedorActual.uid}`).once("value");
         datosProveedorActual = snap.val() || {};
@@ -3171,6 +2948,13 @@
     async function cargarProductosProveedor() {
       productosProveedor = (await safeReadEqualTo("productos", "proveedorId", proveedorActual.uid))
         .sort((a, b) => Number(b.fechaCreacion || 0) - Number(a.fechaCreacion || 0));
+
+      const huboCambios = await normalizarProductosProveedorExistentes();
+
+      if (huboCambios) {
+        productosProveedor = (await safeReadEqualTo("productos", "proveedorId", proveedorActual.uid))
+          .sort((a, b) => Number(b.fechaCreacion || 0) - Number(a.fechaCreacion || 0));
+      }
     }
 
     async function cargarCuentasProveedor() {
@@ -3241,6 +3025,7 @@
             productoId: prod.id,
             productoNombre: prod.nombre || "",
             titulo: `${prod.nombre || prod.id} - ${pl.titulo}`,
+            plataforma: pl.key,
             link: pl.link,
             clave: "",
             sistema: pl.titulo,
@@ -3272,130 +3057,123 @@
       ventasDigitalesProveedor = [];
 
       try {
-        const productosMap = {};
-        productosProveedor.forEach((p) => {
-          productosMap[p.id] = p;
-        });
-
         const usuariosRoot = await safeReadRoot("usuarios");
-        const ordenesRoot = await safeReadRoot("ordenes");
-
         const listaVentas = [];
 
-        Object.keys(ordenesRoot || {}).forEach((uidCliente) => {
-          const ordenesUsuario = ordenesRoot[uidCliente] || {};
+        for (const prod of productosProveedor) {
+          try {
+            const snap = await db.ref("ventas/" + prod.id).once("value");
+            const ventasNodo = snap.val() || {};
 
-          Object.keys(ordenesUsuario).forEach((ordenId) => {
-            const orden = ordenesUsuario[ordenId] || {};
-            const productoId = String(orden.producto || "").trim();
-            const producto = productosMap[productoId];
+            Object.keys(ventasNodo).forEach((ventaId) => {
+              const venta = ventasNodo[ventaId] || {};
+              const proveedorIdVenta = String(venta.proveedorId || "").trim();
 
-            if (!producto) return;
+              if (proveedorIdVenta && proveedorIdVenta !== proveedorActual.uid) return;
 
-            const perfilCliente = usuariosRoot[uidCliente] || {};
-            const precio = Number(
-              orden.precio ??
-              orden.montoTotal ??
-              orden.total ??
-              0
-            );
+              const uidCliente = String(venta.uidUsuario || "").trim();
+              const perfilCliente = usuariosRoot[uidCliente] || {};
 
-            const estado = String(orden.estado || "entregada").toLowerCase();
-            const fechaCompra = Number(new Date(orden.fechaCompra || orden.fecha || Date.now()).getTime() || 0);
+              const fecha = Number(
+                venta.fecha ||
+                new Date(venta.fechaCompra || 0).getTime() ||
+                0
+              );
 
-            const nombreCliente =
-              orden.comprador ||
-              orden.nombreCliente ||
-              orden.clienteNombre ||
-              perfilCliente.nombreCompleto ||
-              [perfilCliente.nombre, perfilCliente.apellido].filter(Boolean).join(" ").trim() ||
-              perfilCliente.nombre ||
-              perfilCliente.usuario ||
-              "Cliente";
+              const precio = Number(venta.precio || 0);
+              const cantidad = Number(venta.cantidad || 1);
 
-            const emailCliente =
-              perfilCliente.correo ||
-              perfilCliente.email ||
-              "";
+              const montoTotal = Number(
+                venta.montoTotal != null
+                  ? venta.montoTotal
+                  : +(precio * cantidad).toFixed(2)
+              );
 
-            const tipoEntrega = String(
-              orden.tipoEntrega ||
-              producto.tipoEntrega ||
-              ""
-            ).toLowerCase().trim();
+              const montoPlataforma = Number(
+                venta.montoPlataforma != null
+                  ? venta.montoPlataforma
+                  : +(montoTotal * (Number(prod.comisionPlataforma ?? 4) / 100)).toFixed(2)
+              );
 
-            const categoria = String(producto.categoria || "").toLowerCase().trim();
+              const montoProveedor = Number(
+                venta.montoProveedor != null
+                  ? venta.montoProveedor
+                  : +(montoTotal - montoPlataforma).toFixed(2)
+              );
 
-            const esDigital =
-              tipoEntrega === "descarga" ||
-              tipoEntrega === "plugin" ||
-              tipoEntrega === "daw" ||
-              categoria === "descarga" ||
-              categoria === "plugin" ||
-              categoria === "daw" ||
-              String(orden.linkEntrega || "").trim() !== "";
+              const nombreCliente =
+                venta.nombre ||
+                venta.comprador ||
+                venta.nombreCliente ||
+                venta.clienteNombre ||
+                perfilCliente.nombreCompleto ||
+                [perfilCliente.nombre, perfilCliente.apellido].filter(Boolean).join(" ").trim() ||
+                perfilCliente.nombre ||
+                perfilCliente.usuario ||
+                "Cliente";
 
-            const montoProveedor = Number(
-              orden.montoProveedor ??
-              +(precio * (Number(producto.comisionProveedor ?? 96) / 100)).toFixed(2)
-            );
+              const emailCliente =
+                venta.emailCliente ||
+                venta.clienteCorreo ||
+                perfilCliente.correo ||
+                perfilCliente.email ||
+                "";
 
-            const montoPlataforma = Number(
-              orden.montoPlataforma ??
-              +(precio * (Number(producto.comisionPlataforma ?? 4) / 100)).toFixed(2)
-            );
+              const tipoEntrega = String(
+                venta.tipoEntrega ||
+                prod.tipoEntrega ||
+                ""
+              ).toLowerCase().trim();
 
-            const ventaFinal = {
-              id: ordenId,
-              ordenId,
-              uidCliente,
-              productoId,
-              productoNombre: producto.nombre || productoId,
-              usuarioCliente: nombreCliente,
-              nombreCliente,
-              emailCliente,
-              fecha: fechaCompra,
-              fechaCompra,
-              estado,
-              duracionDias: Number(producto.duracionDias || 0),
-              fechaInicio: fechaCompra,
-              fechaVencimiento: orden.fechaExpira ? new Date(orden.fechaExpira).getTime() : null,
-              precio,
-              montoProveedor,
-              montoPlataforma,
-              proveedorId: proveedorActual.uid,
-              proveedorNombre: producto.proveedorNombre || datosProveedorActual?.usuario || "Proveedor",
-              tipoEntrega,
-              categoria,
-              linkEntrega: orden.linkEntrega || "",
-              plataformaElegida: orden.plataformaElegida || "",
-              cuenta: orden.cuenta || "",
-              clave: orden.clave || "",
-              perfil: orden.perfil || "",
-              pin: orden.pin || "",
-              observacion: orden.observacion || ""
-            };
+              const categoria = String(prod.categoria || "").toLowerCase().trim();
 
-            listaVentas.push(ventaFinal);
-          });
-        });
+              const esDigital =
+                tipoEntrega === "descarga" ||
+                tipoEntrega === "plugin" ||
+                tipoEntrega === "daw" ||
+                categoria === "descarga" ||
+                categoria === "plugin" ||
+                categoria === "daw" ||
+                String(venta.linkEntrega || "").trim() !== "";
+
+              listaVentas.push({
+                id: ventaId,
+                ventaId,
+                productoId: prod.id,
+                productoNombre: venta.productoNombre || venta.producto || prod.nombre || prod.id,
+                uidCliente,
+                usuarioCliente: nombreCliente,
+                nombreCliente,
+                emailCliente,
+                fecha,
+                fechaCompra: venta.fechaCompra || "",
+                estado: String(venta.estado || "entregada").toLowerCase(),
+                precio,
+                cantidad,
+                montoTotal,
+                montoPlataforma,
+                montoProveedor,
+                proveedorId: proveedorActual.uid,
+                proveedorNombre: venta.proveedorNombre || prod.proveedorNombre || datosProveedorActual?.usuario || "Proveedor",
+                tipoEntrega,
+                categoria,
+                linkEntrega: venta.linkEntrega || "",
+                plataformaElegida: venta.plataformaElegida || "",
+                fechaInicio: venta.fechaInicio || fecha,
+                fechaVencimiento: venta.fechaVencimiento || null,
+                duracionDias: Number(venta.duracionDias || prod.duracionDias || 0),
+                esDigital
+              });
+            });
+          } catch (errorProducto) {
+            console.warn("Error leyendo ventas de producto:", prod.id, errorProducto);
+          }
+        }
 
         listaVentas.sort((a, b) => Number(b.fecha || 0) - Number(a.fecha || 0));
 
         ventasProveedor = listaVentas;
-        ventasDigitalesProveedor = listaVentas.filter((v) => {
-          const tipo = String(v.tipoEntrega || "").toLowerCase();
-          const cat = String(v.categoria || "").toLowerCase();
-          return (
-            tipo === "descarga" ||
-            tipo === "plugin" ||
-            tipo === "daw" ||
-            cat === "descarga" ||
-            cat === "plugin" ||
-            cat === "daw" ||
-            String(v.linkEntrega || "").trim() !== ""
-          );
-        });
+        ventasDigitalesProveedor = listaVentas.filter(v => v.esDigital);
       } catch (error) {
         console.warn("Error cargando ventas proveedor:", error);
         ventasProveedor = [];
@@ -3411,6 +3189,18 @@
     async function cargarMovimientosProveedor() {
       movimientosProveedor = (await safeReadEqualTo("movimientosSaldo", "proveedorId", proveedorActual.uid))
         .sort((a, b) => Number(b.fecha || 0) - Number(a.fecha || 0));
+    }
+
+    function esVentaDeHoy(venta) {
+      const fecha = Number(venta.fecha || venta.fechaCompra || venta.timestamp || 0);
+      if (!fecha) return false;
+
+      const hoy = new Date();
+      const d = new Date(fecha);
+
+      return hoy.getFullYear() === d.getFullYear() &&
+             hoy.getMonth() === d.getMonth() &&
+             hoy.getDate() === d.getDate();
     }
 
     function renderStats() {
@@ -3447,8 +3237,7 @@
       if (walletHeroSaldo) walletHeroSaldo.textContent = formatearMoneda(saldo);
       if (sidebarSaldo) sidebarSaldo.textContent = formatearMoneda(saldo);
     }
-
-    async function guardarProductoProveedor(e) {
+        async function guardarProductoProveedor(e) {
       e.preventDefault();
 
       try {
@@ -3463,9 +3252,20 @@
         const descripcion = document.getElementById("prodDescripcion").value.trim();
         const reglas = document.getElementById("prodReglas").value.trim();
 
-        if (!idManual) return mostrarNotificacion("Producto inválido", "Ingresa un ID válido para el producto.", "warning");
-        if (!nombre) return mostrarNotificacion("Nombre requerido", "Ingresa el nombre del producto.", "warning");
-        if (precio < 0) return mostrarNotificacion("Precio inválido", "El precio no puede ser negativo.", "warning");
+        if (!idManual) {
+          mostrarNotificacion("Producto inválido", "Ingresa un ID válido para el producto.", "warning");
+          return;
+        }
+
+        if (!nombre) {
+          mostrarNotificacion("Nombre requerido", "Ingresa el nombre del producto.", "warning");
+          return;
+        }
+
+        if (precio < 0) {
+          mostrarNotificacion("Precio inválido", "El precio no puede ser negativo.", "warning");
+          return;
+        }
 
         const nombreProveedor =
           datosProveedorActual.nombreCompleto ||
@@ -3473,17 +3273,25 @@
           datosProveedorActual.usuario ||
           "Proveedor";
 
-        const opcionesEntregaBase =
-          tipoEntrega === "descarga" || categoria === "plugin" || categoria === "daw" || categoria === "descarga"
-            ? {
-                windows: { nombre: "Windows", link: "" },
-                mac: { nombre: "Mac", link: "" },
-                general: { nombre: "General", link: "" }
-              }
-            : null;
+        const esDigital =
+          tipoEntrega === "descarga" ||
+          tipoEntrega === "plugin" ||
+          tipoEntrega === "daw" ||
+          categoria === "descarga" ||
+          categoria === "plugin" ||
+          categoria === "daw";
+
+        const opcionesEntregaBase = esDigital
+          ? {
+              windows: { nombre: "Windows", link: "" },
+              mac: { nombre: "Mac", link: "" },
+              general: { nombre: "General", link: "" }
+            }
+          : null;
 
         if (!productoEditando) {
           const existe = await db.ref("productos/" + idManual).once("value");
+
           if (existe.exists()) {
             mostrarNotificacion("ID duplicado", "Ese ID de producto ya existe. Usa otro distinto.", "warning");
             return;
@@ -3502,6 +3310,7 @@
             reglas,
             proveedorId: proveedorActual.uid,
             proveedorNombre: nombreProveedor,
+            proveedorTipo: "proveedor",
             activo: true,
             estado: "activo",
             comisionPlataforma: 4,
@@ -3533,6 +3342,9 @@
             reglas,
             proveedorNombre: nombreProveedor,
             proveedorId: proveedorActual.uid,
+            proveedorTipo: "proveedor",
+            comisionPlataforma: 4,
+            comisionProveedor: 96,
             estado: actual.estado || (actual.activo === false ? "inactivo" : "activo"),
             activo: actual.activo !== false
           };
@@ -3554,10 +3366,14 @@
         await cargarProductosProveedor();
         await cargarCuentasProveedor();
         await cargarDescargasProveedor();
+        await cargarVentasProveedor();
+
         renderTablaProductos();
         poblarSelectsProductos();
         renderTablasCuentas();
         renderTablaDescargas();
+        renderTablaVentas();
+        renderTablaDescargasVendidas();
         renderStats();
       } catch (error) {
         console.error("Error guardando producto:", error);
@@ -3645,6 +3461,7 @@
     async function editarProductoProveedor(productoId) {
       try {
         const prod = productosProveedor.find(p => p.id === productoId);
+
         if (!prod) {
           mostrarNotificacion("No encontrado", "No se encontró el producto.", "warning");
           return;
@@ -3675,15 +3492,29 @@
       try {
         const snap = await db.ref("productos/" + productoId).once("value");
         const prod = snap.val();
+
         if (!prod) {
           mostrarNotificacion("No encontrado", "No se encontró el producto.", "warning");
           return;
         }
 
         const nuevoActivo = !(prod.activo !== false);
+
+        const confirmado = await mostrarConfirmacionPro({
+          titulo: nuevoActivo ? "Desactivar producto" : "Activar producto",
+          mensaje: nuevoActivo
+            ? "El producto se ocultará de la tienda mientras esté desactivado. ¿Deseas continuar?"
+            : "El producto volverá a mostrarse en la tienda. ¿Deseas continuar?",
+          textoAceptar: nuevoActivo ? "Desactivar" : "Activar",
+          textoCancelar: "Cancelar",
+          icono: nuevoActivo ? "⏸" : "▶"
+        });
+
+        if (!confirmado) return;
+
         await db.ref("productos/" + productoId).update({
-          activo: nuevoActivo,
-          estado: nuevoActivo ? "activo" : "inactivo"
+          activo: !nuevoActivo,
+          estado: !nuevoActivo ? "activo" : "inactivo"
         });
 
         await cargarProductosProveedor();
@@ -3692,7 +3523,9 @@
 
         mostrarNotificacion(
           "Estado actualizado",
-          nuevoActivo ? "El producto fue activado." : "El producto fue desactivado.",
+          !nuevoActivo
+            ? "El producto fue activado y volverá a mostrarse en tienda."
+            : "El producto fue desactivado y quedó oculto de la tienda.",
           "info"
         );
       } catch (error) {
@@ -3703,8 +3536,59 @@
 
     async function eliminarProductoProveedor(productoId) {
       try {
-        const confirmar = confirm("¿Seguro que deseas eliminar este producto? También deberías revisar sus cuentas, códigos o descargas asociadas.");
+        const prod = productosProveedor.find(p => p.id === productoId);
+
+        if (!prod) {
+          mostrarNotificacion("No encontrado", "No se encontró el producto.", "warning");
+          return;
+        }
+
+        const confirmar = await mostrarConfirmacionPro({
+          titulo: "Eliminar producto",
+          mensaje: "Se eliminará el producto y también sus cuentas, códigos y descargas asociadas del proveedor. Esta acción no se puede deshacer.",
+          textoAceptar: "Eliminar",
+          textoCancelar: "Cancelar",
+          icono: "🗑"
+        });
+
         if (!confirmar) return;
+
+        const cuentasAsociadas = cuentasProveedor.filter(c => c.productoId === productoId);
+        const codigosAsociados = codigosProveedor.filter(c => String(c.productoId || c.producto || "").trim() === productoId);
+        const descargasAsociadas = descargasProveedor.filter(d => String(d.productoId || "").trim() === productoId && d.origen !== "producto");
+
+        for (const cuenta of cuentasAsociadas) {
+          const ruta = obtenerRutaCuentaCompleta(cuenta);
+          if (!ruta) continue;
+
+          try {
+            await db.ref(ruta).remove();
+          } catch (e) {
+            console.warn("No se pudo eliminar cuenta asociada:", ruta, e);
+          }
+        }
+
+        for (const codigo of codigosAsociados) {
+          try {
+            await db.ref("codigos/" + codigo.id).remove();
+          } catch (e) {
+            console.warn("No se pudo eliminar código asociado:", codigo.id, e);
+          }
+        }
+
+        for (const descarga of descargasAsociadas) {
+          try {
+            await db.ref("descargas/" + descarga.id).remove();
+          } catch (e) {
+            console.warn("No se pudo eliminar descarga asociada:", descarga.id, e);
+          }
+        }
+
+        try {
+          await db.ref("stock/" + productoId).remove();
+        } catch (e) {
+          console.warn("No se pudo eliminar stock asociado:", productoId, e);
+        }
 
         await db.ref("productos/" + productoId).remove();
 
@@ -3712,23 +3596,33 @@
           cancelarEdicionProducto();
         }
 
+        const productoCuentaGuardado = obtenerProductoSeleccionadoCuentaGuardado();
+        if (productoCuentaGuardado === productoId) {
+          guardarProductoSeleccionadoCuenta("");
+        }
+
         await cargarProductosProveedor();
         await cargarCuentasProveedor();
+        await cargarCodigosProveedor();
         await cargarDescargasProveedor();
+        await cargarVentasProveedor();
+
         renderTablaProductos();
         poblarSelectsProductos();
         renderTablasCuentas();
+        renderTablaCodigos();
         renderTablaDescargas();
+        renderTablaVentas();
+        renderTablaDescargasVendidas();
         renderStats();
 
-        mostrarNotificacion("Producto eliminado", "Producto eliminado correctamente.", "success");
+        mostrarNotificacion("Producto eliminado", "El producto y sus recursos asociados fueron eliminados correctamente.", "success");
       } catch (error) {
         console.error("Error eliminando producto:", error);
         mostrarNotificacion("Error", "No se pudo eliminar el producto.", "error");
       }
     }
-
-    async function guardarCuentaProveedor(e) {
+        async function guardarCuentaProveedor(e) {
       e.preventDefault();
 
       try {
@@ -3739,16 +3633,28 @@
         const pin = document.getElementById("cuentaPin").value.trim();
         const observacion = document.getElementById("cuentaObservacion").value.trim();
 
-        if (!productoId) return mostrarNotificacion("Producto requerido", "Selecciona un producto.", "warning");
-        if (!correo) return mostrarNotificacion("Dato requerido", "Ingresa el correo o usuario.", "warning");
-        if (!clave) return mostrarNotificacion("Dato requerido", "Ingresa la contraseña.", "warning");
+        if (!productoId) {
+          mostrarNotificacion("Producto requerido", "Selecciona un producto.", "warning");
+          return;
+        }
+
+        if (!correo) {
+          mostrarNotificacion("Dato requerido", "Ingresa el correo o usuario.", "warning");
+          return;
+        }
+
+        if (!clave) {
+          mostrarNotificacion("Dato requerido", "Ingresa la contraseña.", "warning");
+          return;
+        }
 
         const producto = productosProveedor.find(p => p.id === productoId);
         const tipoEntrega = String(producto?.tipoEntrega || "").toLowerCase();
         const categoria = String(producto?.categoria || "").toLowerCase();
 
         if (!producto || tipoEntrega !== "cuenta" || categoria === "plugin" || categoria === "daw" || categoria === "descarga") {
-          return mostrarNotificacion("Producto inválido", "Selecciona un producto tipo cuenta.", "warning");
+          mostrarNotificacion("Producto inválido", "Selecciona un producto tipo cuenta.", "warning");
+          return;
         }
 
         guardarProductoSeleccionadoCuenta(productoId);
@@ -3829,11 +3735,16 @@
     }
 
     function renderTablasCuentas() {
-      const productoIdSeleccionado = document.getElementById("cuentaProducto")?.value || obtenerProductoSeleccionadoCuentaGuardado() || "";
+      const productoIdSeleccionado =
+        document.getElementById("cuentaProducto")?.value ||
+        obtenerProductoSeleccionadoCuentaGuardado() ||
+        "";
+
       const disponiblesTbody = document.getElementById("tablaCuentasDisponibles");
       const usadasTbody = document.getElementById("tablaCuentasUsadas");
 
       let lista = [...cuentasProveedor];
+
       if (productoIdSeleccionado) {
         lista = lista.filter(item => item.productoId === productoIdSeleccionado);
       }
@@ -3841,7 +3752,9 @@
       const disponibles = lista.filter(item => !cuentaEstaUsada(item));
       const usadas = lista.filter(item => cuentaEstaUsada(item));
 
-      const nombreProductoActivo = productosProveedor.find(p => p.id === productoIdSeleccionado)?.nombre || (productoIdSeleccionado ? "Producto seleccionado" : "Todos");
+      const nombreProductoActivo =
+        productosProveedor.find(p => p.id === productoIdSeleccionado)?.nombre ||
+        (productoIdSeleccionado ? "Producto seleccionado" : "Todos");
 
       document.getElementById("miniTotalCuentas").textContent = lista.length;
       document.getElementById("miniCuentasDisponibles").textContent = disponibles.length;
@@ -3898,6 +3811,7 @@
     async function editarCuentaProveedor(productoId, cuentaId) {
       try {
         const info = cuentasProveedor.find(c => c.productoId === productoId && c.id === cuentaId);
+
         if (!info) {
           mostrarNotificacion("No encontrada", "No se encontró la cuenta.", "warning");
           return;
@@ -3915,6 +3829,7 @@
         activarSubpanelProductos("cuentasPanel");
         document.getElementById("cuentaProducto").value = productoId;
         guardarProductoSeleccionadoCuenta(productoId);
+
         document.getElementById("cuentaCorreo").value = data.cuenta || data.correo || data.email || data.usuario || "";
         document.getElementById("cuentaClave").value = data.clave || data.password || "";
         document.getElementById("cuentaPerfil").value = data.perfil || "";
@@ -3939,12 +3854,20 @@
     async function eliminarCuentaProveedor(productoId, cuentaId) {
       try {
         const info = cuentasProveedor.find(c => c.productoId === productoId && c.id === cuentaId);
+
         if (!info) {
           mostrarNotificacion("No encontrada", "No se encontró la cuenta.", "warning");
           return;
         }
 
-        const confirmar = confirm("¿Seguro que deseas eliminar esta cuenta? Esta acción no se puede deshacer.");
+        const confirmar = await mostrarConfirmacionPro({
+          titulo: "Eliminar cuenta",
+          mensaje: "Esta cuenta se eliminará definitivamente del producto seleccionado. ¿Deseas continuar?",
+          textoAceptar: "Eliminar",
+          textoCancelar: "Cancelar",
+          icono: "🗑"
+        });
+
         if (!confirmar) return;
 
         const ruta = obtenerRutaCuentaCompleta(info);
@@ -3972,18 +3895,27 @@
         const codigo = document.getElementById("codigoTexto").value.trim();
         const observacion = document.getElementById("codigoObservacion").value.trim();
 
-        if (!productoId) return mostrarNotificacion("Producto requerido", "Selecciona un producto.", "warning");
-        if (!codigo) return mostrarNotificacion("Código requerido", "Ingresa el código.", "warning");
+        if (!productoId) {
+          mostrarNotificacion("Producto requerido", "Selecciona un producto.", "warning");
+          return;
+        }
+
+        if (!codigo) {
+          mostrarNotificacion("Código requerido", "Ingresa el código.", "warning");
+          return;
+        }
 
         const producto = productosProveedor.find(p => p.id === productoId);
         const tipo = String(producto?.tipoEntrega || "").toLowerCase();
         const cat = String(producto?.categoria || "").toLowerCase();
 
         if (!producto || !(tipo === "codigo" || cat === "codigo" || cat === "licencia")) {
-          return mostrarNotificacion("Producto inválido", "Selecciona un producto tipo código o licencia.", "warning");
+          mostrarNotificacion("Producto inválido", "Selecciona un producto tipo código o licencia.", "warning");
+          return;
         }
 
         const ref = db.ref("codigos").push();
+
         await ref.set({
           productoId,
           productoNombre: producto?.nombre || "",
@@ -4031,21 +3963,32 @@
         </tr>
       `).join("");
     }
-
-    async function guardarDescargaProveedor(e) {
+        async function guardarDescargaProveedor(e) {
       e.preventDefault();
 
       try {
         const productoId = document.getElementById("descargaProducto").value;
         const titulo = document.getElementById("descargaTitulo").value.trim();
+        const plataforma = document.getElementById("descargaPlataforma").value;
         const link = document.getElementById("descargaLink").value.trim();
         const clave = document.getElementById("descargaClave").value.trim();
         const sistema = document.getElementById("descargaSistema").value;
         const observacion = document.getElementById("descargaObservacion").value.trim();
 
-        if (!productoId) return mostrarNotificacion("Producto requerido", "Selecciona un producto.", "warning");
-        if (!titulo) return mostrarNotificacion("Dato requerido", "Ingresa un título.", "warning");
-        if (!link) return mostrarNotificacion("Dato requerido", "Ingresa el link de descarga.", "warning");
+        if (!productoId) {
+          mostrarNotificacion("Producto requerido", "Selecciona un producto.", "warning");
+          return;
+        }
+
+        if (!titulo) {
+          mostrarNotificacion("Dato requerido", "Ingresa un título.", "warning");
+          return;
+        }
+
+        if (!link) {
+          mostrarNotificacion("Dato requerido", "Ingresa el link de descarga.", "warning");
+          return;
+        }
 
         const producto = productosProveedor.find(p => p.id === productoId);
         const tipo = String(producto?.tipoEntrega || "").toLowerCase();
@@ -4060,14 +4003,17 @@
           cat === "daw";
 
         if (!producto || !esDigital) {
-          return mostrarNotificacion("Producto inválido", "Selecciona un producto digital: descarga, plugin o DAW.", "warning");
+          mostrarNotificacion("Producto inválido", "Selecciona un producto digital: descarga, plugin o DAW.", "warning");
+          return;
         }
 
         const ref = db.ref("descargas").push();
+
         await ref.set({
           productoId,
           productoNombre: producto?.nombre || "",
           titulo,
+          plataforma,
           link,
           clave,
           sistema,
@@ -4079,28 +4025,24 @@
           fechaCreacion: Date.now()
         });
 
-        const sistemaLower = normalizarTexto(sistema);
         const updatesProducto = {};
+        updatesProducto["productos/" + productoId + "/opcionesEntrega/" + plataforma + "/nombre"] =
+          plataforma === "windows" ? "Windows" : plataforma === "mac" ? "Mac" : "General";
+        updatesProducto["productos/" + productoId + "/opcionesEntrega/" + plataforma + "/link"] = link;
 
-        if (sistemaLower === "windows") {
-          updatesProducto["productos/" + productoId + "/opcionesEntrega/windows/nombre"] = "Windows";
-          updatesProducto["productos/" + productoId + "/opcionesEntrega/windows/link"] = link;
-        } else if (sistemaLower === "mac") {
-          updatesProducto["productos/" + productoId + "/opcionesEntrega/mac/nombre"] = "Mac";
-          updatesProducto["productos/" + productoId + "/opcionesEntrega/mac/link"] = link;
-        } else {
-          updatesProducto["productos/" + productoId + "/opcionesEntrega/general/nombre"] = "General";
-          updatesProducto["productos/" + productoId + "/opcionesEntrega/general/link"] = link;
+        if (plataforma === "general") {
           updatesProducto["productos/" + productoId + "/linkDescarga"] = link;
         }
 
-        if (Object.keys(updatesProducto).length) {
-          await db.ref().update(updatesProducto);
-        }
+        await db.ref().update(updatesProducto);
 
         document.getElementById("formDescarga").reset();
+
         await cargarDescargasProveedor();
+        await cargarVentasProveedor();
+
         renderTablaDescargas();
+        renderTablaDescargasVendidas();
         renderStats();
 
         mostrarNotificacion("Descarga guardada", "La descarga fue guardada y vinculada al producto.", "success");
@@ -4114,7 +4056,7 @@
       const tbody = document.getElementById("tablaDescargas");
 
       if (!descargasProveedor.length) {
-        tbody.innerHTML = `<tr><td colspan="6"><div class="emptyState">No hay descargas registradas todavía.</div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7"><div class="emptyState">No hay descargas registradas todavía.</div></td></tr>`;
         return;
       }
 
@@ -4122,12 +4064,25 @@
         <tr>
           <td>${escaparHTML(item.productoNombre || obtenerNombreProducto(item.productoId) || "-")}</td>
           <td>${escaparHTML(item.titulo || "-")}</td>
+          <td>${escaparHTML(item.plataforma || "-")}</td>
           <td>${escaparHTML(item.sistema || "-")}</td>
           <td>${escaparHTML(item.clave || "-")}</td>
           <td><span class="badge ${obtenerEstadoBadge(item.usado ? "usado" : (item.estado || "activo"))}">${escaparHTML(item.usado ? "usado" : (item.estado || "activo"))}</span></td>
           <td>${formatearFechaHora(item.fechaCreacion)}</td>
         </tr>
       `).join("");
+    }
+
+    function esVentaDeHoy(venta) {
+      const fecha = Number(venta.fecha || venta.fechaCompra || venta.timestamp || 0);
+      if (!fecha) return false;
+
+      const hoy = new Date();
+      const d = new Date(fecha);
+
+      return hoy.getFullYear() === d.getFullYear() &&
+             hoy.getMonth() === d.getMonth() &&
+             hoy.getDate() === d.getDate();
     }
 
     function renderTablaVentas() {
@@ -4140,9 +4095,9 @@
 
       if (texto) {
         lista = lista.filter(v => {
-          const producto = String(v.productoNombre || v.producto || obtenerNombreProducto(v.productoId) || "").toLowerCase();
-          const cliente = String(v.usuarioCliente || v.nombreCliente || v.clienteNombre || v.nombre || "").toLowerCase();
-          const correo = String(v.emailCliente || v.clienteCorreo || "").toLowerCase();
+          const producto = String(v.productoNombre || "").toLowerCase();
+          const cliente = String(v.usuarioCliente || v.nombreCliente || "").toLowerCase();
+          const correo = String(v.emailCliente || "").toLowerCase();
           return producto.includes(texto) || cliente.includes(texto) || correo.includes(texto);
         });
       }
@@ -4152,39 +4107,41 @@
       }
 
       lista.sort((a, b) => {
-        const fa = Number(a.fecha || a.fechaCompra || a.timestamp || 0);
-        const fb = Number(b.fecha || b.fechaCompra || b.timestamp || 0);
+        const fa = Number(a.fecha || 0);
+        const fb = Number(b.fecha || 0);
         return orden === "antiguas" ? fa - fb : fb - fa;
       });
 
       if (!lista.length) {
-        tbody.innerHTML = `<tr><td colspan="8"><div class="emptyState">No hay resultados para los filtros aplicados.</div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9"><div class="emptyState">No hay resultados para los filtros aplicados.</div></td></tr>`;
         return;
       }
 
       tbody.innerHTML = lista.map(v => {
-        const fecha = Number(v.fecha || v.fechaCompra || v.timestamp || 0);
-        const clienteNombre = v.usuarioCliente || v.nombreCliente || v.clienteNombre || v.nombre || "Cliente";
-        const clienteCorreo = v.emailCliente || v.clienteCorreo || "";
-        const precio = Number(v.precio || v.montoTotal || v.monto || 0);
-        const ganancia = Number(v.montoProveedor || calcularGananciaProveedor(precio));
+        const fecha = Number(v.fecha || 0);
+        const clienteNombre = v.usuarioCliente || v.nombreCliente || "Cliente";
+        const clienteCorreo = v.emailCliente || "";
+        const precio = Number(v.montoTotal || v.precio || 0);
+        const comision = Number(v.montoPlataforma || 0);
+        const ganancia = Number(v.montoProveedor || 0);
         const estado = v.estado || "pendiente";
-        const esDigital = String(v.linkEntrega || "").trim() !== "" || ["descarga","plugin","daw"].includes(String(v.tipoEntrega || "").toLowerCase());
 
-        const extraProducto = esDigital
-          ? `
-            <div style="color:#9fa7c0; font-size:11px; margin-top:5px; line-height:1.45;">
-              ${escaparHTML((v.tipoEntrega || "digital").toUpperCase())}
-              ${v.plataformaElegida ? " | " + escaparHTML(v.plataformaElegida) : ""}
-              ${v.linkEntrega ? " | Link entregado" : ""}
-            </div>
-          `
-          : "";
+        const extraProducto =
+          String(v.linkEntrega || "").trim() !== "" ||
+          ["descarga", "plugin", "daw"].includes(String(v.tipoEntrega || "").toLowerCase())
+            ? `
+              <div style="color:#9fa7c0; font-size:11px; margin-top:5px; line-height:1.45;">
+                ${escaparHTML((v.tipoEntrega || "digital").toUpperCase())}
+                ${v.plataformaElegida ? " | " + escaparHTML(v.plataformaElegida) : ""}
+                ${v.linkEntrega ? " | Link entregado" : ""}
+              </div>
+            `
+            : "";
 
         return `
           <tr>
             <td>
-              <div><strong>${escaparHTML(v.productoNombre || v.producto || obtenerNombreProducto(v.productoId) || "-")}</strong></div>
+              <div><strong>${escaparHTML(v.productoNombre || "-")}</strong></div>
               ${extraProducto}
             </td>
             <td>
@@ -4196,7 +4153,37 @@
             <td><span class="badge ${obtenerEstadoBadge(estado)}">${escaparHTML(estado)}</span></td>
             <td>${escaparHTML(obtenerTiempoActivo(v))}</td>
             <td>${formatearMoneda(precio)}</td>
+            <td>${formatearMoneda(comision)}</td>
             <td>${formatearMoneda(ganancia)}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderTablaDescargasVendidas() {
+      const tbody = document.getElementById("tablaDescargasVendidas");
+      if (!tbody) return;
+
+      if (!ventasDigitalesProveedor.length) {
+        tbody.innerHTML = `<tr><td colspan="10"><div class="emptyState">No hay ventas digitales registradas todavía.</div></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = ventasDigitalesProveedor.map(v => {
+        const fecha = Number(v.fecha || 0);
+
+        return `
+          <tr>
+            <td>${escaparHTML(v.productoNombre || "-")}</td>
+            <td>${escaparHTML(v.usuarioCliente || v.nombreCliente || "Cliente")}</td>
+            <td>${escaparHTML(v.proveedorNombre || "Proveedor")}</td>
+            <td>${escaparHTML(v.plataformaElegida || v.tipoEntrega || "-")}</td>
+            <td style="max-width:220px; word-break:break-word;">${escaparHTML(v.linkEntrega || "-")}</td>
+            <td>${formatearFechaHora(fecha)}</td>
+            <td>${formatearMoneda(v.montoTotal || v.precio || 0)}</td>
+            <td>${formatearMoneda(v.montoPlataforma || 0)}</td>
+            <td>${formatearMoneda(v.montoProveedor || 0)}</td>
+            <td><span class="badge ${obtenerEstadoBadge(v.estado || "entregada")}">${escaparHTML(v.estado || "entregada")}</span></td>
           </tr>
         `;
       }).join("");
@@ -4226,8 +4213,7 @@
 
       listaResumen.innerHTML = html;
     }
-
-    async function solicitarRetiroProveedor(e) {
+        async function solicitarRetiroProveedor(e) {
       e.preventDefault();
 
       try {
@@ -4236,9 +4222,20 @@
         const datoPago = document.getElementById("retiroDatoPago").value.trim();
         const saldoActual = Number(datosProveedorActual?.saldo || 0);
 
-        if (monto <= 0) return mostrarNotificacion("Monto inválido", "El monto debe ser mayor a 0.", "warning");
-        if (monto > saldoActual) return mostrarNotificacion("Saldo insuficiente", "No tienes saldo suficiente para ese retiro.", "warning");
-        if (!datoPago) return mostrarNotificacion("Dato requerido", "Ingresa el dato de pago.", "warning");
+        if (monto <= 0) {
+          mostrarNotificacion("Monto inválido", "El monto debe ser mayor a 0.", "warning");
+          return;
+        }
+
+        if (monto > saldoActual) {
+          mostrarNotificacion("Saldo insuficiente", "No tienes saldo suficiente para ese retiro.", "warning");
+          return;
+        }
+
+        if (!datoPago) {
+          mostrarNotificacion("Dato requerido", "Ingresa el dato de pago.", "warning");
+          return;
+        }
 
         const nombreProveedor =
           datosProveedorActual.nombreCompleto ||
@@ -4473,8 +4470,7 @@
         if (window.innerWidth > 900) cerrarMenuMovil();
       });
     }
-
-    auth.onAuthStateChanged(async (user) => {
+        auth.onAuthStateChanged(async (user) => {
       try {
         if (!user) {
           window.location.replace("index.html");
