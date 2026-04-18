@@ -1275,6 +1275,7 @@
       table{min-width:940px}
       .walletHero strong{font-size:32px}
       .tiendaGrid{grid-template-columns:1fr}
+
       #chatFloat{
         right:12px;
         left:12px;
@@ -1282,6 +1283,7 @@
         height:68vh;
         bottom:86px;
       }
+
       #chatBubble{
         right:14px;
         bottom:14px;
@@ -1313,6 +1315,7 @@
           <p id="confirmMessage">¿Deseas continuar?</p>
         </div>
       </div>
+
       <div class="confirmActions">
         <button class="btn btnGhost" id="confirmCancelBtn" type="button">Cancelar</button>
         <button class="btn btnPrimary" id="confirmAcceptBtn" type="button">Aceptar</button>
@@ -1355,22 +1358,27 @@
           <span class="menuIcon">💼</span>
           <span>Billetera</span>
         </button>
+
         <button class="menuBtn" data-section="productos">
           <span class="menuIcon">🛒</span>
           <span>Productos / Cuentas</span>
         </button>
+
         <button class="menuBtn" data-section="codigos">
           <span class="menuIcon">🔑</span>
           <span>Códigos</span>
         </button>
+
         <button class="menuBtn" data-section="descargas">
           <span class="menuIcon">💾</span>
           <span>Descargas / Plugins / DAW</span>
         </button>
+
         <button class="menuBtn" data-section="ventas">
           <span class="menuIcon">📦</span>
           <span>Mis ventas</span>
         </button>
+
         <button class="menuBtn" data-section="retiros">
           <span class="menuIcon">🏧</span>
           <span>Retiros</span>
@@ -1390,6 +1398,7 @@
       <div class="topbar">
         <div class="topbarLeft">
           <button class="mobileMenuBtn is-floating" id="mobileMenuBtn" onclick="abrirMenuMovil()">☰</button>
+
           <div class="pageTitle">
             <h2 id="pageTitle">Billetera del proveedor</h2>
             <p id="pageSubtitle">Controla tu saldo, ventas, productos y solicitudes de retiro.</p>
@@ -1615,7 +1624,8 @@
             </div>
           </div>
         </div>
-                <div class="subPanel" id="cuentasPanel">
+
+        <div class="subPanel" id="cuentasPanel">
           <div class="panelCard">
             <div class="panelHeader">
               <div>
@@ -1770,8 +1780,7 @@
           </div>
         </div>
       </section>
-
-      <section class="section" id="section-codigos">
+            <section class="section" id="section-codigos">
         <div class="panelCard">
           <div class="panelHeader">
             <div>
@@ -1942,7 +1951,8 @@
             </table>
           </div>
         </div>
-                <div class="panelCard">
+
+        <div class="panelCard">
           <div class="panelHeader">
             <div>
               <h3>Descargas / Plugins / DAW vendidos</h3>
@@ -2465,7 +2475,8 @@
 
       return "Cuenta";
     }
-        function setDebug(texto) {
+
+    function setDebug(texto) {
       const el = document.getElementById("debugProveedor");
       if (el) el.textContent = texto;
     }
@@ -2580,6 +2591,63 @@
           }
         };
       });
+    }
+
+    function irASeccion(nombre) {
+      const secciones = document.querySelectorAll(".section");
+      const botones = document.querySelectorAll(".menuBtn[data-section]");
+
+      secciones.forEach(sec => sec.classList.remove("active"));
+      botones.forEach(btn => btn.classList.remove("active"));
+
+      const section = document.getElementById(`section-${nombre}`);
+      const button = document.querySelector(`.menuBtn[data-section="${nombre}"]`);
+
+      if (section) section.classList.add("active");
+      if (button) button.classList.add("active");
+
+      actualizarCabeceraSeccion(nombre);
+      actualizarStatsVisibles(nombre);
+      cerrarMenuMovil();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function actualizarCabeceraSeccion(nombre) {
+      const map = {
+        resumen: { titulo: "Billetera del proveedor", subtitulo: "Controla tu saldo, ventas, productos y solicitudes de retiro." },
+        productos: { titulo: "Productos / Cuentas", subtitulo: "Administra tus productos y las cuentas de entrega de forma compacta." },
+        codigos: { titulo: "Códigos / Licencias", subtitulo: "Administra claves digitales y licencias de tus productos." },
+        descargas: { titulo: "Descargas / Plugins / DAW", subtitulo: "Gestiona enlaces, archivos y entregas técnicas." },
+        ventas: { titulo: "Mis ventas", subtitulo: "Revisa a quién vendiste, fecha, hora y tiempo activo." },
+        retiros: { titulo: "Retiros", subtitulo: "Solicita pagos de tu saldo al administrador." }
+      };
+
+      const info = map[nombre] || map.resumen;
+      document.getElementById("pageTitle").textContent = info.titulo;
+      document.getElementById("pageSubtitle").textContent = info.subtitulo;
+    }
+
+    function actualizarStatsVisibles(nombre) {
+      const resumen = document.querySelector("#section-resumen .gridStats");
+      const ventas = document.querySelector("#section-ventas .gridStats");
+      const retiros = document.querySelector("#section-retiros .gridStats");
+      const descargas = document.getElementById("statsDescargas");
+
+      if (resumen) resumen.style.display = nombre === "resumen" ? "grid" : "none";
+      if (ventas) ventas.style.display = nombre === "ventas" ? "grid" : "none";
+      if (retiros) retiros.style.display = nombre === "retiros" ? "grid" : "none";
+      if (descargas) descargas.style.display = nombre === "descargas" ? "grid" : "none";
+    }
+        function esVentaDeHoy(venta) {
+      const fecha = Number(venta.fecha || venta.fechaCompra || venta.timestamp || 0);
+      if (!fecha) return false;
+
+      const hoy = new Date();
+      const d = new Date(fecha);
+
+      return hoy.getFullYear() === d.getFullYear() &&
+             hoy.getMonth() === d.getMonth() &&
+             hoy.getDate() === d.getDate();
     }
 
     async function safeReadEqualTo(path, child, value) {
@@ -2815,7 +2883,12 @@
         datosProveedorActual.usuario ||
         "Proveedor";
 
-      const correo = datosProveedorActual.correo || datosProveedorActual.email || proveedorActual.email || "-";
+      const correo =
+        datosProveedorActual.correo ||
+        datosProveedorActual.email ||
+        proveedorActual?.email ||
+        "-";
+
       const saldo = Number(datosProveedorActual.saldo || 0);
 
       document.getElementById("userName").textContent = nombre;
@@ -2900,8 +2973,7 @@
       mostrarModoEdicionProducto(null);
       limpiarFormularioProducto();
     }
-
-    async function cargarTodoPanel() {
+        async function cargarTodoPanel() {
       if (!proveedorActual) return;
 
       await recargarDatosProveedor();
@@ -2935,7 +3007,8 @@
         " | Retiros: " + retirosProveedor.length
       );
     }
-        async function recargarDatosProveedor() {
+
+    async function recargarDatosProveedor() {
       try {
         const snap = await db.ref(`usuarios/${proveedorActual.uid}`).once("value");
         datosProveedorActual = snap.val() || {};
@@ -3089,16 +3162,23 @@
                   : +(precio * cantidad).toFixed(2)
               );
 
+              const tipoProveedor = String(prod.proveedorTipo || "").toLowerCase().trim();
+              const esProductoProveedor = tipoProveedor === "proveedor";
+              const comisionPlataforma = esProductoProveedor ? Number(prod.comisionPlataforma ?? 4) : 0;
+              const comisionProveedor = esProductoProveedor ? Number(prod.comisionProveedor ?? 96) : 100;
+
               const montoPlataforma = Number(
                 venta.montoPlataforma != null
                   ? venta.montoPlataforma
-                  : +(montoTotal * (Number(prod.comisionPlataforma ?? 4) / 100)).toFixed(2)
+                  : +(montoTotal * (comisionPlataforma / 100)).toFixed(2)
               );
 
               const montoProveedor = Number(
                 venta.montoProveedor != null
                   ? venta.montoProveedor
-                  : +(montoTotal - montoPlataforma).toFixed(2)
+                  : esProductoProveedor
+                    ? +(montoTotal * (comisionProveedor / 100)).toFixed(2)
+                    : +montoTotal.toFixed(2)
               );
 
               const nombreCliente =
@@ -3155,6 +3235,7 @@
                 montoProveedor,
                 proveedorId: proveedorActual.uid,
                 proveedorNombre: venta.proveedorNombre || prod.proveedorNombre || datosProveedorActual?.usuario || "Proveedor",
+                proveedorTipo: prod.proveedorTipo || "proveedor",
                 tipoEntrega,
                 categoria,
                 linkEntrega: venta.linkEntrega || "",
@@ -3180,8 +3261,7 @@
         ventasDigitalesProveedor = [];
       }
     }
-
-    async function cargarRetirosProveedor() {
+        async function cargarRetirosProveedor() {
       retirosProveedor = (await safeReadEqualTo("retirosProveedores", "proveedorId", proveedorActual.uid))
         .sort((a, b) => Number(b.fechaSolicitud || 0) - Number(a.fechaSolicitud || 0));
     }
@@ -3189,18 +3269,6 @@
     async function cargarMovimientosProveedor() {
       movimientosProveedor = (await safeReadEqualTo("movimientosSaldo", "proveedorId", proveedorActual.uid))
         .sort((a, b) => Number(b.fecha || 0) - Number(a.fecha || 0));
-    }
-
-    function esVentaDeHoy(venta) {
-      const fecha = Number(venta.fecha || venta.fechaCompra || venta.timestamp || 0);
-      if (!fecha) return false;
-
-      const hoy = new Date();
-      const d = new Date(fecha);
-
-      return hoy.getFullYear() === d.getFullYear() &&
-             hoy.getMonth() === d.getMonth() &&
-             hoy.getDate() === d.getDate();
     }
 
     function renderStats() {
@@ -3237,7 +3305,8 @@
       if (walletHeroSaldo) walletHeroSaldo.textContent = formatearMoneda(saldo);
       if (sidebarSaldo) sidebarSaldo.textContent = formatearMoneda(saldo);
     }
-        async function guardarProductoProveedor(e) {
+
+    async function guardarProductoProveedor(e) {
       e.preventDefault();
 
       try {
@@ -3273,25 +3342,17 @@
           datosProveedorActual.usuario ||
           "Proveedor";
 
-        const esDigital =
-          tipoEntrega === "descarga" ||
-          tipoEntrega === "plugin" ||
-          tipoEntrega === "daw" ||
-          categoria === "descarga" ||
-          categoria === "plugin" ||
-          categoria === "daw";
-
-        const opcionesEntregaBase = esDigital
-          ? {
-              windows: { nombre: "Windows", link: "" },
-              mac: { nombre: "Mac", link: "" },
-              general: { nombre: "General", link: "" }
-            }
-          : null;
+        const opcionesEntregaBase =
+          tipoEntrega === "descarga" || categoria === "plugin" || categoria === "daw" || categoria === "descarga"
+            ? {
+                windows: { nombre: "Windows", link: "" },
+                mac: { nombre: "Mac", link: "" },
+                general: { nombre: "General", link: "" }
+              }
+            : null;
 
         if (!productoEditando) {
           const existe = await db.ref("productos/" + idManual).once("value");
-
           if (existe.exists()) {
             mostrarNotificacion("ID duplicado", "Ese ID de producto ya existe. Usa otro distinto.", "warning");
             return;
@@ -3461,7 +3522,6 @@
     async function editarProductoProveedor(productoId) {
       try {
         const prod = productosProveedor.find(p => p.id === productoId);
-
         if (!prod) {
           mostrarNotificacion("No encontrado", "No se encontró el producto.", "warning");
           return;
@@ -3487,8 +3547,7 @@
         mostrarNotificacion("Error", "No se pudo cargar el producto.", "error");
       }
     }
-
-    async function toggleProductoProveedor(productoId) {
+        async function toggleProductoProveedor(productoId) {
       try {
         const snap = await db.ref("productos/" + productoId).once("value");
         const prod = snap.val();
@@ -3518,7 +3577,10 @@
         });
 
         await cargarProductosProveedor();
+        await cargarDescargasProveedor();
+
         renderTablaProductos();
+        renderTablaDescargas();
         renderStats();
 
         mostrarNotificacion(
@@ -3537,7 +3599,6 @@
     async function eliminarProductoProveedor(productoId) {
       try {
         const prod = productosProveedor.find(p => p.id === productoId);
-
         if (!prod) {
           mostrarNotificacion("No encontrado", "No se encontró el producto.", "warning");
           return;
@@ -3560,7 +3621,6 @@
         for (const cuenta of cuentasAsociadas) {
           const ruta = obtenerRutaCuentaCompleta(cuenta);
           if (!ruta) continue;
-
           try {
             await db.ref(ruta).remove();
           } catch (e) {
@@ -3588,6 +3648,12 @@
           await db.ref("stock/" + productoId).remove();
         } catch (e) {
           console.warn("No se pudo eliminar stock asociado:", productoId, e);
+        }
+
+        try {
+          await db.ref("cuentas/" + productoId).remove();
+        } catch (e) {
+          console.warn("No se pudo eliminar nodo cuentas asociado:", productoId, e);
         }
 
         await db.ref("productos/" + productoId).remove();
@@ -3622,7 +3688,8 @@
         mostrarNotificacion("Error", "No se pudo eliminar el producto.", "error");
       }
     }
-        async function guardarCuentaProveedor(e) {
+
+    async function guardarCuentaProveedor(e) {
       e.preventDefault();
 
       try {
@@ -3807,11 +3874,9 @@
         `).join("");
       }
     }
-
-    async function editarCuentaProveedor(productoId, cuentaId) {
+        async function editarCuentaProveedor(productoId, cuentaId) {
       try {
         const info = cuentasProveedor.find(c => c.productoId === productoId && c.id === cuentaId);
-
         if (!info) {
           mostrarNotificacion("No encontrada", "No se encontró la cuenta.", "warning");
           return;
@@ -3854,7 +3919,6 @@
     async function eliminarCuentaProveedor(productoId, cuentaId) {
       try {
         const info = cuentasProveedor.find(c => c.productoId === productoId && c.id === cuentaId);
-
         if (!info) {
           mostrarNotificacion("No encontrada", "No se encontró la cuenta.", "warning");
           return;
@@ -3963,7 +4027,8 @@
         </tr>
       `).join("");
     }
-        async function guardarDescargaProveedor(e) {
+
+    async function guardarDescargaProveedor(e) {
       e.preventDefault();
 
       try {
@@ -4008,7 +4073,6 @@
         }
 
         const ref = db.ref("descargas").push();
-
         await ref.set({
           productoId,
           productoNombre: producto?.nombre || "",
@@ -4026,8 +4090,12 @@
         });
 
         const updatesProducto = {};
-        updatesProducto["productos/" + productoId + "/opcionesEntrega/" + plataforma + "/nombre"] =
-          plataforma === "windows" ? "Windows" : plataforma === "mac" ? "Mac" : "General";
+        const nombrePlataforma =
+          plataforma === "windows" ? "Windows" :
+          plataforma === "mac" ? "Mac" :
+          "General";
+
+        updatesProducto["productos/" + productoId + "/opcionesEntrega/" + plataforma + "/nombre"] = nombrePlataforma;
         updatesProducto["productos/" + productoId + "/opcionesEntrega/" + plataforma + "/link"] = link;
 
         if (plataforma === "general") {
@@ -4072,8 +4140,7 @@
         </tr>
       `).join("");
     }
-
-    function esVentaDeHoy(venta) {
+        function esVentaDeHoy(venta) {
       const fecha = Number(venta.fecha || venta.fechaCompra || venta.timestamp || 0);
       if (!fecha) return false;
 
@@ -4213,7 +4280,8 @@
 
       listaResumen.innerHTML = html;
     }
-        async function solicitarRetiroProveedor(e) {
+
+    async function solicitarRetiroProveedor(e) {
       e.preventDefault();
 
       try {
@@ -4294,8 +4362,7 @@
         </tr>
       `).join("");
     }
-
-    function renderTiendaProveedorGrid() {
+        function renderTiendaProveedorGrid() {
       const grid = document.getElementById("tiendaProveedorGrid");
       const textoInfo = document.getElementById("textoResultadoTiendaProveedor");
       if (!grid) return;
@@ -4368,11 +4435,14 @@
       const modal = document.getElementById("modalTiendaProveedor");
       const grid = document.getElementById("tiendaProveedorGrid");
 
+      if (!modal || !grid) return;
+
       modal.classList.add("show");
       grid.innerHTML = `<div class="emptyState">Cargando productos...</div>`;
 
       try {
         const data = await safeReadRoot("productos");
+
         productosTiendaModal = Object.keys(data)
           .map(id => ({ id, ...data[id] }))
           .filter(item => item && item.activo !== false)
@@ -4389,7 +4459,76 @@
     }
 
     function cerrarModalTiendaProveedor() {
-      document.getElementById("modalTiendaProveedor").classList.remove("show");
+      const modal = document.getElementById("modalTiendaProveedor");
+      if (modal) modal.classList.remove("show");
+    }
+
+    function irASeccion(nombre) {
+      const secciones = document.querySelectorAll(".section");
+      const botones = document.querySelectorAll(".menuBtn[data-section]");
+
+      secciones.forEach(sec => sec.classList.remove("active"));
+      botones.forEach(btn => btn.classList.remove("active"));
+
+      const section = document.getElementById(`section-${nombre}`);
+      const button = document.querySelector(`.menuBtn[data-section="${nombre}"]`);
+
+      if (section) section.classList.add("active");
+      if (button) button.classList.add("active");
+
+      actualizarCabeceraSeccion(nombre);
+      actualizarStatsVisibles(nombre);
+      cerrarMenuMovil();
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    }
+
+    function actualizarCabeceraSeccion(nombre) {
+      const map = {
+        resumen: {
+          titulo: "Billetera del proveedor",
+          subtitulo: "Controla tu saldo, ventas, productos y solicitudes de retiro."
+        },
+        productos: {
+          titulo: "Productos / Cuentas",
+          subtitulo: "Administra tus productos y las cuentas de entrega de forma compacta."
+        },
+        codigos: {
+          titulo: "Códigos / Licencias",
+          subtitulo: "Administra claves digitales y licencias de tus productos."
+        },
+        descargas: {
+          titulo: "Descargas / Plugins / DAW",
+          subtitulo: "Gestiona enlaces, archivos y entregas técnicas."
+        },
+        ventas: {
+          titulo: "Mis ventas",
+          subtitulo: "Revisa a quién vendiste, fecha, hora y tiempo activo."
+        },
+        retiros: {
+          titulo: "Retiros",
+          subtitulo: "Solicita pagos de tu saldo al administrador."
+        }
+      };
+
+      const info = map[nombre] || map.resumen;
+      document.getElementById("pageTitle").textContent = info.titulo;
+      document.getElementById("pageSubtitle").textContent = info.subtitulo;
+    }
+
+    function actualizarStatsVisibles(nombre) {
+      const resumen = document.querySelector("#section-resumen .gridStats");
+      const ventas = document.querySelector("#section-ventas .gridStats");
+      const retiros = document.querySelector("#section-retiros .gridStats");
+      const descargas = document.getElementById("statsDescargas");
+
+      if (resumen) resumen.style.display = nombre === "resumen" ? "grid" : "none";
+      if (ventas) ventas.style.display = nombre === "ventas" ? "grid" : "none";
+      if (retiros) retiros.style.display = nombre === "retiros" ? "grid" : "none";
+      if (descargas) descargas.style.display = nombre === "descargas" ? "grid" : "none";
     }
 
     function prepararEventosUI() {
@@ -4470,7 +4609,23 @@
         if (window.innerWidth > 900) cerrarMenuMovil();
       });
     }
-        auth.onAuthStateChanged(async (user) => {
+        function normalizarRolUsuario(valor) {
+      return String(valor || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function normalizarEstadoUsuario(valor) {
+      return String(valor || "activo")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    auth.onAuthStateChanged(async (user) => {
       try {
         if (!user) {
           window.location.replace("index.html");
@@ -4486,15 +4641,23 @@
         if (!datos) {
           setDebug("No se encontró usuarios/" + uid);
           mostrarNotificacion("Acceso inválido", "No se encontró tu usuario en la base de datos.", "error");
+          setTimeout(() => {
+            window.location.replace("index.html");
+          }, 1200);
           return;
         }
 
-        const rol = String(datos.rol || "").toLowerCase();
-        const estado = String(datos.estado || "activo").toLowerCase();
+        const rol = normalizarRolUsuario(datos.rol);
+        const estado = normalizarEstadoUsuario(datos.estado);
 
         if (estado === "bloqueado") {
-          await auth.signOut();
-          window.location.replace("index.html");
+          mostrarNotificacion("Cuenta bloqueada", "Tu cuenta se encuentra bloqueada.", "warning");
+          setTimeout(async () => {
+            try {
+              await auth.signOut();
+            } catch (e) {}
+            window.location.replace("index.html");
+          }, 900);
           return;
         }
 
@@ -4508,15 +4671,27 @@
         }
 
         proveedorActual = user;
-        datosProveedorActual = datos;
+        datosProveedorActual = {
+          ...datos,
+          rol: "proveedor"
+        };
+
         mantenerActivo = obtenerPreferenciaActivoGuardada();
 
         renderDatosProveedorCabecera();
         prepararEventosUI();
         actualizarBotonTiempoActivo();
         iniciarControlInactividad();
+
         await cargarTodoPanel();
         actualizarStatsVisibles("resumen");
+        irASeccion("resumen");
+
+        setDebug(
+          "Proveedor validado correctamente. UID: " + uid +
+          " | Rol: " + rol +
+          " | Estado: " + estado
+        );
       } catch (error) {
         console.error("Error cargando proveedor:", error);
         setDebug("Error general: " + (error.message || error));
