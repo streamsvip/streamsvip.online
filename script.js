@@ -1,8 +1,8 @@
-/*
-StreamsVip Sistema Oficial
-Mejorado
-2026
-*/
+/* =========================================================
+   STREAMSVIP SISTEMA OFICIAL
+   SCRIPT GENERAL MEJORADO
+   PARTE 1
+========================================================= */
 
 const numero = "51916252754";
 
@@ -51,13 +51,13 @@ let compraEnProceso = false;
 let filtroBusqueda = "";
 let filtroCategoria = "todos";
 
-/* caches de stock real */
+/* caches stock */
 let cuentasStockCache = {};
 let codigosStockCache = {};
 let cuentasDataCache = {};
 let codigosDataCache = {};
 
-/* refs para evitar listeners innecesarios */
+/* refs */
 let productosRef = null;
 let comprasHoyRef = null;
 let comprasLiveRef = null;
@@ -65,7 +65,7 @@ let ventasRefs = [];
 let cuentasRootRef = null;
 let codigosRootRef = null;
 
-/* control inactividad / presencia */
+/* presencia / inactividad */
 const TIEMPO_INACTIVIDAD_USUARIO = 5 * 60 * 1000;
 const TIEMPO_INACTIVIDAD_ADMIN = 7 * 60 * 1000;
 const TIEMPO_AVISO_INACTIVIDAD = 1 * 60 * 1000;
@@ -83,7 +83,7 @@ let cierrePorPestanaRegistrado = false;
 let timeoutOfflinePendiente = null;
 
 /* =========================
-UTILIDADES
+UTILIDADES BASE
 ========================= */
 
 function obtenerPaginaActual() {
@@ -118,6 +118,10 @@ function esPaginaAdmin() {
   return obtenerPaginaActual() === "admin.html";
 }
 
+function esPaginaProveedor() {
+  return obtenerPaginaActual() === "streampro.html";
+}
+
 function esPaginaPrivadaInterna() {
   const pagina = obtenerPaginaActual();
   return [
@@ -129,6 +133,22 @@ function esPaginaPrivadaInterna() {
     "admin.html",
     "streampro.html"
   ].includes(pagina);
+}
+
+function normalizarTextoPlano(valor) {
+  return String(valor || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function normalizarRolSistema(valor) {
+  return normalizarTextoPlano(valor);
+}
+
+function normalizarEstadoSistema(valor) {
+  return normalizarTextoPlano(valor || "activo");
 }
 
 function formatearSaldo(saldo) {
@@ -213,7 +233,7 @@ function fechaMsSegura(valor) {
 }
 
 function sumarDiasMs(baseMs, dias) {
-  return Number(baseMs || 0) + (Number(dias || 0) * 24 * 60 * 60 * 1000);
+  return Number(baseMs || 0) + Number(dias || 0) * 24 * 60 * 60 * 1000;
 }
 
 function formatearReglasHTML(reglasTexto = "") {
@@ -233,7 +253,7 @@ function formatearReglasHTML(reglasTexto = "") {
 }
 
 /* =========================
-HELPERS STOCK PRO
+HELPERS PRODUCTOS / ROLES
 ========================= */
 
 function obtenerVariantesClaveStock(valor) {
@@ -244,7 +264,21 @@ function obtenerVariantesClaveStock(valor) {
   const upper = original.toUpperCase();
   const capitalizada = lower.charAt(0).toUpperCase() + lower.slice(1);
 
-  return Array.from(new Set([original, lower, upper, capitalizada].filter(Boolean)));
+  return Array.from(
+    new Set([original, lower, upper, capitalizada].filter(Boolean))
+  );
+}
+
+function esRolAdmin(rol) {
+  return normalizarRolSistema(rol) === "admin";
+}
+
+function esRolProveedor(rol) {
+  return normalizarRolSistema(rol) === "proveedor";
+}
+
+function esRolCliente(rol) {
+  return normalizarRolSistema(rol) === "cliente";
 }
 
 /* =========================
@@ -284,6 +318,7 @@ function contarCuentasDisponiblesEnNodo(nodoActual) {
   }
 
   let total = 0;
+
   Object.keys(nodoActual).forEach((key) => {
     const subNodo = nodoActual[key];
     if (subNodo && typeof subNodo === "object") {
@@ -325,7 +360,10 @@ function reconstruirStockCodigosDesdeCache() {
     const item = data[key] || {};
     if (!codigoEstaDisponible(item)) return;
 
-    const productoId = String(item.productoId || item.producto || "").trim();
+    const productoId = String(
+      item.productoId || item.producto || item.productoNombre || item.nombreProducto || ""
+    ).trim();
+
     if (!productoId) return;
 
     const variantes = obtenerVariantesClaveStock(productoId);
@@ -336,6 +374,362 @@ function reconstruirStockCodigosDesdeCache() {
   });
 
   codigosStockCache = nuevoMapa;
+}
+
+/* =========================
+NORMALIZACION PRODUCTOS
+========================= */
+
+function normalizarProductoBase(nombre) {
+  const texto = String(nombre || "").toLowerCase();
+
+  if (texto.includes("netflix")) return "Netflix";
+  if (texto.includes("disney")) return "Disney";
+  if (texto.includes("prime")) return "Prime";
+  if (texto.includes("hbo max platinium")) return "HBOPlatinium";
+  if (texto.includes("hbomax platinium")) return "HBOPlatinium";
+  if (texto.includes("hbo platinium")) return "HBOPlatinium";
+  if (texto.includes("hbo")) return "HBO";
+  if (texto.includes("paramount")) return "Paramount";
+  if (texto.includes("spotify")) return "Spotify";
+  if (texto.includes("vix")) return "Vix";
+  if (texto.includes("crunchy")) return "Crunchyroll";
+  if (texto.includes("canva")) return "Canva";
+  if (texto.includes("youtube premium")) return "YouTubePremium";
+  if (texto.includes("youtube")) return "YouTubePremium";
+  if (texto.includes("chatgpt")) return "ChatGPT";
+
+  if (
+    texto.includes("windows 11 pro") ||
+    texto.includes("win11pro") ||
+    texto.includes("windows11pro")
+  ) {
+    return "Windows11Pro";
+  }
+
+  return "";
+}
+
+function obtenerCategoriaVisualProducto(idProducto, itemProducto = {}) {
+  const id = String(idProducto || "").toLowerCase();
+  const nombre = normalizarTextoBusqueda(itemProducto.nombre || "");
+  const categoriaDb = normalizarTextoBusqueda(itemProducto.categoria || "");
+  const tipoEntrega = normalizarTextoBusqueda(itemProducto.tipoEntrega || "");
+
+  if (
+    tipoEntrega === "codigo" ||
+    categoriaDb.includes("licencia") ||
+    categoriaDb.includes("codigo") ||
+    categoriaDb.includes("clave") ||
+    id.includes("windows") ||
+    nombre.includes("windows 11 pro")
+  ) {
+    return "licencias";
+  }
+
+  if (
+    categoriaDb === "plugin" ||
+    categoriaDb.includes("plugin") ||
+    tipoEntrega === "plugin" ||
+    nombre.includes("plugin") ||
+    nombre.includes("vst") ||
+    nombre.includes("au")
+  ) {
+    return "plugin";
+  }
+
+  if (
+    categoriaDb === "daw" ||
+    categoriaDb.includes("daw") ||
+    tipoEntrega === "daw" ||
+    nombre.includes("fl studio") ||
+    nombre.includes("ableton") ||
+    nombre.includes("cubase") ||
+    nombre.includes("logic pro") ||
+    nombre.includes("reaper") ||
+    nombre.includes("pro tools") ||
+    nombre.includes("studio one")
+  ) {
+    return "daw";
+  }
+
+  if (
+    categoriaDb === "descarga" ||
+    categoriaDb.includes("descarga") ||
+    tipoEntrega === "descarga"
+  ) {
+    return "descarga";
+  }
+
+  if (
+    categoriaDb.includes("musica") ||
+    categoriaDb.includes("música") ||
+    nombre.includes("spotify")
+  ) {
+    return "musica";
+  }
+
+  if (
+    nombre.includes("canva") ||
+    categoriaDb.includes("diseno") ||
+    categoriaDb.includes("diseño")
+  ) {
+    return "diseno";
+  }
+
+  if (
+    nombre.includes("chatgpt") ||
+    categoriaDb.includes("ia") ||
+    categoriaDb.includes("inteligencia artificial")
+  ) {
+    return "ia";
+  }
+
+  return "streaming";
+}
+
+function productoCoincideBusquedaYCategoria(idProducto, itemProducto = {}) {
+  const nombre = normalizarTextoBusqueda(itemProducto.nombre || idProducto);
+  const categoriaProducto = obtenerCategoriaVisualProducto(idProducto, itemProducto);
+
+  const coincideBusqueda =
+    !filtroBusqueda ||
+    nombre.includes(normalizarTextoBusqueda(filtroBusqueda));
+
+  const coincideCategoria =
+    filtroCategoria === "todos" ||
+    categoriaProducto === filtroCategoria;
+
+  return coincideBusqueda && coincideCategoria;
+}
+
+function esProductoLicencia(productoId = "", itemProducto = {}) {
+  const id = String(productoId || "").toLowerCase();
+  const nombre = String(itemProducto.nombre || "").toLowerCase();
+  const categoria = String(itemProducto.categoria || "").toLowerCase();
+  const tipoEntrega = String(itemProducto.tipoEntrega || "").toLowerCase();
+
+  return (
+    tipoEntrega === "codigo" ||
+    categoria.includes("licencia") ||
+    id === "windows11pro" ||
+    nombre.includes("windows 11 pro") ||
+    nombre.includes("licencia")
+  );
+}
+
+function esProductoDescarga(productoId = "", itemProducto = {}) {
+  const nombre = String(itemProducto.nombre || "").toLowerCase();
+  const categoria = String(itemProducto.categoria || "").toLowerCase();
+  const tipoEntrega = String(itemProducto.tipoEntrega || "").toLowerCase();
+
+  return (
+    tipoEntrega === "descarga" ||
+    tipoEntrega === "plugin" ||
+    tipoEntrega === "daw" ||
+    categoria.includes("plugin") ||
+    categoria.includes("daw") ||
+    categoria.includes("descarga") ||
+    nombre.includes("plugin") ||
+    nombre.includes("vst") ||
+    nombre.includes("au") ||
+    nombre.includes("fl studio") ||
+    nombre.includes("ableton") ||
+    nombre.includes("cubase") ||
+    nombre.includes("logic pro") ||
+    nombre.includes("reaper") ||
+    nombre.includes("pro tools") ||
+    nombre.includes("studio one")
+  );
+}
+
+function esProductoStockIlimitado(productoId = "", itemProducto = {}) {
+  const tipoEntrega = String(itemProducto.tipoEntrega || "").toLowerCase().trim();
+  const categoria = String(itemProducto.categoria || "").toLowerCase().trim();
+
+  return (
+    tipoEntrega === "descarga" ||
+    tipoEntrega === "plugin" ||
+    tipoEntrega === "daw" ||
+    categoria === "plugin" ||
+    categoria === "daw" ||
+    categoria === "descarga"
+  );
+}
+
+function esProductoCodigo(productoId = "", itemProducto = {}) {
+  const nombre = String(itemProducto.nombre || "").toLowerCase();
+  const categoria = String(itemProducto.categoria || "").toLowerCase();
+  const tipoEntrega = String(itemProducto.tipoEntrega || "").toLowerCase();
+
+  return (
+    tipoEntrega === "codigo" ||
+    categoria.includes("codigo") ||
+    categoria.includes("código") ||
+    categoria.includes("clave") ||
+    categoria.includes("key") ||
+    nombre.includes("licencia") ||
+    nombre.includes("clave") ||
+    nombre.includes("key") ||
+    nombre.includes("código")
+  );
+}
+
+function obtenerImagenProducto(item, idProducto) {
+  const imagenPersonalizada = String(item?.imagen || "").trim();
+  if (imagenPersonalizada) return imagenPersonalizada;
+
+  const mapa = {
+    netflix: "img/Netflix.jpg",
+    disney: "img/Disney.jpg",
+    prime: "img/Primevideo.jpg",
+    hbo: "img/Hbomax.jpg",
+    hboprime: "img/Hbomax.jpg",
+    hboplatinium: "img/hbop.png",
+    paramount: "img/Paramount.jpg",
+    spotify: "img/Spotify.jpg",
+    vix: "img/logo.jpg",
+    crunchyroll: "img/cr.png",
+    canva: "img/cv.jpg",
+    youtubepremium: "img/yt.png",
+    chatgpt: "img/logo.jpg",
+    windows11pro: "img/win11pro.png"
+  };
+
+  const clave = String(idProducto || "").toLowerCase();
+  return mapa[clave] || "img/logo.jpg";
+}
+
+function obtenerDuracionTexto(item) {
+  const nombre = String(item?.nombre || "").toLowerCase().trim();
+  const tipoEntrega = String(item?.tipoEntrega || "").toLowerCase().trim();
+  const dias = Number(item?.duracionDias || 30);
+  const esPermanente = dias >= 3650 || dias === 3065 || nombre.includes("permanente");
+
+  if (tipoEntrega === "descarga" || tipoEntrega === "plugin" || tipoEntrega === "daw") {
+    if (esPermanente) return "Instalación: Permanente";
+    return "Instalación: " + dias + " días";
+  }
+
+  if (tipoEntrega === "codigo") {
+    if (esPermanente) return "Activación: Permanente";
+    return "Activación: " + dias + " días";
+  }
+
+  if (esPermanente) return "Duración: Permanente";
+  if (dias === 365) return "Duración: 1 año";
+  if (dias === 180) return "Duración: 6 meses";
+  if (dias === 90) return "Duración: 3 meses";
+  if (dias === 60) return "Duración: 2 meses";
+  if (dias === 30) return "Duración: 1 mes";
+  if (dias === 15) return "Duración: 15 días";
+  if (dias === 7) return "Duración: 7 días";
+  if (dias === 1) return "Duración: 1 día";
+
+  return "Duración: " + dias + " días";
+}
+
+/* =========================
+RUTAS CUENTAS SEGUN FIREBASE
+========================= */
+
+function obtenerRutaCuentasPorProducto(productoId, itemProducto = {}) {
+  const id = String(productoId || "").trim();
+  const idLower = id.toLowerCase();
+  const nombre = String(itemProducto.nombre || productoActual || "").toLowerCase();
+
+  if (idLower === "netflix" || nombre.includes("netflix")) return "netflix";
+  if (idLower === "disney" || nombre.includes("disney")) return "disney";
+
+  if (
+    idLower === "hboprime" ||
+    nombre.includes("hbo max + prime") ||
+    (nombre.includes("hbo") && nombre.includes("prime"))
+  ) {
+    return "hboprime";
+  }
+
+  if (idLower === "prime" || nombre.includes("prime video")) return "prime";
+
+  if (
+    idLower === "hboplatinium" ||
+    nombre.includes("hbo max platinium") ||
+    nombre.includes("hbomax platinium") ||
+    nombre.includes("hbo platinium")
+  ) {
+    return "hboplatinium";
+  }
+
+  if (idLower === "hbo" || nombre.includes("hbo")) return "hbo";
+  if (idLower === "paramount" || nombre.includes("paramount")) return "paramount";
+  if (idLower === "spotify" || nombre.includes("spotify")) return "spotify";
+  if (idLower === "vix" || nombre.includes("vix")) return "vix";
+
+  if (
+    idLower === "crunchyroll" ||
+    idLower === "crunchy" ||
+    nombre.includes("crunchyroll")
+  ) {
+    return "crunchyroll";
+  }
+
+  if (idLower === "canva" || nombre.includes("canva")) return "canva";
+
+  if (
+    idLower === "youtubepremium" ||
+    nombre.includes("youtube premium") ||
+    nombre.includes("youtube")
+  ) {
+    return "youtubepremium";
+  }
+
+  if (idLower === "chatgpt" || idLower === "chagpt" || nombre.includes("chatgpt")) {
+    return "chatgpt";
+  }
+
+  if (idLower === "windows11pro" || nombre.includes("windows 11 pro")) {
+    return "windows11pro";
+  }
+
+  return id;
+}
+
+function obtenerRutasCuentasCompatibles(productoId, itemProducto = {}) {
+  const rutaBase = obtenerRutaCuentasPorProducto(productoId, itemProducto);
+  const nombre = String(itemProducto.nombre || "").trim();
+  const variantes = new Set();
+
+  obtenerVariantesClaveStock(rutaBase).forEach((v) => variantes.add(v));
+  obtenerVariantesClaveStock(productoId).forEach((v) => variantes.add(v));
+
+  if (nombre) {
+    variantes.add(nombre);
+    obtenerVariantesClaveStock(nombre).forEach((v) => variantes.add(v));
+  }
+
+  const mapaEspecial = {
+    netflix: ["Netflix"],
+    disney: ["Disney"],
+    prime: ["Prime"],
+    hbo: ["HBO"],
+    hboprime: ["hboprime", "HBOPrime", "HboPrime", "HBOPrimeVideo"],
+    hboplatinium: ["HBOPlatinium", "hboplatinium", "HboPlatinium"],
+    paramount: ["Paramount"],
+    spotify: ["Spotify"],
+    vix: ["Vix"],
+    crunchyroll: ["Crunchyroll", "crunchy"],
+    canva: ["Canva"],
+    youtubepremium: ["YouTubePremium", "YoutubePremium", "youtubepremium"],
+    chatgpt: ["ChatGPT", "chatgpt", "chagpt"],
+    windows11pro: ["Windows11Pro", "windows11pro", "Windows11pro"]
+  };
+
+  const rutaLower = String(rutaBase || "").toLowerCase();
+  if (mapaEspecial[rutaLower]) {
+    mapaEspecial[rutaLower].forEach((v) => variantes.add(v));
+  }
+
+  return Array.from(variantes).filter(Boolean);
 }
 
 function obtenerStockRealProducto(productoId, itemProducto = {}) {
@@ -351,6 +745,11 @@ function obtenerStockRealProducto(productoId, itemProducto = {}) {
   rutasCompatibles.forEach((ruta) => {
     obtenerVariantesClaveStock(ruta).forEach((k) => clavesBuscar.add(k));
   });
+
+  const nombreProducto = String(itemProducto.nombre || "").trim();
+  if (nombreProducto) {
+    obtenerVariantesClaveStock(nombreProducto).forEach((k) => clavesBuscar.add(k));
+  }
 
   let stockMaximo = 0;
 
@@ -387,12 +786,14 @@ function escucharStockRealTienda() {
   cuentasRootRef.on("value", (snap) => {
     cuentasDataCache = snap.val() || {};
     reconstruirStockCuentasDesdeCache();
+
     if (Object.keys(productosTiendaCache).length) {
       renderizarProductosTienda(productosTiendaCache);
     }
   }, () => {
     cuentasDataCache = {};
     cuentasStockCache = {};
+
     if (Object.keys(productosTiendaCache).length) {
       renderizarProductosTienda(productosTiendaCache);
     }
@@ -402,12 +803,14 @@ function escucharStockRealTienda() {
   codigosRootRef.on("value", (snap) => {
     codigosDataCache = snap.val() || {};
     reconstruirStockCodigosDesdeCache();
+
     if (Object.keys(productosTiendaCache).length) {
       renderizarProductosTienda(productosTiendaCache);
     }
   }, () => {
     codigosDataCache = {};
     codigosStockCache = {};
+
     if (Object.keys(productosTiendaCache).length) {
       renderizarProductosTienda(productosTiendaCache);
     }
@@ -443,7 +846,11 @@ function inyectarEstilosUIOverlay() {
 function elementoEstaVisible(el) {
   if (!el) return false;
   const estilos = window.getComputedStyle(el);
-  return estilos.display !== "none" && estilos.visibility !== "hidden" && estilos.opacity !== "0";
+  return (
+    estilos.display !== "none" &&
+    estilos.visibility !== "hidden" &&
+    estilos.opacity !== "0"
+  );
 }
 
 function hayOverlayActivo() {
@@ -472,7 +879,6 @@ function actualizarEstadoUIOverlay() {
     document.body.classList.remove("modal-abierto");
   }
 }
-
 /* =========================
 PRESENCIA / ONLINE
 ========================= */
@@ -504,7 +910,10 @@ function cancelarOfflinePendiente() {
 
 function marcarOfflineSiExiste() {
   if (!usuarioActual || !usuarioActual.uid) return;
-  db.ref("online/" + usuarioActual.uid).set(false).catch(() => {});
+
+  db.ref("online/" + usuarioActual.uid)
+    .set(false)
+    .catch(() => {});
 }
 
 function programarOfflineConEspera() {
@@ -647,6 +1056,7 @@ function iniciarControlInactividad() {
     if (!document.hidden) {
       cancelarOfflinePendiente();
       reiniciarTemporizadorInactividad();
+
       if (usuarioActual && usuarioActual.uid) {
         db.ref("online/" + usuarioActual.uid).set(true).catch(() => {});
       }
@@ -1058,6 +1468,37 @@ function mostrarAvisoStockPremium(stockMaximo) {
     }
   );
 }
+
+function mostrarToastCompraExitosa(producto, total) {
+  let toast = document.getElementById("toastCompraExitosa");
+
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "toastCompraExitosa";
+    toast.className = "toastCompraExitosa";
+    document.body.appendChild(toast);
+  }
+
+  toast.innerHTML = `
+    <div class="toastCompraIcon">✅</div>
+    <div class="toastCompraTexto">
+      <strong>Compra realizada con éxito</strong>
+      <span>${escaparHTML(producto)} - S/ ${Number(total || 0).toFixed(2)}</span>
+    </div>
+  `;
+
+  toast.classList.remove("show");
+
+  requestAnimationFrame(() => {
+    toast.classList.add("show");
+  });
+
+  clearTimeout(toast._hideTimer);
+  toast._hideTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 3200);
+}
+
 /* =========================
 MODAL DESCARGA / PLUGIN
 ========================= */
@@ -1172,7 +1613,6 @@ function actualizarVisualModalSegunTipoEntrega(itemProducto = {}) {
       : "Entrega configurada para acceso estándar.";
   }
 }
-
 /* =========================
 NORMALIZACION PRODUCTOS
 ========================= */
@@ -1309,6 +1749,8 @@ function esProductoLicencia(productoId = "", itemProducto = {}) {
   return (
     tipoEntrega === "codigo" ||
     categoria.includes("licencia") ||
+    categoria.includes("clave") ||
+    categoria.includes("key") ||
     id === "windows11pro" ||
     nombre.includes("windows 11 pro") ||
     nombre.includes("licencia")
@@ -1426,22 +1868,97 @@ function obtenerDuracionTexto(item) {
   return "Duración: " + dias + " días";
 }
 
-function calcularRepartoVenta(precioUnitario, cantidad, itemProducto = {}) {
-  const total = Number(precioUnitario || 0) * Number(cantidad || 1);
-  const porcentajePlataforma = Number(itemProducto.comisionPlataforma ?? 4);
-  const porcentajeProveedor = Number(itemProducto.comisionProveedor ?? (100 - porcentajePlataforma));
+/* =========================
+COMISIONES / CONTEXTO VENTA
+========================= */
 
-  const montoPlataforma = Number((total * porcentajePlataforma / 100).toFixed(2));
-  const montoProveedor = Number((total - montoPlataforma).toFixed(2));
+function normalizarPorcentajeSeguro(valor, fallback) {
+  const n = Number(valor);
+
+  if (!isFinite(n)) return Number(fallback || 0);
+  if (n < 0) return 0;
+  if (n > 100) return 100;
+
+  return n;
+}
+
+async function obtenerContextoVentaProducto(itemProducto = {}) {
+  const proveedorId = String(itemProducto.proveedorId || "").trim();
+  const proveedorTipoProducto = String(itemProducto.proveedorTipo || "").toLowerCase().trim();
+
+  let rolVendedor = proveedorTipoProducto;
+
+  if (!rolVendedor && proveedorId) {
+    try {
+      const snap = await db.ref("usuarios/" + proveedorId + "/rol").once("value");
+      rolVendedor = String(snap.val() || "").toLowerCase().trim();
+    } catch (e) {
+      rolVendedor = "";
+    }
+  }
+
+  const esProductoAdmin =
+    !proveedorId ||
+    proveedorTipoProducto === "admin" ||
+    rolVendedor === "admin";
+
+  const esProductoProveedor =
+    !!proveedorId &&
+    !esProductoAdmin &&
+    (proveedorTipoProducto === "proveedor" || rolVendedor === "proveedor");
 
   return {
-    total: Number(total.toFixed(2)),
+    proveedorId,
+    proveedorTipoProducto,
+    rolVendedor,
+    esProductoAdmin,
+    esProductoProveedor,
+    aplicarComisionProveedor: esProductoProveedor,
+    proveedorIdComision: esProductoProveedor ? proveedorId : ""
+  };
+}
+
+function calcularRepartoVenta(precioUnitario, cantidad, itemProducto = {}, contextoVenta = {}) {
+  const total = redondearMonto(Number(precioUnitario || 0) * Number(cantidad || 1));
+
+  if (!contextoVenta || !contextoVenta.aplicarComisionProveedor) {
+    return {
+      total,
+      porcentajePlataforma: 100,
+      porcentajeProveedor: 0,
+      montoPlataforma: total,
+      montoProveedor: 0
+    };
+  }
+
+  let porcentajePlataforma = normalizarPorcentajeSeguro(itemProducto.comisionPlataforma, 4);
+  let porcentajeProveedor = Number(itemProducto.comisionProveedor);
+
+  if (!isFinite(porcentajeProveedor)) {
+    porcentajeProveedor = 100 - porcentajePlataforma;
+  }
+
+  porcentajeProveedor = normalizarPorcentajeSeguro(porcentajeProveedor, 96);
+
+  if ((porcentajePlataforma + porcentajeProveedor) !== 100) {
+    porcentajeProveedor = 100 - porcentajePlataforma;
+  }
+
+  const montoPlataforma = redondearMonto(total * porcentajePlataforma / 100);
+  const montoProveedor = redondearMonto(total - montoPlataforma);
+
+  return {
+    total,
     porcentajePlataforma,
     porcentajeProveedor,
     montoPlataforma,
     montoProveedor
   };
 }
+
+/* =========================
+TEXTOS PRODUCTO
+========================= */
 
 function obtenerReglasProducto(productoBase) {
   const item = productoSeleccionadoData || {};
@@ -1663,27 +2180,50 @@ function obtenerRutaCuentasPorProducto(productoId, itemProducto = {}) {
 
   if (idLower === "netflix" || nombre.includes("netflix")) return "netflix";
   if (idLower === "disney" || nombre.includes("disney")) return "disney";
+
   if (
     idLower === "hboprime" ||
     nombre.includes("hbo max + prime") ||
     (nombre.includes("hbo") && nombre.includes("prime"))
   ) return "hboprime";
+
   if (idLower === "prime" || nombre.includes("prime video")) return "prime";
+
   if (
     idLower === "hboplatinium" ||
     nombre.includes("hbo max platinium") ||
     nombre.includes("hbomax platinium") ||
     nombre.includes("hbo platinium")
   ) return "hboplatinium";
+
   if (idLower === "hbo" || nombre.includes("hbo")) return "hbo";
   if (idLower === "paramount" || nombre.includes("paramount")) return "paramount";
   if (idLower === "spotify" || nombre.includes("spotify")) return "spotify";
   if (idLower === "vix" || nombre.includes("vix")) return "vix";
-  if (idLower === "crunchyroll" || idLower === "crunchy" || nombre.includes("crunchyroll")) return "crunchyroll";
+
+  if (
+    idLower === "crunchyroll" ||
+    idLower === "crunchy" ||
+    nombre.includes("crunchyroll")
+  ) return "crunchyroll";
+
   if (idLower === "canva" || nombre.includes("canva")) return "canva";
-  if (idLower === "youtubepremium" || nombre.includes("youtube premium") || nombre.includes("youtube")) return "youtubepremium";
-  if (idLower === "chatgpt" || idLower === "chagpt" || nombre.includes("chatgpt")) return "chatgpt";
-  if (idLower === "windows11pro" || nombre.includes("windows 11 pro")) return "windows11pro";
+
+  if (
+    idLower === "youtubepremium" ||
+    nombre.includes("youtube premium") ||
+    nombre.includes("youtube")
+  ) return "youtubepremium";
+
+  if (
+    idLower === "chatgpt" ||
+    idLower === "chagpt" ||
+    nombre.includes("chatgpt")
+  ) return "chatgpt";
+
+  if (idLower === "windows11pro" || nombre.includes("windows 11 pro")) {
+    return "windows11pro";
+  }
 
   return id;
 }
@@ -1696,7 +2236,10 @@ function obtenerRutasCuentasCompatibles(productoId, itemProducto = {}) {
   obtenerVariantesClaveStock(rutaBase).forEach((v) => variantes.add(v));
   obtenerVariantesClaveStock(productoId).forEach((v) => variantes.add(v));
 
-  if (nombre) variantes.add(nombre);
+  if (nombre) {
+    variantes.add(nombre);
+    obtenerVariantesClaveStock(nombre).forEach((v) => variantes.add(v));
+  }
 
   const mapaEspecial = {
     netflix: ["Netflix"],
@@ -1708,7 +2251,7 @@ function obtenerRutasCuentasCompatibles(productoId, itemProducto = {}) {
     paramount: ["Paramount"],
     spotify: ["Spotify"],
     vix: ["Vix"],
-    crunchyroll: ["Crunchyroll", "crunchy"],
+    crunchyroll: ["Crunchyroll", "crunchy", "CRUNCHYROLL"],
     canva: ["Canva"],
     youtubepremium: ["YouTubePremium", "YoutubePremium", "youtubepremium"],
     chatgpt: ["ChatGPT", "chatgpt", "chagpt"],
@@ -1722,39 +2265,10 @@ function obtenerRutasCuentasCompatibles(productoId, itemProducto = {}) {
 
   return Array.from(variantes).filter(Boolean);
 }
+
 /* =========================
-TOAST / HELPERS EXTRA
+HELPERS EXTRA
 ========================= */
-
-function mostrarToastCompraExitosa(producto, total) {
-  let toast = document.getElementById("toastCompraExitosa");
-
-  if (!toast) {
-    toast = document.createElement("div");
-    toast.id = "toastCompraExitosa";
-    toast.className = "toastCompraExitosa";
-    document.body.appendChild(toast);
-  }
-
-  toast.innerHTML = `
-    <div class="toastCompraIcon">✅</div>
-    <div class="toastCompraTexto">
-      <strong>Compra realizada con éxito</strong>
-      <span>${escaparHTML(producto)} - S/ ${Number(total || 0).toFixed(2)}</span>
-    </div>
-  `;
-
-  toast.classList.remove("show");
-
-  requestAnimationFrame(() => {
-    toast.classList.add("show");
-  });
-
-  clearTimeout(toast._hideTimer);
-  toast._hideTimer = setTimeout(() => {
-    toast.classList.remove("show");
-  }, 3200);
-}
 
 function convertirVentasANumero(data) {
   if (data == null) return 0;
@@ -1772,7 +2286,6 @@ function convertirVentasANumero(data) {
 
   return 0;
 }
-
 /* =========================
 LIMPIEZA DE LISTENERS
 ========================= */
@@ -1985,6 +2498,8 @@ function escucharBadgeMisCompras(uid) {
     }
 
     actualizarBadgeMisComprasDesdeIds(uid, ids);
+  }, () => {
+    actualizarBadgeMisCompras(0);
   });
 }
 
@@ -2036,8 +2551,8 @@ auth.onAuthStateChanged((user) => {
 
   usuarioPerfilRef.on("value", (snap) => {
     const data = snap.val() || {};
-    const estado = String(data.estado || "activo").toLowerCase();
-    const rol = String(data.rol || "").toLowerCase();
+    const estado = String(data.estado || "activo").toLowerCase().trim();
+    const rol = String(data.rol || "").toLowerCase().trim();
 
     if (estado === "bloqueado") {
       cerrarSesionPorBloqueo();
@@ -2193,7 +2708,7 @@ function togglePassword(inputId = "password", btn = null) {
 }
 
 /* =========================
-COPIAR YAPE
+COPIAR / YAPE
 ========================= */
 
 function copiarYape() {
@@ -2209,10 +2724,6 @@ function copiarYape() {
   }, 3000);
 }
 
-/* =========================
-ABRIR YAPE
-========================= */
-
 function abrirYape() {
   const telefono = "917107386";
   const esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -2220,7 +2731,11 @@ function abrirYape() {
   if (esMovil) {
     window.location.href = "yape://pay?phone=" + telefono;
   } else {
-    mostrarAvisoSistema("Yape disponible en móvil", "Para abrir Yape debes usar un celular.", "info");
+    mostrarAvisoSistema(
+      "Yape disponible en móvil",
+      "Para abrir Yape debes usar un celular.",
+      "info"
+    );
   }
 }
 
@@ -2579,10 +3094,6 @@ function abrirProductoPorId(productoId) {
   }
 }
 
-/* =========================
-MODAL PRODUCTO
-========================= */
-
 function agregarCarrito(nombre) {
   const productoEncontradoId = Object.keys(productosTiendaCache).find((id) => {
     const item = productosTiendaCache[id] || {};
@@ -2655,7 +3166,7 @@ function obtenerCuentaValor(data = {}) {
 }
 
 function obtenerClaveValor(data = {}) {
-  return data.clave || data.password || data.contrasena || data.contraseña || "";
+  return data.clave || data.password || data.contrasena || data["contraseña"] || "";
 }
 
 function obtenerPerfilValor(data = {}) {
@@ -2668,6 +3179,58 @@ function obtenerPinValor(data = {}) {
 
 function obtenerObservacionValor(data = {}) {
   return data.observacion || "";
+}
+
+function normalizarValorComparacion(valor) {
+  return String(valor || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function construirSetComparacionProducto(productoId, itemProducto = {}) {
+  const set = new Set();
+  const nombre = String(itemProducto.nombre || "").trim();
+  const rutaBase = obtenerRutaCuentasPorProducto(productoId, itemProducto);
+
+  obtenerVariantesClaveStock(productoId).forEach((v) => set.add(normalizarValorComparacion(v)));
+  obtenerVariantesClaveStock(rutaBase).forEach((v) => set.add(normalizarValorComparacion(v)));
+  obtenerRutasCuentasCompatibles(productoId, itemProducto).forEach((v) => set.add(normalizarValorComparacion(v)));
+
+  if (nombre) {
+    set.add(normalizarValorComparacion(nombre));
+  }
+
+  return set;
+}
+
+function productoCoincideConRegistroCodigo(itemCodigo = {}, productoId = "", itemProducto = {}) {
+  const valoresRegistro = [
+    itemCodigo.productoId,
+    itemCodigo.producto,
+    itemCodigo.productoNombre,
+    itemCodigo.nombreProducto,
+    itemCodigo.servicio
+  ];
+
+  const setComparacion = construirSetComparacionProducto(productoId, itemProducto);
+
+  return valoresRegistro.some((valor) => {
+    const limpio = normalizarValorComparacion(valor);
+    return limpio && setComparacion.has(limpio);
+  });
+}
+
+function productoPerteneceARuta(productoId = "", itemProducto = {}, ruta = "") {
+  const rutaLimpia = normalizarValorComparacion(ruta);
+  if (!rutaLimpia) return false;
+
+  const rutasCompatibles = obtenerRutasCuentasCompatibles(productoId, itemProducto).map((v) => normalizarValorComparacion(v));
+  if (rutasCompatibles.includes(rutaLimpia)) return true;
+
+  const setProducto = construirSetComparacionProducto(productoId, itemProducto);
+  return setProducto.has(rutaLimpia);
 }
 
 function recolectarCuentasDesdeNodo(
@@ -2766,20 +3329,16 @@ async function obtenerCuentasDisponibles(productoId, itemProducto, cantidadNeces
   return cuentasEncontradas.slice(0, cantidadNecesaria);
 }
 
-async function obtenerCodigosDisponibles(productoId, cantidadNecesaria) {
-  const variantesProducto = obtenerVariantesClaveStock(productoId).map((v) => v.toLowerCase());
+async function obtenerCodigosDisponibles(productoId, itemProducto = {}, cantidadNecesaria) {
   const snap = await db.ref("codigos").once("value");
   const data = snap.val() || {};
   const codigos = [];
 
   Object.keys(data).forEach((key) => {
     const item = data[key] || {};
-    const productoCodigo = String(
-      item.producto || item.productoId || item.productoNombre || ""
-    ).trim().toLowerCase();
 
-    if (!variantesProducto.includes(productoCodigo)) return;
     if (!codigoEstaDisponible(item)) return;
+    if (!productoCoincideConRegistroCodigo(item, productoId, itemProducto)) return;
     if (codigos.length >= cantidadNecesaria) return;
 
     codigos.push({
@@ -2999,7 +3558,7 @@ async function revertirItemsVendidos(items) {
       updates[`${base}/uidUsuario`] = "";
       updates[`${base}/comprador`] = "";
       updates[`${base}/compradorNombre`] = "";
-      updates[`${base}/fechaUso`] = "";
+      updates[`${base}/fechaUso`] = null;
       updates[`${base}/ordenId`] = "";
       return;
     }
@@ -3090,15 +3649,20 @@ function obtenerNombrePlataformaDescarga(plataforma = "") {
   return "Windows";
 }
 
-async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprador) {
+async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprador, reparto = {}) {
   const uid = usuarioActual && usuarioActual.uid ? usuarioActual.uid : "";
   if (!uid || !itemsAsignados.length) return [];
 
   const ahora = new Date();
   const precioUnitario = Number(itemProducto.precio || precioBase || 0);
   const ordenesGeneradas = [];
+  const cantidadItems = Math.max(1, itemsAsignados.length);
 
-  for (const itemObj of itemsAsignados) {
+  const montoPlataformaBase = redondearMonto(Number(reparto.montoPlataforma || 0) / cantidadItems);
+  const montoProveedorBase = redondearMonto(Number(reparto.montoProveedor || 0) / cantidadItems);
+
+  for (let i = 0; i < itemsAsignados.length; i++) {
+    const itemObj = itemsAsignados[i];
     const nuevaOrdenRef = db.ref("ordenes/" + uid).push();
 
     const esDescarga = itemObj.tipo === "descarga";
@@ -3112,10 +3676,19 @@ async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprad
     const fechaExpira = obtenerFechaExpiraOrden(itemProducto, tipoEntrega, ahora);
     const duracionTexto = obtenerDuracionTextoOrden(itemProducto, tipoEntrega);
 
+    const esUltimo = i === itemsAsignados.length - 1;
+    const montoPlataforma = esUltimo
+      ? redondearMonto(Number(reparto.montoPlataforma || 0) - (montoPlataformaBase * i))
+      : montoPlataformaBase;
+
+    const montoProveedor = esUltimo
+      ? redondearMonto(Number(reparto.montoProveedor || 0) - (montoProveedorBase * i))
+      : montoProveedorBase;
+
     await nuevaOrdenRef.set({
+      uid: uid,
       servicio: itemProducto.nombre || productoActual || "",
       producto: productoSeleccionadoId || "",
-      productoId: productoSeleccionadoId || "",
       cuenta: itemObj.cuenta || "",
       clave: itemObj.clave || "",
       perfil: itemObj.perfil || "",
@@ -3125,12 +3698,9 @@ async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprad
       comprador: nombreComprador || "",
       precio: Number(precioUnitario.toFixed(2)),
       fechaCompra: ahora.toISOString(),
-      fechaEntrega: esDescarga ? ahora.toISOString() : "",
       fechaExpira: fechaExpira,
       fechaExpiraTexto: (!fechaExpira && duracionTexto.includes("Permanente")) ? "Permanente" : "",
       estado: "activa",
-      uid: uid,
-      uidUsuario: uid,
       soporteNumero: numero,
       tipoEntrega: tipoEntrega,
       esCodigo: esCodigo,
@@ -3139,15 +3709,8 @@ async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprad
       duracionTexto: duracionTexto,
       linkEntrega: itemObj.linkEntrega || "",
       plataformaElegida: itemObj.plataformaElegida || "",
-      plataformaNombre: itemObj.plataformaElegida
-        ? obtenerNombrePlataformaDescarga(itemObj.plataformaElegida)
-        : "",
-      proveedorId: itemProducto.proveedorId || "",
-      proveedorNombre: itemProducto.proveedorNombre || "Josking",
-      comisionPlataforma: Number(itemProducto.comisionPlataforma ?? 4),
-      comisionProveedor: Number(itemProducto.comisionProveedor ?? 96),
-      montoPlataforma: 0,
-      montoProveedor: 0
+      montoPlataforma: montoPlataforma,
+      montoProveedor: montoProveedor
     });
 
     ordenesGeneradas.push({
@@ -3159,202 +3722,190 @@ async function guardarOrdenesUsuario(itemProducto, itemsAsignados, nombreComprad
   return ordenesGeneradas;
 }
 
-function construirPayloadVentaBase({
-  itemProducto = {},
-  nombreComprador = "",
-  reparto = {},
-  fechaMs = Date.now()
-} = {}) {
-  const tipoEntrega = String(itemProducto.tipoEntrega || "").toLowerCase().trim();
+function normalizarPorcentajeSeguro(valor, fallback) {
+  const n = Number(valor);
+  if (!isFinite(n)) return fallback;
+  if (n < 0) return 0;
+  if (n > 100) return 100;
+  return n;
+}
+
+async function obtenerContextoVentaProducto(itemProducto = {}) {
+  const proveedorId = String(itemProducto.proveedorId || "").trim();
+  const proveedorTipoProducto = String(itemProducto.proveedorTipo || "").toLowerCase().trim();
+
+  let rolVendedor = proveedorTipoProducto;
+
+  if (!rolVendedor && proveedorId) {
+    try {
+      const snap = await db.ref("usuarios/" + proveedorId + "/rol").once("value");
+      rolVendedor = String(snap.val() || "").toLowerCase().trim();
+    } catch (e) {
+      rolVendedor = "";
+    }
+  }
+
+  const esProductoAdmin =
+    !proveedorId ||
+    proveedorTipoProducto === "admin" ||
+    rolVendedor === "admin";
+
+  const esProductoProveedor =
+    !!proveedorId &&
+    !esProductoAdmin &&
+    (proveedorTipoProducto === "proveedor" || rolVendedor === "proveedor");
 
   return {
-    productoId: productoSeleccionadoId || "",
-    producto: itemProducto.nombre || productoActual || "",
-    productoNombre: itemProducto.nombre || productoActual || "",
-    proveedorId: itemProducto.proveedorId || "",
-    proveedorNombre: itemProducto.proveedorNombre || "Josking",
-    porcentajeProveedor: reparto.porcentajeProveedor || 96,
-    porcentajePlataforma: reparto.porcentajePlataforma || 4,
-    montoProveedor: reparto.montoProveedor || 0,
-    montoPlataforma: reparto.montoPlataforma || 0,
-    montoTotal: reparto.total || 0,
-    precio: Number(precioBase || 0),
-    cantidad: cantidadProducto,
-    nombre: nombreComprador,
-    comprador: nombreComprador,
-    uidUsuario: usuarioActual?.uid || "",
-    fecha: fechaMs,
-    fechaCompra: new Date(fechaMs).toISOString(),
-    estado: "entregada",
-    tipoEntrega: tipoEntrega || "cuenta",
-    comisionProveedorPendiente: false
+    proveedorId,
+    proveedorTipoProducto,
+    rolVendedor,
+    esProductoAdmin,
+    esProductoProveedor,
+    aplicarComisionProveedor: esProductoProveedor,
+    proveedorIdComision: esProductoProveedor ? proveedorId : ""
   };
 }
 
-async function registrarVentaDescargaDetallada({
-  itemProducto = {},
-  itemAsignado = {},
-  nombreComprador = "",
-  ordenId = "",
-  reparto = {},
-  fechaMs = Date.now()
-} = {}) {
-  const ref = db.ref("ventasDescargas").push();
+function calcularRepartoVenta(precioUnitario, cantidad, itemProducto = {}, contextoVenta = null) {
+  const total = Number((Number(precioUnitario || 0) * Number(cantidad || 1)).toFixed(2));
+  const contexto = contextoVenta || {
+    aplicarComisionProveedor: !!String(itemProducto.proveedorId || "").trim() &&
+      String(itemProducto.proveedorTipo || "").toLowerCase().trim() === "proveedor"
+  };
 
-  await ref.set({
-    ventaId: ref.key,
-    ordenId: ordenId || "",
-    uidUsuario: usuarioActual?.uid || "",
-    comprador: nombreComprador || "",
-    productoId: productoSeleccionadoId || "",
-    producto: itemProducto.nombre || productoActual || "",
-    proveedorId: itemProducto.proveedorId || "",
-    proveedorNombre: itemProducto.proveedorNombre || "Josking",
-    tipoEntrega: String(itemAsignado.subtipoEntrega || itemProducto.tipoEntrega || "descarga").toLowerCase(),
-    plataformaElegida: itemAsignado.plataformaElegida || "",
-    plataformaNombre: itemAsignado.plataformaElegida
-      ? obtenerNombrePlataformaDescarga(itemAsignado.plataformaElegida)
-      : "",
-    linkEntrega: itemAsignado.linkEntrega || "",
-    observacion: itemAsignado.observacion || "",
-    precio: Number(precioBase || 0),
-    cantidad: 1,
-    montoTotal: Number(precioBase || 0),
-    porcentajeProveedor: reparto.porcentajeProveedor || 96,
-    porcentajePlataforma: reparto.porcentajePlataforma || 4,
-    montoProveedor: redondearMonto(
-      Number(precioBase || 0) * Number((itemProducto.comisionProveedor ?? reparto.porcentajeProveedor ?? 96)) / 100
-    ),
-    montoPlataforma: redondearMonto(
-      Number(precioBase || 0) * Number((itemProducto.comisionPlataforma ?? reparto.porcentajePlataforma ?? 4)) / 100
-    ),
-    fecha: fechaMs,
-    fechaCompra: new Date(fechaMs).toISOString(),
-    fechaEntrega: new Date(fechaMs).toISOString(),
-    estado: "entregada"
-  });
-
-  return ref.key;
-}
-
-async function actualizarOrdenesConMontos(uid, ordenesGeneradas = [], reparto = {}) {
-  if (!uid || !ordenesGeneradas.length) return;
-
-  const montoPlataformaUnitario = redondearMonto(
-    Number(reparto.montoPlataforma || 0) / Number(ordenesGeneradas.length || 1)
-  );
-  const montoProveedorUnitario = redondearMonto(
-    Number(reparto.montoProveedor || 0) / Number(ordenesGeneradas.length || 1)
-  );
-
-  const updates = {};
-  ordenesGeneradas.forEach((o, index) => {
-    const esUltimo = index === ordenesGeneradas.length - 1;
-    const montoPlat = esUltimo
-      ? redondearMonto(Number(reparto.montoPlataforma || 0) - montoPlataformaUnitario * index)
-      : montoPlataformaUnitario;
-
-    const montoProv = esUltimo
-      ? redondearMonto(Number(reparto.montoProveedor || 0) - montoProveedorUnitario * index)
-      : montoProveedorUnitario;
-
-    updates[`ordenes/${uid}/${o.ordenId}/montoPlataforma`] = montoPlat;
-    updates[`ordenes/${uid}/${o.ordenId}/montoProveedor`] = montoProv;
-  });
-
-  if (Object.keys(updates).length) {
-    await db.ref().update(updates);
+  if (!contexto.aplicarComisionProveedor) {
+    return {
+      total,
+      porcentajePlataforma: 100,
+      porcentajeProveedor: 0,
+      montoPlataforma: total,
+      montoProveedor: 0
+    };
   }
+
+  let porcentajePlataforma = normalizarPorcentajeSeguro(itemProducto.comisionPlataforma, 4);
+  let porcentajeProveedor = Number(itemProducto.comisionProveedor);
+
+  if (!isFinite(porcentajeProveedor)) {
+    porcentajeProveedor = 100 - porcentajePlataforma;
+  }
+
+  porcentajeProveedor = normalizarPorcentajeSeguro(porcentajeProveedor, 96);
+
+  if ((porcentajePlataforma + porcentajeProveedor) !== 100) {
+    porcentajeProveedor = 100 - porcentajePlataforma;
+  }
+
+  const montoPlataforma = Number((total * porcentajePlataforma / 100).toFixed(2));
+  const montoProveedor = Number((total - montoPlataforma).toFixed(2));
+
+  return {
+    total,
+    porcentajePlataforma,
+    porcentajeProveedor,
+    montoPlataforma,
+    montoProveedor
+  };
 }
 
-async function registrarCompraFinal(itemsAsignados, nombreComprador, ordenesGeneradas = []) {
+async function registrarCompraFinal(
+  itemsAsignados,
+  nombreComprador,
+  ordenesGeneradas = [],
+  repartoForzado = null,
+  contextoVenta = {}
+) {
   const item = productoSeleccionadoData || {};
   const productoId = productoSeleccionadoId;
-  const reparto = calcularRepartoVenta(precioBase, cantidadProducto, item);
+  const reparto = repartoForzado || calcularRepartoVenta(precioBase, cantidadProducto, item, contextoVenta);
   const ahoraMs = Date.now();
 
-  const compraHoyRef = db.ref("comprasHoy").push();
-  await compraHoyRef.set({
-    producto: item.nombre || productoActual,
-    productoId: productoId,
-    cliente: nombreComprador,
-    comprador: nombreComprador,
-    proveedorId: item.proveedorId || "",
-    proveedorNombre: item.proveedorNombre || "Josking",
-    operacion: "compra",
-    monto: reparto.montoPlataforma,
-    montoPlataforma: reparto.montoPlataforma,
-    montoProveedor: reparto.montoProveedor,
-    montoTotal: reparto.total,
-    fecha: ahoraMs,
-    fechaCompra: new Date(ahoraMs).toISOString(),
-    estado: "entregada",
-    tipoEntrega: String(item.tipoEntrega || "").toLowerCase().trim() || "cuenta",
-    cantidad: cantidadProducto,
-    ordenId: ordenesGeneradas[0]?.ordenId || ""
-  });
+  let compraHoyId = "";
+  let ventaId = "";
+  let compraLiveId = "";
 
-  const ventaRef = db.ref("ventas/" + productoId).push();
-  const payloadVenta = construirPayloadVentaBase({
-    itemProducto: item,
-    nombreComprador,
-    reparto,
-    fechaMs: ahoraMs
-  });
+  try {
+    const compraHoyRef = db.ref("comprasHoy").push();
+    await compraHoyRef.set({
+      producto: item.nombre || productoActual,
+      productoId: productoId,
+      cliente: nombreComprador,
+      comprador: nombreComprador,
+      proveedorId: item.proveedorId || "",
+      proveedorNombre: item.proveedorNombre || "Josking",
+      operacion: "compra",
+      monto: reparto.montoPlataforma,
+      montoPlataforma: reparto.montoPlataforma,
+      montoProveedor: reparto.montoProveedor,
+      montoTotal: reparto.total,
+      fecha: ahoraMs,
+      fechaCompra: new Date(ahoraMs).toISOString(),
+      estado: "entregada",
+      tipoEntrega: String(item.tipoEntrega || "").toLowerCase().trim() || "cuenta",
+      cantidad: cantidadProducto,
+      ordenId: ordenesGeneradas[0]?.ordenId || ""
+    });
+    compraHoyId = compraHoyRef.key;
+  } catch (e) {
+    console.warn("No se pudo registrar comprasHoy:", e);
+  }
 
-  await ventaRef.set({
-    ...payloadVenta,
-    ventaId: ventaRef.key,
-    ordenId: ordenesGeneradas[0]?.ordenId || "",
-    linkEntrega: itemsAsignados[0]?.linkEntrega || "",
-    plataformaElegida: itemsAsignados[0]?.plataformaElegida || "",
-    plataformaNombre: itemsAsignados[0]?.plataformaElegida
-      ? obtenerNombrePlataformaDescarga(itemsAsignados[0]?.plataformaElegida)
-      : ""
-  });
+  try {
+    const ventaRef = db.ref("ventas/" + productoId).push();
+    await ventaRef.set({
+      productoId: productoId || "",
+      producto: item.nombre || productoActual || "",
+      productoNombre: item.nombre || productoActual || "",
+      proveedorId: item.proveedorId || "",
+      proveedorNombre: item.proveedorNombre || "Josking",
+      porcentajeProveedor: reparto.porcentajeProveedor || 0,
+      porcentajePlataforma: reparto.porcentajePlataforma || 100,
+      montoProveedor: reparto.montoProveedor || 0,
+      montoPlataforma: reparto.montoPlataforma || 0,
+      montoTotal: reparto.total || 0,
+      precio: Number(precioBase || 0),
+      cantidad: cantidadProducto,
+      nombre: nombreComprador,
+      comprador: nombreComprador,
+      uidUsuario: usuarioActual?.uid || "",
+      fecha: ahoraMs,
+      fechaCompra: new Date(ahoraMs).toISOString(),
+      estado: "entregada",
+      tipoEntrega: String(item.tipoEntrega || "").toLowerCase().trim() || "cuenta",
+      ventaId: ventaRef.key,
+      ordenId: ordenesGeneradas[0]?.ordenId || "",
+      linkEntrega: itemsAsignados[0]?.linkEntrega || "",
+      plataformaElegida: itemsAsignados[0]?.plataformaElegida || "",
+      comisionProveedorPendiente: false
+    });
+    ventaId = ventaRef.key;
+  } catch (e) {
+    console.warn("No se pudo registrar venta:", e);
+  }
 
-  const compraLiveRef = db.ref("comprasLive").push();
-  await compraLiveRef.set({
-    nombre: nombreComprador,
-    producto: item.nombre || productoActual,
-    time: ahoraMs
-  });
-
-  await actualizarOrdenesConMontos(usuarioActual?.uid || "", ordenesGeneradas, reparto);
-
-  const ventasDescargasIds = [];
-  const hayDescargas = itemsAsignados.some((it) => it.tipo === "descarga");
-
-  if (hayDescargas) {
-    for (let i = 0; i < itemsAsignados.length; i++) {
-      const itemAsignado = itemsAsignados[i];
-      if (itemAsignado.tipo !== "descarga") continue;
-
-      const ordenId = ordenesGeneradas[i]?.ordenId || "";
-      const ventaDescargaId = await registrarVentaDescargaDetallada({
-        itemProducto: item,
-        itemAsignado,
-        nombreComprador,
-        ordenId,
-        reparto,
-        fechaMs: ahoraMs
-      });
-
-      ventasDescargasIds.push(ventaDescargaId);
-    }
+  try {
+    const compraLiveRef = db.ref("comprasLive").push();
+    await compraLiveRef.set({
+      nombre: nombreComprador,
+      producto: item.nombre || productoActual,
+      time: ahoraMs
+    });
+    compraLiveId = compraLiveRef.key;
+  } catch (e) {
+    console.warn("No se pudo registrar comprasLive:", e);
   }
 
   return {
     ordenesGeneradas,
-    ventaId: ventaRef.key,
-    compraLiveId: compraLiveRef.key,
-    compraHoyId: compraHoyRef.key,
-    ventasDescargasIds,
-    proveedorId: item.proveedorId || "",
-    montoProveedor: reparto.montoProveedor || 0,
+    ventaId,
+    compraLiveId,
+    compraHoyId,
+    proveedorId: contextoVenta.proveedorIdComision || "",
+    montoProveedor: contextoVenta.aplicarComisionProveedor ? (reparto.montoProveedor || 0) : 0,
     productoId: productoId,
     productoNombre: item.nombre || productoActual,
-    reparto
+    reparto,
+    aplicarComisionProveedor: !!contextoVenta.aplicarComisionProveedor
   };
 }
 
@@ -3362,6 +3913,10 @@ async function procesarComisionProveedorSilenciosa(resultadoRegistro, nombreComp
   try {
     if (!resultadoRegistro) {
       return { ok: false, motivo: "SIN_RESULTADO_REGISTRO" };
+    }
+
+    if (!resultadoRegistro.aplicarComisionProveedor) {
+      return { ok: true, omitido: true };
     }
 
     const proveedorId = String(resultadoRegistro.proveedorId || "").trim();
@@ -3376,9 +3931,8 @@ async function procesarComisionProveedorSilenciosa(resultadoRegistro, nombreComp
 
     await acreditarSaldoProveedor(proveedorId, montoProveedor);
 
-    let movimientoId = "";
     try {
-      movimientoId = await registrarMovimientoProveedor({
+      await registrarMovimientoProveedor({
         proveedorId,
         productoId,
         productoNombre,
@@ -3395,20 +3949,16 @@ async function procesarComisionProveedorSilenciosa(resultadoRegistro, nombreComp
         await db.ref("ventas/" + productoId + "/" + ventaId).update({
           comisionProveedorPendiente: false,
           comisionProveedorProcesada: true,
-          fechaComisionProveedor: Date.now(),
-          movimientoProveedorId: movimientoId || ""
+          fechaComisionProveedor: Date.now()
         });
       }
     } catch (e) {
       console.warn("No se pudo actualizar bandera de comisión procesada:", e);
     }
 
-    return {
-      ok: true,
-      movimientoId: movimientoId || ""
-    };
+    return { ok: true };
   } catch (error) {
-    console.warn("Comisión proveedor pendiente:", error);
+    console.warn("No se pudo acreditar comisión del proveedor:", error);
 
     try {
       const productoId = String(resultadoRegistro?.productoId || "").trim();
@@ -3432,6 +3982,21 @@ async function procesarComisionProveedorSilenciosa(resultadoRegistro, nombreComp
   }
 }
 
+async function eliminarOrdenesUsuario(uid, ordenesGeneradas = []) {
+  if (!uid || !ordenesGeneradas.length) return;
+
+  const updates = {};
+  ordenesGeneradas.forEach((o) => {
+    if (o && o.ordenId) {
+      updates["ordenes/" + uid + "/" + o.ordenId] = null;
+    }
+  });
+
+  if (Object.keys(updates).length) {
+    await db.ref().update(updates);
+  }
+}
+
 /* =========================
 COMPRAR
 ========================= */
@@ -3443,13 +4008,11 @@ async function comprarAhora() {
   let saldoDescontado = false;
   let itemsMarcados = false;
   let itemsDisponibles = [];
+  let ordenesGeneradas = [];
   let uid = "";
   let totalCompra = 0;
-
-  let ventaRegistradaId = "";
-  let compraLiveRegistradaId = "";
-  let compraHoyRegistradaId = "";
-  let ventasDescargasRegistradasIds = [];
+  let nombreComprador = "";
+  let pasoCompra = "inicio";
 
   try {
     if (!usuarioActual) {
@@ -3497,15 +4060,16 @@ async function comprarAhora() {
       (Number(precioBase || 0) * Number(cantidadProducto || 1)).toFixed(2)
     );
 
+    pasoCompra = "leer_perfil";
     const perfil = await obtenerPerfilUsuario(uid);
-    const estadoUsuario = String(perfil.estado || "activo").toLowerCase();
+    const estadoUsuario = String(perfil.estado || "activo").toLowerCase().trim();
 
     if (estadoUsuario === "bloqueado") {
       cerrarSesionPorBloqueo();
       return;
     }
 
-    const nombreComprador = obtenerNombreComprador(usuarioActual, perfil);
+    nombreComprador = obtenerNombreComprador(usuarioActual, perfil);
     const saldoActual = Number(perfil.saldo || 0);
 
     if (saldoActual < totalCompra) {
@@ -3513,6 +4077,11 @@ async function comprarAhora() {
       return;
     }
 
+    pasoCompra = "contexto_venta";
+    const contextoVenta = await obtenerContextoVentaProducto(item);
+    const repartoVenta = calcularRepartoVenta(precioBase, cantidadProducto, item, contextoVenta);
+
+    pasoCompra = "resolver_items";
     if (productoEsDescarga) {
       const plataformaElegida = obtenerPlataformaDescargaSeleccionada();
       const linkEntrega = obtenerLinkDescargaSegunPlataforma(item, plataformaElegida);
@@ -3542,7 +4111,7 @@ async function comprarAhora() {
         raw: item
       }];
     } else if (productoEsLicencia || productoEsCodigo) {
-      itemsDisponibles = await obtenerCodigosDisponibles(productoSeleccionadoId, cantidadProducto);
+      itemsDisponibles = await obtenerCodigosDisponibles(productoSeleccionadoId, item, cantidadProducto);
     } else {
       itemsDisponibles = await obtenerCuentasDisponibles(
         productoSeleccionadoId,
@@ -3555,96 +4124,64 @@ async function comprarAhora() {
       await sincronizarStockProductoConInventario(productoSeleccionadoId, item);
 
       mostrarAvisoSistema(
-        "Configuración incompleta",
+        "Stock desactualizado",
         (productoEsLicencia || productoEsCodigo)
-          ? "Hay diferencia entre el stock mostrado y los códigos realmente disponibles. Ya se actualizó el stock real del producto."
-          : "Hay diferencia entre el stock mostrado y las cuentas realmente disponibles. Ya se actualizó el stock real del producto.",
-        "error"
+          ? "Hay menos códigos disponibles de los que muestra el producto. Ya se sincronizó el stock real."
+          : "Hay menos cuentas disponibles de las que muestra el producto. Ya se sincronizó el stock real.",
+        "warn"
       );
       return;
     }
 
+    pasoCompra = "guardar_ordenes";
+    ordenesGeneradas = await guardarOrdenesUsuario(item, itemsDisponibles, nombreComprador, repartoVenta);
+    const ordenIds = ordenesGeneradas.map((o) => o.ordenId);
+
+    pasoCompra = "descontar_saldo";
     await descontarSaldoUsuario(uid, totalCompra);
     saldoDescontado = true;
 
-    const ordenesGeneradas = await guardarOrdenesUsuario(item, itemsDisponibles, nombreComprador);
-    const ordenIds = ordenesGeneradas.map((o) => o.ordenId);
-
+    pasoCompra = "marcar_items";
     if (!productoEsDescarga) {
       await marcarItemsVendidos(itemsDisponibles, usuarioActual, nombreComprador, ordenIds);
       itemsMarcados = true;
     }
 
+    pasoCompra = "sincronizar_stock";
     await sincronizarStockProductoConInventario(productoSeleccionadoId, item);
 
+    pasoCompra = "registrar_compra";
     const resultadoRegistro = await registrarCompraFinal(
       itemsDisponibles,
       nombreComprador,
-      ordenesGeneradas
+      ordenesGeneradas,
+      repartoVenta,
+      contextoVenta
     );
 
-    ventaRegistradaId = resultadoRegistro?.ventaId || "";
-    compraLiveRegistradaId = resultadoRegistro?.compraLiveId || "";
-    compraHoyRegistradaId = resultadoRegistro?.compraHoyId || "";
-    ventasDescargasRegistradasIds = resultadoRegistro?.ventasDescargasIds || [];
+    pasoCompra = "comision_proveedor";
+    await procesarComisionProveedorSilenciosa(resultadoRegistro, nombreComprador);
 
     cerrarModal();
     mostrarToastCompraExitosa(item.nombre || productoActual, totalCompra);
 
-    procesarComisionProveedorSilenciosa(resultadoRegistro, nombreComprador)
-      .then((res) => {
-        if (!res?.ok) {
-          console.warn("La compra salió bien, pero la comisión del proveedor quedó pendiente.");
-        }
-      })
-      .catch((e) => {
-        console.warn("Error silencioso procesando comisión proveedor:", e);
-      });
-
   } catch (error) {
-    console.error("Error al comprar:", error);
-    console.error("Mensaje:", error?.message);
-    console.error("Código:", error?.code);
-
-    if (ventaRegistradaId) {
-      try {
-        await db.ref("ventas/" + productoSeleccionadoId + "/" + ventaRegistradaId).remove();
-      } catch (e) {
-        console.error("No se pudo eliminar venta registrada:", e);
-      }
-    }
-
-    if (compraLiveRegistradaId) {
-      try {
-        await db.ref("comprasLive/" + compraLiveRegistradaId).remove();
-      } catch (e) {
-        console.error("No se pudo eliminar compraLive:", e);
-      }
-    }
-
-    if (compraHoyRegistradaId) {
-      try {
-        await db.ref("comprasHoy/" + compraHoyRegistradaId).remove();
-      } catch (e) {
-        console.error("No se pudo eliminar compraHoy:", e);
-      }
-    }
-
-    if (ventasDescargasRegistradasIds.length) {
-      for (const ventaDescargaId of ventasDescargasRegistradasIds) {
-        try {
-          await db.ref("ventasDescargas/" + ventaDescargaId).remove();
-        } catch (e) {
-          console.error("No se pudo eliminar ventaDescarga:", e);
-        }
-      }
-    }
+    console.error("Error real al comprar:", error);
+    console.error("Paso:", pasoCompra);
 
     if (itemsMarcados) {
       try {
         await revertirItemsVendidos(itemsDisponibles);
       } catch (e) {
         console.error("No se pudieron revertir los items:", e);
+      }
+    }
+
+    if (ordenesGeneradas.length && uid) {
+      try {
+        await eliminarOrdenesUsuario(uid, ordenesGeneradas);
+      } catch (e) {
+        console.error("No se pudieron eliminar órdenes revertidas:", e);
       }
     }
 
@@ -3674,7 +4211,7 @@ async function comprarAhora() {
 
     mostrarAvisoSistema(
       "Compra no completada",
-      "Ocurrió un error real al procesar la compra. El saldo fue revertido y el stock se volvió a sincronizar.",
+      "Ocurrió un error al procesar la compra en el paso: " + pasoCompra + ".",
       "error"
     );
   } finally {
@@ -3999,3 +4536,25 @@ LIMPIEZA AL SALIR DE PAGINA
 window.addEventListener("beforeunload", () => {
   limpiarListenersPagina();
 });
+
+/* =========================
+EXPORTAR FUNCIONES GLOBALES
+========================= */
+
+window.toggleMenu = toggleMenu;
+window.salir = salir;
+window.abrirTerminos = abrirTerminos;
+window.cerrarTerminos = cerrarTerminos;
+window.aceptarTerminos = aceptarTerminos;
+window.togglePassword = togglePassword;
+window.copiarYape = copiarYape;
+window.abrirYape = abrirYape;
+window.agregarCarrito = agregarCarrito;
+window.cerrarModal = cerrarModal;
+window.cambiarCantidad = cambiarCantidad;
+window.comprarAhora = comprarAhora;
+window.mostrarFormulario = mostrarFormulario;
+window.plusSlides = plusSlides;
+window.currentSlide = currentSlide;
+window.cerrarModalOfertaVigente = cerrarModalOfertaVigente;
+window.abrirProductoPorId = abrirProductoPorId;
